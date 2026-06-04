@@ -1,0 +1,69 @@
+{
+  "910001518328033301": {
+    "name": "vanthinh_11",
+    "canhGioiId": 3,
+    "exp": 60,
+    "linhThach": 61,
+    "lastTuLuyen": 1780490149442,
+    "bag": {
+      "quy_nguyen": 0,
+      "truc_co": 0,
+      "ngoc_thanh": 0,
+      "tam_ma": 0
+    },
+    "linThach": 64,
+    "pillCountToday": 0,
+    "lastLichLuyen": 1780490159351,
+    "isTrucCoActive": false,
+    "isPhaMaActive": false
+  },
+  "1352810217993404416": {
+    "name": "hazy_4610_52654",
+    "canhGioiId": 1,
+    "exp": 0,
+    "linhThach": 100,
+    "lastTuLuyen": 0,
+    "bag": {
+      "quy_nguyen": 0,
+      "truc_co": 0,
+      "ngoc_thanh": 0,
+      "tam_ma": 0
+    }
+  },
+  "1037019422918983810": {
+    "name": "dangcreeeperrrr3470",
+    "canhGioiId": 1,
+    "exp": 23,
+    "linhThach": 142,
+    "lastTuLuyen": 1780486438132,
+    "lastLichLuyen": 1780486456063,
+    "linhCan": "Thiên Linh Căn (Lôi)",
+    "lastPillTime": 0,
+    "pillCountToday": 0,
+    "bag": {
+      "quy_nguyen": 0,
+      "tu_khi": 0,
+      "truc_co_dan": 0,
+      "pha_ma_dan": 0
+    }
+  },
+  "857816288332087307": {
+    "name": "hgiang_09",
+    "canhGioiId": 1,
+    "exp": 30,
+    "linhThach": 100,
+    "lastTuLuyen": 1780591938716,
+    "lastLichLuyen": 0,
+    "linhCan": "Chân Linh Căn (Mộc-Thủy)",
+    "lastPillTime": 0,
+    "pillCountToday": 0,
+    "isTrucCoActive": false,
+    "isPhaMaActive": false,
+    "bag": {
+      "quy_nguyen": 0,
+      "tu_khi": 0,
+      "truc_co_dan": 0,
+      "pha_ma_dan": 0
+    }
+  }
+}
