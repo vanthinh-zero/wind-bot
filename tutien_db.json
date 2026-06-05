@@ -2,9 +2,9 @@
   "910001518328033301": {
     "name": "vanthinh_11",
     "canhGioiId": 3,
-    "exp": 60,
-    "linhThach": 61,
-    "lastTuLuyen": 1780490149442,
+    "exp": 78,
+    "linhThach": 121,
+    "lastTuLuyen": 1780683759593,
     "bag": {
       "quy_nguyen": 0,
       "truc_co": 0,
@@ -13,9 +13,11 @@
     },
     "linThach": 64,
     "pillCountToday": 0,
-    "lastLichLuyen": 1780490159351,
+    "lastLichLuyen": 1780683756597,
     "isTrucCoActive": false,
-    "isPhaMaActive": false
+    "isPhaMaActive": false,
+    "vanKhiId": 1,
+    "lastVanKhiTime": 1780683756597
   },
   "1352810217993404416": {
     "name": "hazy_4610_52654",

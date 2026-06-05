@@ -3,13 +3,13 @@ const express = require('express');
 const { Client, GatewayIntentBits, Events, EmbedBuilder } = require('discord.js');
 
 // =========================================================
-// IMPORT CÁC MODULES HÀM XỬ LÝ (Đã thêm module voice riêng biệt)
+// IMPORT CÁC MODULES HÀM XỬ LÝ (Đã tối ưu luồng nạp)
 // =========================================================
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
-const { handleVoiceStateUpdate } = require('./src/handlers/voice.js'); // Thần chú voice mới tách
+const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
 
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
@@ -62,52 +62,82 @@ client.on('guildMemberAdd', async (member) => {
 // 🎤 SỰ KIỆN VOICE (Gọi trực tiếp từ file handler riêng biệt)
 // =========================================================
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    await handleVoiceStateUpdate(oldState, newState);
+    try {
+        await handleVoiceStateUpdate(oldState, newState);
+    } catch (error) {
+        console.error('❌ Lỗi Voice State:', error);
+    }
 });
 
 // Xử lý Tin Nhắn Chat
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
 
-    // 1. Chạy hệ thống Quét từ cấm
-    const isMuted = await handleAutoMod(message);
-    if (isMuted) return;
+    try {
+        // 1. Chạy hệ thống Quét từ cấm
+        const isMuted = await handleAutoMod(message);
+        if (isMuted) return;
 
-    // 2. Chạy lệnh dành cho Ban Quản Trị
-    const isAdminCmd = await handleAdminCommands(message);
-    if (isAdminCmd) return;
+        // 2. Chạy lệnh dành cho Ban Quản Trị
+        const isAdminCmd = await handleAdminCommands(message);
+        if (isAdminCmd) return;
 
-    // 3. Lệnh triệu hồi giao diện Tu Tiên
-    if (message.content === '!tutien') {
-        await sendTuTienMainMenu(message);
-        return;
+        // 3. Lệnh triệu hồi giao diện Tu Tiên
+        if (message.content === '!tutien') {
+            await sendTuTienMainMenu(message);
+            return;
+        }
+
+        // 4. Lệnh đóng Bot khẩn cấp từ xa
+        if (message.content === '!stop-bot' && message.author.id === ADMIN_ID) {
+            await message.channel.send('🤖 Hệ thống đang đóng toàn bộ cổng liên kết...');
+            client.destroy();
+            process.exit(0);
+        }
+
+        // 5. Minigame nối từ Tiếng Anh
+        await handleNoiTuGame(message);
+    } catch (error) {
+        console.error('❌ Lỗi xử lý tin nhắn:', error);
     }
-
-    // 4. Lệnh đóng Bot khẩn cấp từ xa
-    if (message.content === '!stop-bot' && message.author.id === ADMIN_ID) {
-        await message.channel.send('🤖 Hệ thống đang đóng toàn bộ cổng liên kết...');
-        client.destroy();
-        process.exit(0);
-    }
-
-    // 5. Minigame nối từ Tiếng Anh
-    await handleNoiTuGame(message);
 });
 
-// Xử lý các Nút Bấm Tương Tác
+// =========================================================
+// ⚡ XỬ LÝ CÁC NÚT BẤM TƯƠNG TÁC (ĐÃ SỬA LỖI TRÙNG PHẢN HỒI)
+// =========================================================
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
+    // Phân luồng 1: Xử lý tương tác hệ thống Ticket
     if (interaction.customId.includes('ticket')) {
-        await handleTicketInteraction(interaction);
+        try {
+            await handleTicketInteraction(interaction);
+        } catch (error) {
+            console.error('❌ Lỗi Tương tác Ticket:', error);
+        }
+        return; // Đứt mạch tại đây, không cho phép lọt xuống kiểm tra Tu Tiên
     }
 
+    // Phân luồng 2: Xử lý tương tác hệ thống Tu Tiên
     if (interaction.customId.startsWith('tt_')) {
-        await handleTuTienInteraction(interaction);
+        try {
+            await handleTuTienInteraction(interaction);
+        } catch (error) {
+            console.error('❌ Lỗi Tương tác Tu Tiên:', error);
+            // Phòng hờ nếu bên trong hàm gặp lỗi mà chưa kịp phản hồi cho User
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ 
+                    content: '❌ Thiên địa chấn động, chân khí đảo lộn (Hệ thống gặp sự cố)!', 
+                    ephemeral: true 
+                }).catch(() => {});
+            }
+        }
+        return; // Đứt mạch xử lý
     }
 });
 
-process.on('unhandledRejection', (reason) => console.error('❌ Lỗi bất đồng bộ:', reason));
-process.on('uncaughtException', (err) => console.error('❌ Lỗi nghiêm trọng:', err));
+// Chống crash bot khi gặp lỗi bất ngờ từ các thư viện ngoài
+process.on('unhandledRejection', (reason) => console.error('❌ Lỗi bất đồng bộ toàn cục:', reason));
+process.on('uncaughtException', (err) => console.error('❌ Lỗi nghiêm trọng toàn cục:', err));
 
 client.login(TOKEN);
