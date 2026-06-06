@@ -10,6 +10,8 @@ const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
+// 💡 ĐÃ TÍCH HỢP CẢ 2 HÀM (HÀM XỬ LÝ NÚT VÀ HÀM XỬ LÝ MÔ HÌNH NHẬP LIỆU)
+const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
 
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
@@ -30,7 +32,7 @@ const client = new Client({
 });
 
 // Lấy các biến môi trường từ file .env
-const { TOKEN, WELCOME_CHANNEL_ID, RULES_CHANNEL_ID, TICKET_CHANNEL_ID, START_ROLE_ID, ADMIN_ID } = process.env;
+const { TOKEN, WELCOME_CHANNEL_ID, RULES_CHANNEL_ID, TICKET_CHANNEL_ID, START_ROLE_ID, ADMIN_ID, VOICE_CREATOR_CHANNEL_ID } = process.env;
 
 // Sự kiện khi Bot kích hoạt thành công
 client.once(Events.ClientReady, (readyClient) => {
@@ -103,36 +105,66 @@ client.on('messageCreate', async (message) => {
 });
 
 // =========================================================
-// ⚡ XỬ LÝ CÁC NÚT BẤM TƯƠNG TÁC (ĐÃ SỬA LỖI TRÙNG PHẢN HỒI)
+// ⚡ HỆ THỐNG XỬ LÝ TƯƠNG TÁC (ĐÃ TÁCH BIỆT BUTTON & MODAL)
 // =========================================================
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isButton()) return;
-
-    // Phân luồng 1: Xử lý tương tác hệ thống Ticket
-    if (interaction.customId.includes('ticket')) {
-        try {
-            await handleTicketInteraction(interaction);
-        } catch (error) {
-            console.error('❌ Lỗi Tương tác Ticket:', error);
+    
+    // -----------------------------------------------------
+    // 🔘 LUỒNG 1: XỬ LÝ CÁC NÚT BẤM (IS BUTTON)
+    // -----------------------------------------------------
+    if (interaction.isButton()) {
+        
+        // Phân luồng 1.1: Tương tác hệ thống Ticket
+        if (interaction.customId.includes('ticket')) {
+            try {
+                await handleTicketInteraction(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi Tương tác Ticket:', error);
+            }
+            return; 
         }
-        return; // Đứt mạch tại đây, không cho phép lọt xuống kiểm tra Tu Tiên
+
+        // Phân luồng 1.2: Tương tác hệ thống Tu Tiên
+        if (interaction.customId.startsWith('tt_')) {
+            try {
+                await handleTuTienInteraction(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi Tương tác Tu Tiên:', error);
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.reply({ 
+                        content: '❌ Thiên địa chấn động, chân khí đảo lộn (Hệ thống gặp sự cố)!', 
+                        ephemeral: true 
+                    }).catch(() => {});
+                }
+            }
+            return; 
+        }
+
+        // Phân luồng 1.3: Tương tác Menu Voice điều khiển (vm_)
+        if (interaction.customId.startsWith('vm_')) {
+            try {
+                await handleVoiceMenuInteraction(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi Tương tác Nút Voice:', error);
+            }
+            return;
+        }
     }
 
-    // Phân luồng 2: Xử lý tương tác hệ thống Tu Tiên
-    if (interaction.customId.startsWith('tt_')) {
-        try {
-            await handleTuTienInteraction(interaction);
-        } catch (error) {
-            console.error('❌ Lỗi Tương tác Tu Tiên:', error);
-            // Phòng hờ nếu bên trong hàm gặp lỗi mà chưa kịp phản hồi cho User
-            if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({ 
-                    content: '❌ Thiên địa chấn động, chân khí đảo lộn (Hệ thống gặp sự cố)!', 
-                    ephemeral: true 
-                }).catch(() => {});
+    // -----------------------------------------------------
+    // 📝 LUỒNG 2: XỬ LÝ BẢNG POPUP NHẬP LIỆU (IS MODAL SUBMIT)
+    // -----------------------------------------------------
+    if (interaction.isModalSubmit()) {
+        
+        // Đón nhận dữ liệu từ bảng Đổi Tên / Giới Hạn Người (vmm_)
+        if (interaction.customId.startsWith('vmm_')) {
+            try {
+                await handleVoiceModalSubmit(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi xử lý bảng nhập liệu Voice:', error);
             }
+            return;
         }
-        return; // Đứt mạch xử lý
     }
 });
 
