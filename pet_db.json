@@ -1,0 +1,16 @@
+{
+    "910001518328033301": {
+        "hasPet": true,
+        "name": "Tiểu Linh Thú (Hỏa Kỳ Lân)",
+        "level": 1,
+        "exp": 0,
+        "food": 99
+    },
+    "1480876805937430571": {
+        "hasPet": true,
+        "name": "Tiểu Linh Thú (Hắc Ám Ma Lang)",
+        "level": 5,
+        "exp": 80,
+        "food": 100
+    }
+}

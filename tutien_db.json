@@ -2,9 +2,9 @@
   "910001518328033301": {
     "name": "vanthinh_11",
     "canhGioiId": 3,
-    "exp": 78,
-    "linhThach": 121,
-    "lastTuLuyen": 1780683759593,
+    "exp": 257,
+    "linhThach": 557,
+    "lastTuLuyen": 1780925042909,
     "bag": {
       "quy_nguyen": 0,
       "truc_co": 0,
@@ -13,30 +13,47 @@
     },
     "linThach": 64,
     "pillCountToday": 0,
-    "lastLichLuyen": 1780683756597,
+    "lastLichLuyen": 1780929637158,
     "isTrucCoActive": false,
     "isPhaMaActive": false,
-    "vanKhiId": 1,
-    "lastVanKhiTime": 1780683756597
+    "vanKhiId": 2,
+    "lastVanKhiTime": 1781019470712,
+    "lastBossAttack": 1780911999971,
+    "lastCuopTime": 1780925227411,
+    "phai": "chinh",
+    "lastLichLuyenTime": 1780930195446,
+    "lastSongTuTime": 1780976990054,
+    "lastBossTime": 1781019470712
   },
   "1352810217993404416": {
     "name": "hazy_4610_52654",
     "canhGioiId": 1,
-    "exp": 0,
-    "linhThach": 100,
+    "exp": 166,
+    "linhThach": 661,
     "lastTuLuyen": 0,
     "bag": {
       "quy_nguyen": 0,
       "truc_co": 0,
       "ngoc_thanh": 0,
       "tam_ma": 0
-    }
+    },
+    "isTrucCoActive": false,
+    "isPhaMaActive": false,
+    "phai": "chinh",
+    "vanKhiId": 3,
+    "lastVanKhiTime": 1781063091527,
+    "pillCountToday": 0,
+    "lastTuLuyenTime": 1780976491074,
+    "lastLichLuyenTime": 1780976494527,
+    "lastBossTime": 1780976786078,
+    "lastCuopTime": 1781075418587,
+    "lastSongTuTime": 1780976990054
   },
   "1037019422918983810": {
     "name": "dangcreeeperrrr3470",
     "canhGioiId": 1,
     "exp": 23,
-    "linhThach": 142,
+    "linhThach": 175,
     "lastTuLuyen": 1780486438132,
     "lastLichLuyen": 1780486456063,
     "linhCan": "Thiên Linh Căn (Lôi)",
@@ -47,7 +64,13 @@
       "tu_khi": 0,
       "truc_co_dan": 0,
       "pha_ma_dan": 0
-    }
+    },
+    "isTrucCoActive": false,
+    "isPhaMaActive": false,
+    "phai": "chinh",
+    "vanKhiId": 1,
+    "lastVanKhiTime": 1780925215049,
+    "lastCuopTime": 1780925215049
   },
   "857816288332087307": {
     "name": "hgiang_09",
@@ -67,5 +90,31 @@
       "truc_co_dan": 0,
       "pha_ma_dan": 0
     }
+  },
+  "1480876805937430571": {
+    "name": "chimcutnuongg.",
+    "canhGioiId": 1,
+    "exp": 22,
+    "linhThach": 3213,
+    "lastTuLuyen": 0,
+    "lastLichLuyen": 0,
+    "linhCan": "Thiên Linh Căn (Lôi)",
+    "lastPillTime": 0,
+    "pillCountToday": 0,
+    "isTrucCoActive": false,
+    "isPhaMaActive": false,
+    "bag": {
+      "quy_nguyen": 0,
+      "tu_khi": 0,
+      "truc_co_dan": 0,
+      "pha_ma_dan": 0
+    },
+    "phai": "chinh",
+    "vanKhiId": 0,
+    "lastVanKhiTime": 1781017901138,
+    "lastCuopTime": 1781091879194,
+    "lastBossTime": 1781092464059,
+    "lastLichLuyenTime": 1781050314870,
+    "lastTuLuyenTime": 1781071335520
   }
 }

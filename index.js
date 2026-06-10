@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client, GatewayIntentBits, Events, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Events } = require('discord.js');
 
 // =========================================================
 // IMPORT CÁC MODULES HÀM XỬ LÝ (Đã tối ưu luồng nạp)
@@ -10,8 +10,14 @@ const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
-// 💡 ĐÃ TÍCH HỢP CẢ 2 HÀM (HÀM XỬ LÝ NÚT VÀ HÀM XỬ LÝ MÔ HÌNH NHẬP LIỆU)
 const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
+
+// CÁC HANDLER KINH TẾ - GIẢI TRÍ - ĐỜI SỐNG - CHỮA LÀNH
+const { handleWelcomeMember } = require('./src/handlers/welcome.js');
+const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
+const { handlePetSystem } = require('./src/handlers/pet.js'); 
+const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); // 📖 Hệ thống Thơ ca & Tâm sự Chữa lành
+const { handleAvatarCheck } = require('./src/handlers/avatar.js'); // 🖼️ Hệ thống Soi Avatar chuyên biệt
 
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
@@ -32,32 +38,28 @@ const client = new Client({
 });
 
 // Lấy các biến môi trường từ file .env
-const { TOKEN, WELCOME_CHANNEL_ID, RULES_CHANNEL_ID, TICKET_CHANNEL_ID, START_ROLE_ID, ADMIN_ID, VOICE_CREATOR_CHANNEL_ID } = process.env;
+const { TOKEN, ADMIN_ID, KENH_TAI_XIU, KENH_NUOI_PET, KENH_LOG_AUTOMOD, KENH_NGAM_THO, KENH_CHECK_AVATAR } = process.env;
 
 // Sự kiện khi Bot kích hoạt thành công
 client.once(Events.ClientReady, (readyClient) => {
     console.log('==================================================');
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
+    console.log(`🎰 Kênh Tài Xỉu: ${KENH_TAI_XIU || 'Chưa cấu hình'}`);
+    console.log(`🐾 Kênh Nuôi Pet: ${KENH_NUOI_PET || 'Chưa cấu hình'}`);
+    console.log(`🚨 Kênh Log AutoMod: ${KENH_LOG_AUTOMOD || 'Chưa cấu hình'}`);
+    console.log(`📖 Kênh Ngâm Thơ & Chữa Lành: ${KENH_NGAM_THO || 'Chưa cấu hình'}`);
+    console.log(`🖼️ Kênh Check Avatar: ${KENH_CHECK_AVATAR || 'Chưa cấu hình'}`);
     console.log('==================================================');
+
+    // Kích hoạt luồng chạy ngầm tự động ngâm thơ ngẫu nhiên theo giờ giấc
+    startAutoPoem(readyClient);
 });
 
-// Sự kiện chào mừng thành viên mới gia nhập Server
+// =========================================================
+// 👋 SỰ KIỆN CHÀO MỪNG THÀNH VIÊN MỚI GIA NHẬP SERVER
+// =========================================================
 client.on('guildMemberAdd', async (member) => {
-    if (START_ROLE_ID) {
-        const role = member.guild.roles.cache.get(START_ROLE_ID);
-        if (role) await member.roles.add(role).catch(() => {});
-    }
-
-    const wlChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-    if (!wlChannel) return;
-
-    const embed = new EmbedBuilder()
-        .setColor('#0099ff')
-        .setTitle(`🎉 CHÀO MỪNG ĐẠO HỮU MỚI! 🎉`)
-        .setDescription(`Chào mừng ${member} đã nhập môn thành công!\n\n📌 Lên hương nghe giảng luật tại: <#${RULES_CHANNEL_ID}>\n🎫 Cần trưởng lão hỗ trợ bấm tại: <#${TICKET_CHANNEL_ID}>`)
-        .setTimestamp();
-        
-    await wlChannel.send({ embeds: [embed] }).catch(() => {});
+    await handleWelcomeMember(member);
 });
 
 // =========================================================
@@ -71,12 +73,14 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
 });
 
-// Xử lý Tin Nhắn Chat
+// =========================================================
+// 💬 XỬ LÝ TIN NHẮN CHAT (MESSAGE CREATE)
+// =========================================================
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
 
     try {
-        // 1. Chạy hệ thống Quét từ cấm
+        // 1. Chạy hệ thống Quét từ cấm & link bẩn (Sẽ log về KENH_LOG_AUTOMOD nếu vi phạm)
         const isMuted = await handleAutoMod(message);
         if (isMuted) return;
 
@@ -97,15 +101,30 @@ client.on('messageCreate', async (message) => {
             process.exit(0);
         }
 
-        // 5. Minigame nối từ Tiếng Anh
+        // 📖 5. Hệ thống gọi thơ thủ công và các mật lệnh tâm sự (!poem, !tôi buồn, !tôi muốn được yêu, !triết lí, !mệt)
+        const isPoemSystem = await handlePoemCommand(message);
+        if (isPoemSystem) return;
+
+        // 🖼️ 6. Hệ thống Check Avatar theo yêu cầu (Chỉ chạy tại KENH_CHECK_AVATAR)
+        const isAvatarCmd = await handleAvatarCheck(message);
+        if (isAvatarCmd) return;
+
+        // 7. Minigame nối từ Tiếng Anh
         await handleNoiTuGame(message);
+
+        // 🎰 8. Minigame Tài Xỉu Thử Vận May (Có Lưu Trữ Ví Tiền)
+        await handleTaiXiuGame(message);
+
+        // 🐾 9. Minigame nuôi Linh thú (Pet chỉ chạy tại KENH_NUOI_PET)
+        await handlePetSystem(message);
+
     } catch (error) {
         console.error('❌ Lỗi xử lý tin nhắn:', error);
     }
 });
 
 // =========================================================
-// ⚡ HỆ THỐNG XỬ LÝ TƯƠNG TÁC (ĐÃ TÁCH BIỆT BUTTON & MODAL)
+// ⚡ HỆ THỐNG XỬ LÝ TƯƠNG TÁC (BUTTON & MODAL INTERACTION)
 // =========================================================
 client.on('interactionCreate', async (interaction) => {
     
