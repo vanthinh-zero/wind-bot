@@ -104,10 +104,10 @@
     "isTrucCoActive": false,
     "isPhaMaActive": false,
     "bag": {
-      "quy_nguyen": 0,
-      "tu_khi": 0,
-      "truc_co_dan": 0,
-      "pha_ma_dan": 0
+      "quy_nguyen": 30,
+      "tu_khi": 30,
+      "truc_co_dan": 30,
+      "pha_ma_dan": 30
     },
     "phai": "chinh",
     "vanKhiId": 0,
