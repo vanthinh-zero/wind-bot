@@ -1,3 +1,4 @@
+// Thêm MessageFlags vào require để sửa dứt điểm cảnh báo trong terminal
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { CANH_GIOI_LIST, LINH_CAN_TYPES, DAN_DUOC_SHOP } = require('../config/tutien_config');
 const { getTuSi, saveTuTienData } = require('../utils/database');
@@ -57,7 +58,6 @@ async function handleTuTienInteraction(interaction) {
 
     const userId = interaction.user.id;
     
-    // KHÓA CHIẾN THUẬT: Chặn đứng tình trạng spam click gây lỗi trùng lặp trạng thái
     if (processingUsers.has(userId)) {
         return interaction.reply({ content: '⏳ Đạo tâm bất định! Thao tác quá nhanh, hãy tịnh tâm một chút.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
@@ -66,7 +66,7 @@ async function handleTuTienInteraction(interaction) {
     const customId = interaction.customId;
 
     try {
-        // LUỒNG 1: Xử lý nút bấm quyết định biến cố lịch luyện / cơ duyên
+        // LUỒNG 1: Biến cố lịch luyện
         if (customId.startsWith('tt_ll_') || customId.startsWith('tt_coyeu_')) {
             if (!interaction.deferred && !interaction.replied) {
                 await interaction.deferUpdate().catch(() => {});
@@ -79,13 +79,13 @@ async function handleTuTienInteraction(interaction) {
             }
         }
 
-        // LUỒNG 2: Xử lý nút bấm Song Tu Đại Pháp (Sử dụng kênh phản hồi công khai riêng)
+        // LUỒNG 2: Song Tu
         if (customId === 'tt_songtu') {
             const tuSi = getTuSi(userId, interaction.user.username);
             return await handleSongTu(interaction, tuSi, Date.now());
         }
 
-        // LUỒNG 3: Các chức năng chính từ Đại Sảnh (Cần bảo vệ deferReply triệt để)
+        // LUỒNG 3: Các chức năng chính
         if (!interaction.deferred && !interaction.replied) {
             try {
                 await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
@@ -98,7 +98,7 @@ async function handleTuTienInteraction(interaction) {
         }
 
         const tuSi = getTuSi(userId, interaction.user.username);
-        tuSi.bag = tuSi.bag || {}; 
+        tuSi.bag = (tuSi.bag && typeof tuSi.bag === 'object') ? tuSi.bag : {}; 
         tuSi.phai = tuSi.phai || 'chinh'; 
 
         const hienTai = CANH_GIOI_LIST.find(cg => cg.id === tuSi.canhGioiId) || CANH_GIOI_LIST[0];
@@ -113,6 +113,7 @@ async function handleTuTienInteraction(interaction) {
         
         const vanKhi = VAN_KHI_LIST[tuSi.vanKhiId || 2];
 
+        // RẼ NHÁNH XỬ LÝ CHỨC NĂNG
         if (customId === 'tt_profile') {
             return await handleProfile(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi);
         } else if (customId === 'tt_tuluyen') {
@@ -120,7 +121,14 @@ async function handleTuTienInteraction(interaction) {
         } else if (customId === 'tt_lichluyen') {
             return await handleLichLuyen(interaction, tuSi, vanKhi, bayGio);
         } else if (customId === 'tt_shop') {
-            return await handleShop(interaction, tuSi);
+            // BAO BỌC CÔ LẬP RIÊNG BIỆT NÚT ĐAN CÁC - CHỐNG TẮC NGHẼN CACHE DISCORD
+            console.log(`[TuTien] Người dùng ${interaction.user.username} kích hoạt Đan Các.`);
+            try {
+                return await handleShop(interaction, tuSi);
+            } catch (shopErr) {
+                console.error('[TuTien] Lỗi phát sinh trong hàm handleShop:', shopErr);
+                return await interaction.editReply({ content: `❌ Trận pháp Đan Các bị nghẽn! Lỗi ngầm: \`${shopErr.message}\`` }).catch(() => {});
+            }
         } else if (customId === 'tt_dotpha') {
             return await handleDotPha(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi);
         } else if (customId === 'tt_cuoppha') {
@@ -134,9 +142,9 @@ async function handleTuTienInteraction(interaction) {
         }
 
     } catch (error) {
-        console.error('Lỗi hệ thống Tu Tiên:', error);
+        console.error('Lỗi hệ thống Tu Tiên tổng quát:', error);
         if (interaction.deferred || interaction.replied) {
-            await interaction.editReply({ content: '❌ Linh khí nghịch chuyển! Trận pháp đang tự động hồi phục, vui lòng thử lại.' }).catch(() => {});
+            await interaction.editReply({ content: `❌ Linh khí nghịch chuyển! Lỗi hệ thống: \`${error.message}\`` }).catch(() => {});
         }
     } finally {
         processingUsers.delete(userId);
@@ -158,9 +166,10 @@ async function handleProfile(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi)
         );
 
     let tuiDo = '';
+    let danhSachDan = Array.isArray(DAN_DUOC_SHOP) ? DAN_DUOC_SHOP : Object.entries(DAN_DUOC_SHOP).map(([key, value]) => ({ id: key, ...value }));
     for (const [key, val] of Object.entries(tuSi.bag)) {
         if (val > 0) {
-            const item = DAN_DUOC_SHOP.find(p => p.id === key);
+            const item = danhSachDan.find(p => p.id === key);
             if (item) tuiDo += `• 💊 **${item.name}**: ${val} viên\n`;
         }
     }
@@ -175,7 +184,7 @@ async function handleTuLuyen(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi,
         return await interaction.editReply({ content: `⚡ Tu vi đã đạt đỉnh kích **${getCanhGioiName(tuSi, hienTai)}**! Hãy tích lũy Linh Thạch và ấn **Đột Phá Thiên Kiếp**.` }).catch(() => {});
     }
 
-    const cooldown = 60 * 1000; 
+    const cooldown = 10 * 1000; 
     if (tuSi.lastTuLuyenTime && bayGio - tuSi.lastTuLuyenTime < cooldown) {
         const conLai = Math.ceil((cooldown - (bayGio - tuSi.lastTuLuyenTime)) / 1000);
         return await interaction.editReply({ content: `🧘 Đạo hữu đang trong trạng thái bế quan điều khí. Hãy đợi sau ${conLai} giây nữa.` }).catch(() => {});
@@ -193,7 +202,7 @@ async function handleTuLuyen(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi,
 
 // ─── 3. XỬ LÝ LỊCH LUYỆN ───
 async function handleLichLuyen(interaction, tuSi, vanKhi, bayGio) {
-    const cooldown = 5 * 60 * 1000; 
+    const cooldown = 60 * 1000; 
     if (tuSi.lastLichLuyenTime && bayGio - tuSi.lastLichLuyenTime < cooldown) {
         const conLai = Math.ceil((cooldown - (bayGio - tuSi.lastLichLuyenTime)) / 1000);
         return await interaction.editReply({ content: `🧭 Đạo hữu vừa mới viễn du trở về, nguyên thần còn mệt mỏi. Cần nghỉ ngơi thêm ${conLai} giây.` }).catch(() => {});
@@ -202,7 +211,6 @@ async function handleLichLuyen(interaction, tuSi, vanKhi, bayGio) {
     tuSi.lastLichLuyenTime = bayGio;
     const xucXac = Math.random() * 100;
 
-    // 25% Gặp Tâm Ma Biến Cố
     if (xucXac < 25) {
         saveTuTienData();
         const embed = new EmbedBuilder()
@@ -218,7 +226,6 @@ async function handleLichLuyen(interaction, tuSi, vanKhi, bayGio) {
         return await interaction.editReply({ embeds: [embed], components: [row] }).catch(() => {});
     }
 
-    // Thắng lợi lịch luyện bình thường
     const linhThachNhan = Math.floor(Math.random() * 31) + 20; 
     tuSi.linhThach += linhThachNhan;
     saveTuTienData();
@@ -226,7 +233,6 @@ async function handleLichLuyen(interaction, tuSi, vanKhi, bayGio) {
     return await interaction.editReply({ content: `🧭 Đạo hữu xuất ngoại phiêu bạt, tiến vào di tích thượng cổ nhặt được một túi linh thạch vô chủ, nhận được **${linhThachNhan}** Linh Thạch!` }).catch(() => {});
 }
 
-// Quyết định biến cố Lịch Luyện
 async function handleLichLuyenDecision(interaction, tuSi) {
     const customId = interaction.customId;
     let thongBao = '';
@@ -244,91 +250,156 @@ async function handleLichLuyenDecision(interaction, tuSi) {
     return await interaction.editReply({ content: thongBao, embeds: [], components: [] }).catch(() => {});
 }
 
-// ─── 4. XỬ LÝ ĐAN CÁC / SHOP ───
+// ─── 4. XỬ LÝ ĐAN CÁC (BẢN TỰ ĐỘNG ĐỒNG BỘ MỌI ĐỊNH DẠNG CONFIG) ───
 async function handleShop(interaction, tuSi) {
+    let danhSachDan = [];
+    
+    // Tự động phân tích, bẻ gãy cấu trúc Object từ file config cũ của bạn biến thành mảng hợp lệ
+    if (Array.isArray(DAN_DUOC_SHOP)) {
+        danhSachDan = DAN_DUOC_SHOP;
+    } else if (DAN_DUOC_SHOP && typeof DAN_DUOC_SHOP === 'object') {
+        danhSachDan = Object.entries(DAN_DUOC_SHOP).map(([key, value]) => {
+            return { id: key, ...value };
+        });
+    }
+
+    if (!danhSachDan || danhSachDan.length === 0) {
+        return await interaction.editReply({ content: '❌ Thất bại! Hệ thống không đọc được danh sách vật phẩm trong `DAN_DUOC_SHOP`.' });
+    }
+
+    // Bảo vệ tuyệt đối biến bag không bị lỗi undefined
+    if (!tuSi.bag || typeof tuSi.bag !== 'object' || Array.isArray(tuSi.bag)) {
+        tuSi.bag = {};
+    }
+
     const embed = new EmbedBuilder()
         .setTitle('🏪 TIÊN PHỦ ĐAN CÁC')
-        .setDescription(`Nơi bán các loại thần đan trợ lực tu luyện. Linh thạch của bạn: **${tuSi.linhThach}** viên.\n*Mỗi ngày chỉ được cắn tối đa 3 viên đan.*`)
+        .setDescription(`Nơi phân phối các loại thần đan tiến cấp.\n💎 Linh thạch của bạn: **${tuSi.linhThach || 0}** viên.\n*Giới hạn cắn thuốc: Tối đa 3 viên/ngày.*`)
         .setColor('#f1c40f');
 
-    const row = new ActionRowBuilder();
-    DAN_DUOC_SHOP.forEach(p => {
-        embed.addFields({ name: `💊 ${p.name}`, value: `Giá: ${p.price} Linh Thạch | Hiệu quả: ${p.desc}` });
-        row.addComponents(
+    const components = [];
+    let buyRow = new ActionRowBuilder();
+    
+    // Dựng giao diện mua đan
+    danhSachDan.forEach((p) => {
+        embed.addFields({ name: `💊 ${p.name}`, value: `Giá: **${p.price}** Linh Thạch\n*${p.desc}*` });
+        
+        if (buyRow.components.length >= 5) {
+            components.push(buyRow);
+            buyRow = new ActionRowBuilder();
+        }
+        buyRow.addComponents(
             new ButtonBuilder().setCustomId(`tt_buy_${p.id}`).setLabel(`Mua ${p.name}`).setStyle(ButtonStyle.Primary)
         );
     });
+    if (buyRow.components.length > 0) components.push(buyRow);
 
-    const rowUse = new ActionRowBuilder();
+    // Dựng nút cắn đan dựa trên số lượng đan thực tế có trong túi đồ
+    let useRow = new ActionRowBuilder();
     let hasPill = false;
-    DAN_DUOC_SHOP.forEach(p => {
-        if (tuSi.bag[p.id] > 0) {
+    
+    danhSachDan.forEach((p) => {
+        const soLuong = tuSi.bag[p.id] || 0;
+        if (soLuong > 0) {
             hasPill = true;
-            rowUse.addComponents(
-                new ButtonBuilder().setCustomId(`tt_use_${p.id}`).setLabel(`Cắn ${p.name} (${tuSi.bag[p.id]})`).setStyle(ButtonStyle.Success)
+            if (useRow.components.length >= 5) {
+                components.push(useRow);
+                useRow = new ActionRowBuilder();
+            }
+            useRow.addComponents(
+                new ButtonBuilder().setCustomId(`tt_use_${p.id}`).setLabel(`Nuốt ${p.name} (${soLuong})`).setStyle(ButtonStyle.Success)
             );
         }
     });
+    if (hasPill && useRow.components.length > 0) components.push(useRow);
 
-    const components = hasPill ? [row, rowUse] : [row];
     return await interaction.editReply({ embeds: [embed], components }).catch(() => {});
 }
 
 async function handleBuyPill(interaction, tuSi, customId) {
-    const pillId = customId.replace('tt_buy_', '');
-    const pill = DAN_DUOC_SHOP.find(p => p.id === pillId);
+    try {
+        const pillId = customId.replace('tt_buy_', '');
+        let danhSachDan = Array.isArray(DAN_DUOC_SHOP) ? DAN_DUOC_SHOP : Object.entries(DAN_DUOC_SHOP).map(([key, value]) => ({ id: key, ...value }));
+        const pill = danhSachDan.find(p => p.id === pillId);
 
-    if (!pill) return await interaction.editReply({ content: '❌ Thần đan này không tồn tại.' }).catch(() => {});
-    if (tuSi.linhThach < pill.price) return await interaction.editReply({ content: '❌ Linh thạch không đủ để giao dịch!' }).catch(() => {});
+        if (!pill) return await interaction.editReply({ content: '❌ Thần đan không tồn tại trong tông môn!' });
+        if ((tuSi.linhThach || 0) < pill.price) return await interaction.editReply({ content: `❌ Đạo hữu không đủ linh thạch! Thiếu ${pill.price - tuSi.linhThach} viên.` });
 
-    tuSi.linhThach -= pill.price;
-    tuSi.bag[pillId] = (tuSi.bag[pillId] || 0) + 1;
-    saveTuTienData();
-
-    return await interaction.editReply({ content: `✅ Mua thành công 1 viên **${pill.name}**! Đan dược đã chuyển vào túi càn khôn.` }).catch(() => {});
+        if (!tuSi.bag) tuSi.bag = {};
+        
+        tuSi.linhThach -= pill.price;
+        tuSi.bag[pillId] = (tuSi.bag[pillId] || 0) + 1;
+        
+        saveTuTienData();
+        return await interaction.editReply({ content: `✅ Mua thành công! Đạo hữu tốn **${pill.price}** Linh thạch rước về 1 viên **${pill.name}**.` });
+    } catch (error) {
+        console.error('Lỗi Mua Đan:', error);
+        return await interaction.editReply({ content: `❌ Thao tác mua lỗi: \`${error.message}\`` });
+    }
 }
 
 async function handleUsePill(interaction, tuSi, hienTai, bayGio) {
-    const pillId = interaction.customId.replace('tt_use_', '');
-    const pill = DAN_DUOC_SHOP.find(p => p.id === pillId);
+    try {
+        const pillId = interaction.customId.replace('tt_use_', '');
+        let danhSachDan = Array.isArray(DAN_DUOC_SHOP) ? DAN_DUOC_SHOP : Object.entries(DAN_DUOC_SHOP).map(([key, value]) => ({ id: key, ...value }));
+        const pill = danhSachDan.find(p => p.id === pillId);
 
-    if (!pill || !tuSi.bag[pillId] || tuSi.bag[pillId] <= 0) {
-        return await interaction.editReply({ content: '❌ Bạn không có viên đan dược này trong túi!' }).catch(() => {});
+        if (!pill || !tuSi.bag || !tuSi.bag[pillId] || tuSi.bag[pillId] <= 0) {
+            return await interaction.editReply({ content: '❌ Khám xét túi càn khôn không thấy viên đan dược này!' });
+        }
+
+        tuSi.pillCountToday = tuSi.pillCountToday || 0;
+        if (tuSi.pillCountToday >= 3) {
+            return await interaction.editReply({ content: '❌ Phản phệ! Đạo tâm quá tải do dùng quá 3 viên đan dược ngày hôm nay.' });
+        }
+
+        // KIỂM TRA ĐIỀU KIỆN CẢNH GIỚI TRÊN FILE CẤU HÌNH CỦA BẠN
+        const currentLevelId = hienTai.id || 1;
+        if (pill.reqMaxId && currentLevelId > pill.reqMaxId) {
+            return await interaction.editReply({ content: `❌ Cảnh giới quá cao! Dược lực thấp kém của **${pill.name}** không có tác dụng với đạo hữu.` });
+        }
+        if (pill.reqMinId && currentLevelId < pill.reqMinId) {
+            return await interaction.editReply({ content: `❌ Cảnh giới quá thấp! Thân thể không chịu nổi dược lực mạnh mẽ của **${pill.name}**.` });
+        }
+
+        tuSi.bag[pillId]--;
+        tuSi.pillCountToday++;
+
+        let thongBaoKetQua = `💊 Bạn nuốt xuống một viên **${pill.name}**, `;
+
+        // PHÂN LOẠI HIỆU QUẢ DỰA TRÊN TYPE CỦA CONFIG
+        if (pill.type === 'exp') {
+            tuSi.exp += pill.value;
+            thongBaoKetQua += `linh khí bùng nổ trong đan điền, tăng **+${pill.value} EXP** tu vi!`;
+        } else if (pill.type === 'rate') {
+            tuSi.hasRateBuff = true; 
+            thongBaoKetQua += `đầu óc thanh minh, tăng **+${pill.value}% tỷ lệ thành công** cho lần lôi kiếp tới!`;
+        } else if (pill.type === 'protect') {
+            tuSi.hasProtectBuff = true; 
+            thongBaoKetQua += `linh lực ngưng tụ hộ tâm giáp, bảo vệ đạo hữu **không lo rớt cấp** khi đột phá thất bại!`;
+        }
+
+        saveTuTienData();
+        return await interaction.editReply({ content: thongBaoKetQua });
+    } catch (error) {
+        console.error('Lỗi Nuốt Đan:', error);
+        return await interaction.editReply({ content: `❌ Lỗi nuốt đan dược: \`${error.message}\`` });
     }
-
-    tuSi.pillCountToday = tuSi.pillCountToday || 0;
-    if (tuSi.pillCountToday >= 3) {
-        return await interaction.editReply({ content: '❌ Đan độc tích tụ! Cơ thể đã đạt giới hạn hấp thu đan dược hôm nay (Tối đa 3 viên/ngày).' }).catch(() => {});
-    }
-
-    tuSi.bag[pillId]--;
-    tuSi.pillCountToday++;
-
-    let bonusText = '';
-    if (pill.id === 'exp_pill') {
-        const bonus = Math.floor(Math.random() * 51) + 100; 
-        tuSi.exp += bonus;
-        bonusText = `gia tăng **${bonus} Tu Vi**!`;
-    } else if (pill.id === 'rate_pill') {
-        tuSi.hasRateBuff = true; 
-        bonusText = 'tăng thêm **15% tỷ lệ thành công** cho lần Đột Phá kế tiếp!';
-    }
-
-    saveTuTienData();
-    return await interaction.editReply({ content: `💊 Bạn nuốt vào một viên **${pill.name}**, dược lực bùng nổ ${bonusText}` }).catch(() => {});
 }
 
 // ─── 5. XỬ LÝ ĐỘT PHÁ ───
 async function handleDotPha(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi) {
     if (hienTai.maxExp === -1) return await interaction.editReply({ content: '⚡ Đạo hữu đã đứng tại đỉnh phong của thế giới này, không thể đột phá thêm!' }).catch(() => {});
     if (tuSi.exp < hienTai.maxExp) return await interaction.editReply({ content: `❌ Chưa tích lũy đủ tu vi để dẫn động thiên kiếp (Cần đạt ${tuSi.exp}/${hienTai.maxExp}).` }).catch(() => {});
-    if (tuSi.linhThach < hienTai.cost) return await interaction.editReply({ content: `❌ Không đủ Linh Thạch xây dựng hộ thể trận pháp (Cần ${hienTai.cost} Linh Thạch).` }).catch(() => {});
+    
+    const dongTienTon = hienTai.cost || 0;
+    if (tuSi.linhThach < dongTienTon) return await interaction.editReply({ content: `❌ Không đủ Linh Thạch xây dựng hộ thể trận pháp (Cần ${dongTienTon} Linh Thạch).` }).catch(() => {});
 
-    tuSi.linhThach -= hienTai.cost;
+    tuSi.linhThach -= dongTienTon;
     
     let tileThanhCong = hienTai.baseRate + vanKhi.rateMod;
     if (tuSi.hasRateBuff) {
-        tileThanhCong += 15;
+        tileThanhCong += 20; // Đồng bộ cộng 20% theo file config Trúc Cơ Bảo Đan của bạn
         tuSi.hasRateBuff = false; 
     }
 
@@ -339,21 +410,40 @@ async function handleDotPha(interaction, tuSi, hienTai, linhCanCauHinh, vanKhi) 
 
         tuSi.canhGioiId = tiepTheo.id;
         tuSi.exp = 0; 
+        tuSi.hasProtectBuff = false; 
         saveTuTienData();
 
         return await interaction.editReply({ content: `🎉 **THIÊN KIẾP ĐẠI THÀNH!** Đạo hữu nghênh chiến lôi kiếp vạn trượng thành công, tiến cấp vào cảnh giới: **${getCanhGioiName(tuSi, tiepTheo)}**! Tỷ lệ thành công: ${tileThanhCong.toFixed(1)}%` }).catch(() => {});
     } else {
-        const phatExp = Math.floor(tuSi.exp * 0.3);
-        tuSi.exp = Math.max(0, tuSi.exp - phatExp);
+        let thongBaoXui = '';
+        
+        if (tuSi.hasProtectBuff) {
+            tuSi.hasProtectBuff = false; 
+            const phatExp = Math.floor(tuSi.exp * 0.15); 
+            tuSi.exp = Math.max(0, tuSi.exp - phatExp);
+            thongBaoXui = `⚡ **ĐỘT PHÁ THẤT BẠI!** Thiên lôi đánh tan hộ thể trận pháp, tổn hao **${phatExp} EXP**. May mắn nhờ có dược lực **Phá Ma Đan** bảo mạng, đạo hữu **không bị rớt cảnh giới**!`;
+        } else {
+            const phatExp = Math.floor(tuSi.exp * 0.3);
+            tuSi.exp = Math.max(0, tuSi.exp - phatExp);
+            
+            if (hienTai.loseLevel) {
+                const indexCg = CANH_GIOI_LIST.findIndex(cg => cg.id === tuSi.canhGioiId);
+                const xuongCap = CANH_GIOI_LIST[Math.max(0, indexCg - 1)];
+                tuSi.canhGioiId = xuongCap.id;
+                thongBaoXui = `💀 **THIÊN KIẾP ĐÁNH SẬP!** Tu vi nghịch chuyển nghiêm trọng, đạo hữu bị **RỚT CẢNH GIỚI** xuống **${getCanhGioiName(tuSi, xuongCap)}** và mất **${phatExp} EXP**!`;
+            } else {
+                thongBaoXui = `⚡ **ĐỘT PHÁ THẤT BẠI!** Lôi kiếp quá mạnh, tu vi tổn hao **${phatExp} EXP**. Cảnh giới hiện tại tạm thời giữ vững!`;
+            }
+        }
+        
         saveTuTienData();
-
-        return await interaction.editReply({ content: `⚡ **ĐỘT PHÁ THẤT BẠI!** Thiên lôi đánh tan hộ thể trận pháp, tu vi nghịch chuyển tổn hao mất **${phatExp} EXP**. May mắn giữ được tính mạng! Tỷ lệ thành công: ${tileThanhCong.toFixed(1)}%` }).catch(() => {});
+        return await interaction.editReply({ content: `${thongBaoXui} (Tỷ lệ thành công lúc đó: ${tileThanhCong.toFixed(1)}%)` }).catch(() => {});
     }
 }
 
 // ─── 6. XỬ LÝ CƯỚP ĐOẠT LINH THẠCH ───
 async function handleCuopPha(interaction, tuSi, bayGio) {
-    const cooldown = 10 * 60 * 1000; 
+    const cooldown = 3 * 60 * 1000; 
     if (tuSi.lastCuopTime && bayGio - tuSi.lastCuopTime < cooldown) {
         const conLai = Math.ceil((cooldown - (bayGio - tuSi.lastCuopTime)) / 1000);
         return await interaction.editReply({ content: `⚔️ Sát khí quá nặng dễ tẩu hỏa nhập ma! Nghỉ ngơi thanh tẩy tâm trí trong ${conLai} giây.` }).catch(() => {});
@@ -381,7 +471,7 @@ async function handleBossTheGioi(interaction, tuSi, hienTai, bayGio) {
         return await interaction.editReply({ content: `👹 Cổ ma **${global.bossTheGioi.name}** hiện đã bị tiêu diệt! Hãy chờ các vị đại năng hồi sinh ma đầu.` }).catch(() => {});
     }
 
-    const cooldown = 2 * 60 * 1000; 
+    const cooldown = 30 * 1000; 
     if (tuSi.lastBossTime && bayGio - tuSi.lastBossTime < cooldown) {
         const conLai = Math.ceil((cooldown - (bayGio - tuSi.lastBossTime)) / 1000);
         return await interaction.editReply({ content: `👹 Pháp lực cạn kiệt sau khi đấu ma! Đợi ${conLai} giây để hồi khí.` }).catch(() => {});
@@ -411,33 +501,29 @@ async function handleBossTheGioi(interaction, tuSi, hienTai, bayGio) {
     return await interaction.editReply({ content: textRes }).catch(() => {});
 }
 
-// ─── 8. XỬ LÝ SONG TU ĐẠI PHÁ (SẠCH SẼ WARNING) ───
+// ─── 8. XỬ LÝ SONG TU ĐẠI PHÁ ───
 async function handleSongTu(interaction, tuSi, bayGio) {
-    const cooldown = 15 * 60 * 1000; 
+    const cooldown = 2 * 60 * 1000; 
     if (tuSi.lastSongTuTime && bayGio - tuSi.lastSongTuTime < cooldown) {
         const conLai = Math.ceil((cooldown - (bayGio - tuSi.lastSongTuTime)) / 1000);
         return await interaction.reply({ content: `💞 Nguyên dương / Nguyên âm chưa hồi phục đầy đủ! Hãy đợi thêm ${conLai} giây.`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
 
-    // Tạo nút bấm cho các đạo hữu khác trong server tham gia kết duyên
     const rowSongTu = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-            .setCustomId(`tt_accept_songtu_${interaction.user.id}`) // Định danh ID người mời để lọc luồng
+            .setCustomId(`tt_accept_songtu_${interaction.user.id}`) 
             .setLabel('💞 Đồng Ý Song Tu')
             .setStyle(ButtonStyle.Success)
     );
 
-    // Phát lệnh mời công khai ra ngoài kênh chat (Chuẩn mới: Bỏ fetchReply bên trong options)
     await interaction.reply({ 
         content: `💞 **${interaction.user.username}** đang vận chuyển âm dương nhị khí, phát động lời mời rủ đạo hữu khác cùng tiến hành **Song Tu Đại Pháp** để gia tăng tu vi chớp nhoáng!`,
         components: [rowSongTu]
     }).catch(() => {});
 
-    // Lấy thông tin tin nhắn bằng hàm độc lập theo chuẩn khuyến nghị mới
     const msg = await interaction.fetchReply().catch(() => {});
     if (!msg) return;
 
-    // Thiết lập bộ lọc sự kiện: Chỉ chấp nhận người khác bấm nút (không tự bấm nút của chính mình)
     const filter = i => i.customId === `tt_accept_songtu_${interaction.user.id}` && i.user.id !== interaction.user.id;
     const collector = msg.createMessageComponentCollector({ filter, time: 30000, max: 1 });
 
@@ -445,7 +531,6 @@ async function handleSongTu(interaction, tuSi, bayGio) {
         const partnerUser = i.user;
         const partnerTuSi = getTuSi(partnerUser.id, partnerUser.username);
         
-        // Cập nhật mốc thời gian cooldown
         const bayGioHienTai = Date.now();
         tuSi.lastSongTuTime = bayGioHienTai;
         partnerTuSi.lastSongTuTime = bayGioHienTai;
@@ -455,7 +540,6 @@ async function handleSongTu(interaction, tuSi, bayGio) {
         partnerTuSi.exp += expThuHoach;
         saveTuTienData();
 
-        // Cập nhật lại tin nhắn ban đầu: Chúc mừng thành công và ẩn nút bấm đi
         await i.update({ 
             content: `✨ **SONG TU THÀNH CÔNG!** **${interaction.user.username}** và **${partnerUser.username}** tâm linh tương thông, âm dương hòa hợp, cả hai cùng bứt phá nhận thêm **${expThuHoach} Tu Vi**!`, 
             components: [] 
@@ -463,7 +547,6 @@ async function handleSongTu(interaction, tuSi, bayGio) {
     });
 
     collector.on('end', async (collected) => {
-        // Hết 30 giây mà cô đơn không ai bấm nút -> Tự động thu hồi nút và báo thất bại
         if (collected.size === 0) {
             await interaction.editReply({ 
                 content: `🍃 Lời mời Song Tu của **${interaction.user.username}** đã trôi qua 30 giây mà không có ai thèm đoái hoài phản hồi, kết thúc trong cô quạnh...`, 

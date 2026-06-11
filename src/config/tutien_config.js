@@ -15,11 +15,12 @@ const LINH_CAN_TYPES = [
     { name: "Tạp Linh Căn (Ngũ Hành)", rateBonus: 0, expMultiplier: 0.8, color: "#7f8c8d" }
 ];
 
-const DAN_DUOC_SHOP = {
-    "quy_nguyen": { name: "Quy Nguyên Đan", price: 60, desc: "Tăng 40 EXP. Chỉ dùng cho Luyện Khí/Luyện Huyết trở xuống.", reqMaxId: 2, type: "exp", value: 40 },
-    "tu_khi": { name: "Tụ Khí Đan", price: 150, desc: "Tăng 120 EXP. Dành cho Trúc Cơ/Mao Cương trở lên.", reqMinId: 3, type: "exp", value: 120 },
-    "truc_co_dan": { name: "Trúc Cơ Bảo Đan", price: 300, desc: "Dược lực tích tụ sẵn trong người. Giúp tăng +20% tỷ lệ đột phá cho lần kế tiếp.", type: "rate", value: 20 },
-    "pha_ma_dan": { name: "Phá Ma Đan", price: 600, desc: "Dược lực hộ mệnh sẵn trong người. Nếu đột phá thất bại không lo rớt cảnh giới.", type: "protect", value: 0 }
-};
+// ĐÃ CHUYỂN THÀNH MẢNG [] ĐỂ ĐỒNG BỘ VỚI FILE XỬ LÝ
+const DAN_DUOC_SHOP = [
+    { id: "quy_nguyen", name: "Quy Nguyên Đan", price: 60, desc: "Tăng 40 EXP. Chỉ dùng cho Luyện Khí/Luyện Huyết trở xuống.", reqMaxId: 2, type: "exp", value: 40 },
+    { id: "tu_khi", name: "Tụ Khí Đan", price: 150, desc: "Tăng 120 EXP. Dành cho Trúc Cơ/Mao Cương trở lên.", reqMinId: 3, type: "exp", value: 120 },
+    { id: "truc_co_dan", name: "Trúc Cơ Bảo Đan", price: 300, desc: "Dược lực tích tụ sẵn trong người. Giúp tăng +20% tỷ lệ đột phá cho lần kế tiếp.", type: "rate", value: 20 },
+    { id: "pha_ma_dan", name: "Phá Ma Đan", price: 600, desc: "Dược lực hộ mệnh sẵn trong người. Nếu đột phá thất bại không lo rớt cảnh giới.", type: "protect", value: 0 }
+];
 
 module.exports = { CANH_GIOI_LIST, LINH_CAN_TYPES, DAN_DUOC_SHOP };

@@ -9,8 +9,22 @@
     "1480876805937430571": {
         "hasPet": true,
         "name": "Tiểu Linh Thú (Hắc Ám Ma Lang)",
-        "level": 5,
-        "exp": 80,
+        "level": 6,
+        "exp": 30,
+        "food": 100
+    },
+    "1037019422918983810": {
+        "hasPet": true,
+        "name": "[SIÊU NHÂN ĐỎ] (Hỏa Kỳ Lân)",
+        "level": 1,
+        "exp": 0,
+        "food": 100
+    },
+    "711452436748828693": {
+        "hasPet": false,
+        "name": "Chưa có",
+        "level": 1,
+        "exp": 0,
         "food": 100
     }
 }
