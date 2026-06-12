@@ -24,14 +24,17 @@ async function handleAutoMod(message) {
         const normalizedContent = contentLower.replace(/[\.\-\_\,\;\:\*]/g, ' '); 
         const hasBannedWord = BANNED_REGEX.some(regex => regex.test(normalizedContent));
 
-        // 2. KIỂM TRA LINK (Sửa lỗi Regex .test() làm lệch lastIndex)
+        // 2. KIỂM TRA LINK (Chỉ chặn link Discord Invite, cho phép link nhạc/các link khác)
         const linkRegex = /(https?:\/\/[^\s]+)/g;
         let hasForbiddenLink = false;
         const links = contentLower.match(linkRegex); // Lấy thẳng mảng link nếu có
         
         if (links && links.length > 0) {
-            const isSafeLink = links.every(link => link.includes('discord.com') || link.includes('discord.gg') || link.includes('tenor.com'));
-            if (!isSafeLink) hasForbiddenLink = true;
+            // Kiểm tra xem có bất kỳ link nào chứa từ khóa discord.gg hoặc discord.com/invite không
+            const containsDiscordInvite = links.some(link => link.includes('discord.gg') || link.includes('discord.com/invite'));
+            if (containsDiscordInvite) {
+                hasForbiddenLink = true;
+            }
         }
 
         // 3. XỬ LÝ KHI VI PHẠM
@@ -41,7 +44,7 @@ async function handleAutoMod(message) {
                 
                 if (message.deletable) await message.delete().catch(() => {});
                 const muteDuration = 10 * 60 * 1000;
-                const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết (link) trái phép.";
+                const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết mời (Discord Invite) trái phép.";
                 await message.member.timeout(muteDuration, `[AutoMod] ${reason}`);
 
                 // GỬI LOG ĐẾN KÊNH KÍN

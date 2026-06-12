@@ -1,6 +1,7 @@
 // src/handlers/taixiu.js
 const fs = require('fs');
 const path = require('path');
+const { EmbedBuilder, PermissionsBitField } = require('discord.js'); // Thêm các module cần thiết của discord.js
 
 // Đường dẫn trỏ tới file money.json ở thư mục gốc
 const dbPath = path.join(__dirname, '../../money.json');
@@ -70,14 +71,17 @@ function rollDice() {
 
 async function handleTaiXiuGame(message) {
     const content = message.content.trim();
+    const args = content.split(/\s+/);
+    const command = args[0].toLowerCase();
 
-    // Lọc danh sách các lệnh được phép sử dụng trong hệ thống kinh tế này
-    const isGameCmd = content.startsWith('!taixiu');
-    const isWalletCmd = content === '!vi' || content === '!money';
-    const isDailyCmd = content === '!diemdanh' || content === '!daily';
-    const isTransferCmd = content.startsWith('!chuyentien');
+    // Lọc danh sách các lệnh được phép sử dụng trong hệ thống kinh tế này (Thêm !thuhoi)
+    const isGameCmd = command === '!taixiu';
+    const isWalletCmd = command === '!vi' || command === '!money';
+    const isDailyCmd = command === '!diemdanh' || command === '!daily';
+    const isTransferCmd = command === '!chuyentien';
+    const isThuHoiCmd = command === '!thuhoi';
 
-    if (!isGameCmd && !isWalletCmd && !isDailyCmd && !isTransferCmd) return;
+    if (!isGameCmd && !isWalletCmd && !isDailyCmd && !isTransferCmd && !isThuHoiCmd) return;
 
     // =========================================================
     // 🔒 BƯỚC KIỂM TRA: CHỈ CHO PHÉP HOẠT ĐỘNG TẠI KÊNH CẤU HÌNH TRONG .ENV
@@ -88,11 +92,26 @@ async function handleTaiXiuGame(message) {
     }
 
     // =========================================================
-    // 💰 1. LỆNH KIỂM TRA VÍ TIỀN: !vi hoặc !money
+    // 💰 1. LỆNH KIỂM TRA VÍ TIỀN (XEM CỦA MÌNH HOẶC NGƯỜI KHÁC)
+    // Cú pháp: !vi hoặc !vi @user hoặc !vi [ID]
     // =========================================================
     if (isWalletCmd) {
-        const currentMoney = getMoney(message.author.id);
-        return message.reply(`💰 Kính chào đạo hữu, hiện tại trong túi của người đang có **${currentMoney}** linh thạch.`).catch(() => {});
+        // Lấy mục tiêu: Người được tag đầu tiên, hoặc tìm theo ID ở tham số thứ 2, nếu không ai thì là chính người gọi lệnh
+        const targetUser = message.mentions.users.first() || 
+                           (args[1] ? await message.client.users.fetch(args[1]).catch(() => null) : null) || 
+                           message.author;
+
+        if (!targetUser) {
+            return message.reply('❌ Không tìm thấy thông tin đạo hữu này trên tiên giới!').catch(() => {});
+        }
+
+        const currentMoney = getMoney(targetUser.id);
+        
+        if (targetUser.id === message.author.id) {
+            return message.reply(`💰 Kính chào đạo hữu, hiện tại trong túi của người đang có **${currentMoney}** linh thạch.`).catch(() => {});
+        } else {
+            return message.reply(`💰 Trong túi của đạo hữu **${targetUser.username}** hiện đang có **${currentMoney}** linh thạch.`).catch(() => {});
+        }
     }
 
     // =========================================================
@@ -123,7 +142,6 @@ async function handleTaiXiuGame(message) {
     // 💸 3. LỆNH CHUYỂN TIỀN CHO NGƯỜI KHÁC: !chuyentien @user [số tiền]
     // =========================================================
     if (isTransferCmd) {
-        const args = content.split(/\s+/);
         const targetUser = message.mentions.users.first();
         const transferAmount = parseInt(args[args.length - 1]);
 
@@ -156,10 +174,58 @@ async function handleTaiXiuGame(message) {
     }
 
     // =========================================================
-    // 🎲 4. LOGIC CHƠI GAME TÀI XỈU: !taixiu [tai/xiu] [số tiền]
+    // ⚡ 4. LỆNH THU HỒI LINH THẠCH (CHỈ DÀNH CHO ADMIN)
+    // Cú pháp: !thuhoi @user [số tiền] hoặc !thuhoi [ID_User] [số tiền]
+    // =========================================================
+    if (isThuHoiCmd) {
+        const ADMIN_ID = process.env.ADMIN_ID;
+        const isBotAdmin = message.author.id === ADMIN_ID;
+        const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages);
+
+        if (!isBotAdmin && !hasModPerms) {
+            return message.reply('❌ Tu vi của bạn chưa đủ để thực hiện lệnh thu hồi linh thạch của thiên địa!').catch(() => {});
+        }
+
+        const targetUser = message.mentions.users.first() || 
+                           (args[1] ? await message.client.users.fetch(args[1]).catch(() => null) : null);
+        
+        if (!targetUser) {
+            return message.reply('❌ Vui lòng tag hoặc điền ID người cần thu hồi!\nCú pháp: `!thuhoi @Tên <số_linh_thạch>`').catch(() => {});
+        }
+
+        const thuHoiAmount = parseInt(args[2]);
+        if (isNaN(thuHoiAmount) || thuHoiAmount <= 0) {
+            return message.reply('❌ Số lượng linh thạch cần thu hồi phải là một số nguyên dương hợp lệ!').catch(() => {});
+        }
+
+        const targetMoney = getMoney(targetUser.id);
+        if (targetMoney < thuHoiAmount) {
+            return message.reply(`⚠️ Túi của đạo hữu này chỉ còn **${targetMoney}** linh thạch, không đủ để thu hồi **${thuHoiAmount}** linh thạch!`).catch(() => {});
+        }
+
+        // Tiến hành trừ tiền
+        addMoney(targetUser.id, -thuHoiAmount);
+        const remainingMoney = getMoney(targetUser.id);
+
+        const thuHoiEmbed = new EmbedBuilder()
+            .setColor('#ff3333')
+            .setTitle('⚡ THIÊN ĐỊA THU HỒI LINH THẠCH')
+            .setDescription(`Một lượng linh thạch đã được thu hồi từ tài khoản của đạo hữu bởi Admin.`)
+            .addFields(
+                { name: '👤 Đạo hữu bị thu hồi', value: `${targetUser} (${targetUser.tag})`, inline: true },
+                { name: '🔨 Người thực thi', value: `${message.author}`, inline: true },
+                { name: '📉 Linh thạch tổn hao', value: `-\`${thuHoiAmount.toLocaleString()}\` linh thạch`, inline: false },
+                { name: '💰 Số dư còn lại', value: `\`${remainingMoney.toLocaleString()}\` linh thạch`, inline: false }
+            )
+            .setTimestamp();
+
+        return message.channel.send({ embeds: [thuHoiEmbed] }).catch(() => {});
+    }
+
+    // =========================================================
+    // 🎲 5. LOGIC CHƠI GAME TÀI XỈU: !taixiu [tai/xiu] [số tiền]
     // =========================================================
     if (isGameCmd) {
-        const args = content.split(/\s+/);
         if (args.length < 3) {
             return message.reply('📝 **Cách chơi Tài Xỉu:**\n`!taixiu [tai/xiu] [số tiền]`\n*Ví dụ:* `!taixiu tai 500` hoặc `!taixiu xiu all`').catch(() => {});
         }
