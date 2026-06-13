@@ -1,17 +1,35 @@
 const fs = require('fs');
 const path = require('path');
 
-// Đường dẫn tới file money.json
+// Đường dẫn tới file money.json của bạn
 const moneyPath = path.join(__dirname, '../../money.json'); 
 
 // =========================================================
-// 🛡️ HÀM ĐỌC/GHI TIỀN AN TOÀN - TRIỆT TIÊU LỖI NaN$
+// 🛡️ HÀM ĐỌC/GHI TIỀN - TỰ ĐỘNG PHÁT HIỆN VÀ FIX LỖI OBJECT
 // =========================================================
 function getMoneyData() {
-    if (!fs.existsSync(moneyPath)) return {};
+    if (!fs.existsSync(moneyPath)) fs.writeFileSync(moneyPath, JSON.stringify({}), 'utf8');
     try {
-        return JSON.parse(fs.readFileSync(moneyPath, 'utf8'));
+        let db = JSON.parse(fs.readFileSync(moneyPath, 'utf8'));
+
+        // TRƯỜNG HỢP ĐẶC BIỆT: Tự động giải cứu tài khoản của bạn nếu bị lỗi chuỗi
+        const myId = "910001518328033301";
+        if (db[myId] && (typeof db[myId] !== 'object' || String(db[myId]).includes('[object'))) {
+            console.log(`[Hệ Thống] Phát hiện tài khoản ${myId} bị lỗi cấu trúc chuỗi. Đang tự động sửa...`);
+            db[myId] = {
+                balance: 150126, // Cứu lại số tiền gốc của bạn
+                money: 150126,
+                job: "daotach",  // Cấp lại nghề Đạo Tặc
+                lastDaily: null
+            };
+            fs.writeFileSync(moneyPath, JSON.stringify(db, null, 4), 'utf8');
+        }
+
+        return db;
     } catch (e) {
+        // Nếu file bị hỏng cấu pháp hoàn toàn do sửa tay trước đó, tự reset về {} để tránh crash bot
+        console.error("[Cảnh báo] File money.json bị lỗi cấu trúc nghiêm trọng. Đang tự khôi phục file sạch.");
+        fs.writeFileSync(moneyPath, JSON.stringify({}), 'utf8');
         return {};
     }
 }
@@ -20,23 +38,24 @@ function saveMoneyData(data) {
     fs.writeFileSync(moneyPath, JSON.stringify(data, null, 4));
 }
 
-// Hàm lấy tiền chống lỗi NaN (đồng bộ hóa cấu trúc dữ liệu)
+// Hàm lấy tiền và kiểm tra an toàn từng biến bên trong Object
 function getSafeBalance(moneyData, userId) {
-    if (!moneyData[userId]) {
+    // Nếu user chưa tồn tại hoặc bị lỗi kiểu dữ liệu cũ
+    if (!moneyData[userId] || typeof moneyData[userId] !== 'object') {
         moneyData[userId] = { balance: 0, money: 0, job: null };
     }
     
-    // Nếu dữ liệu cũ lưu ở biến .money, tự động chuyển nó về .balance để đồng bộ với Pet
+    // Nếu dữ liệu đang nằm ở biến .money cũ, đồng bộ sang .balance của hệ thống Pet
     if (moneyData[userId].money !== undefined && moneyData[userId].balance === undefined) {
-        moneyData[userId].balance = moneyData[userId].money;
+        moneyData[userId].balance = parseInt(moneyData[userId].money) || 0;
     }
 
-    // Đảm bảo balance luôn là một con số hợp lệ
+    // Bảo vệ tuyệt đối biến balance không bao giờ được phép là NaN
     if (typeof moneyData[userId].balance !== 'number' || isNaN(moneyData[userId].balance)) {
         moneyData[userId].balance = 0;
     }
     
-    // Đồng bộ cả 2 biến để tránh lỗi với các lệnh cũ khác
+    // Đồng bộ ngược lại để các file game khác đọc không bị lỗi
     moneyData[userId].money = moneyData[userId].balance; 
     return moneyData[userId].balance;
 }
@@ -78,7 +97,7 @@ const jobsConfig = {
     },
     "daotach": {
         name: "Đạo Tặc (Ngầm) 🥷",
-        salaryMin: 200, salaryMax: 600,
+        salaryMin: 200, salaryMax: 600, 
         actions: [
             "Bạn lẻn vào phủ gia giàu có trộm được một túi bạc giá trị",
             "Bạn móc túi một tên lính say rượu bên đường, vớ được",
@@ -114,14 +133,10 @@ async function handleLamViecGame(message) {
     const command = args[0].toLowerCase();
     const userId = message.author.id;
 
+    // Đọc dữ liệu (Đã tích hợp hàm tự sửa lỗi tự động bên trên)
     let moneyData = getMoneyData();
     
-    // Chuẩn hóa dữ liệu ngay khi đọc file
-    if (typeof moneyData[userId] === 'number') {
-        moneyData[userId] = { balance: moneyData[userId], money: moneyData[userId], job: null };
-    }
-    
-    // Gọi hàm kiểm tra an toàn để kích hoạt ví tiền sạch chống NaN
+    // Lấy số dư ví an toàn, loại bỏ triệt để chuỗi [object Object]
     let currentBalance = getSafeBalance(moneyData, userId);
 
     // =========================================================
@@ -196,13 +211,13 @@ async function handleLamViecGame(message) {
 
         if (currentBalance >= phạtTiền) {
             moneyData[userId].balance -= phạtTiền;
-            moneyData[userId].money = moneyData[userId].balance; // đồng bộ
+            moneyData[userId].money = moneyData[userId].balance; 
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
             await message.reply(`💔 Bạn đã nộp đơn xin nghỉ việc tại **${oldJobName}**. Bạn bị trừ **${phạtTiền}$** tiền bồi thường hợp đồng. Hiện tại bạn đã tự do!`);
         } else {
             moneyData[userId].balance = 0;
-            moneyData[userId].money = 0; // đồng bộ
+            moneyData[userId].money = 0; 
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
             await message.reply(`💔 Bạn đã trốn việc bỏ ngang tại **${oldJobName}**. Toàn bộ số tiền lương ít ỏi còn lại đã bị chủ tiệm siết nợ!`);
@@ -233,19 +248,16 @@ async function handleLamViecGame(message) {
 
         const job = jobsConfig[currentJobKey];
         const randomAction = job.actions[Math.floor(Math.random() * job.actions.length)];
-        
-        // Tính toán số tiền thưởng (Ép kiểu số nguyên chắc chắn với parseInt)
         const moneyEarned = parseInt(Math.floor(Math.random() * (job.salaryMax - job.salaryMin + 1)) + job.salaryMin);
 
-        // 🛑 ĐOẠN PHÒNG VỆ CHỐNG LỖI NaN$: Tính toán trên biến an toàn
+        // Cộng dồn vào ví tiền số an toàn
         moneyData[userId].balance = currentBalance + moneyEarned;
-        moneyData[userId].money = moneyData[userId].balance; // đồng bộ kép 2 biến tiền
+        moneyData[userId].money = moneyData[userId].balance; 
         saveMoneyData(moneyData);
 
         cooldowns.set(userId, Date.now());
         setTimeout(() => cooldowns.delete(userId), COOLDOWN_TIME);
 
-        // Hiển thị kết quả ra màn hình cực chuẩn
         await message.reply(`💼 **[${job.name}]** ${randomAction} **+${moneyEarned}$**. Số dư mới: **${moneyData[userId].balance}$**`);
         return true;
     }
