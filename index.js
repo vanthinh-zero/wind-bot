@@ -18,6 +18,10 @@ const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); // 📖 Hệ thống Thơ ca & Tâm sự Chữa lành
 const { handleAvatarCheck } = require('./src/handlers/avatar.js'); // 🖼️ Hệ thống Soi Avatar chuyên biệt
+const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); // 🩹 Hệ thống tự sự Chữa Lành riêng biệt
+
+// 🏪 IMPORT HỆ THỐNG GAME LÀM VIỆC MỚI TÍCH HỢP
+const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
@@ -38,7 +42,17 @@ const client = new Client({
 });
 
 // Lấy các biến môi trường từ file .env
-const { TOKEN, ADMIN_ID, KENH_TAI_XIU, KENH_NUOI_PET, KENH_LOG_AUTOMOD, KENH_NGAM_THO, KENH_CHECK_AVATAR } = process.env;
+const { 
+    TOKEN, 
+    ADMIN_ID, 
+    KENH_TAI_XIU, 
+    KENH_NUOI_PET, 
+    KENH_LOG_AUTOMOD, 
+    KENH_NGAM_THO, 
+    KENH_CHECK_AVATAR,
+    KENH_CHUA_LANH,
+    KENH_LAM_VIEC // Thêm biến kênh làm việc
+} = process.env;
 
 // Sự kiện khi Bot kích hoạt thành công
 client.once(Events.ClientReady, (readyClient) => {
@@ -46,9 +60,11 @@ client.once(Events.ClientReady, (readyClient) => {
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log(`🎰 Kênh Tài Xỉu: ${KENH_TAI_XIU || 'Chưa cấu hình'}`);
     console.log(`🐾 Kênh Nuôi Pet: ${KENH_NUOI_PET || 'Chưa cấu hình'}`);
+    console.log(`🏪 Kênh Làm Việc: ${KENH_LAM_VIEC || 'Chưa cấu hình'}`); // Log kiểm tra kênh làm việc
     console.log(`🚨 Kênh Log AutoMod: ${KENH_LOG_AUTOMOD || 'Chưa cấu hình'}`);
     console.log(`📖 Kênh Ngâm Thơ & Chữa Lành: ${KENH_NGAM_THO || 'Chưa cấu hình'}`);
     console.log(`🖼️ Kênh Check Avatar: ${KENH_CHECK_AVATAR || 'Chưa cấu hình'}`);
+    console.log(`🩹 Kênh Chữa Lành Riêng Biệt: ${KENH_CHUA_LANH || 'Chưa cấu hình'}`);
     console.log('==================================================');
 
     // Kích hoạt luồng chạy ngầm tự động ngâm thơ ngẫu nhiên theo giờ giấc
@@ -80,7 +96,7 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
 
     try {
-        // 1. Chạy hệ thống Quét từ cấm & link bẩn (Sẽ log về KENH_LOG_AUTOMOD nếu vi phạm)
+        // 1. Chạy hệ thống Quét từ cấm & link bẩn
         const isMuted = await handleAutoMod(message);
         if (isMuted) return;
 
@@ -101,21 +117,29 @@ client.on('messageCreate', async (message) => {
             process.exit(0);
         }
 
-        // 📖 5. Hệ thống gọi thơ thủ công và các mật lệnh tâm sự (!poem, !tôi buồn, !tôi muốn được yêu, !triết lí, !mệt)
+        // 📖 5. Hệ thống gọi thơ thủ công và các mật lệnh tâm sự
         const isPoemSystem = await handlePoemCommand(message);
         if (isPoemSystem) return;
 
-        // 🖼️ 6. Hệ thống Check Avatar theo yêu cầu (Chỉ chạy tại KENH_CHECK_AVATAR)
+        // 🩹 5.5. Hệ thống tự sự chữa lành về thanh xuân (MỚI)
+        const isChuaLanh = await handleChuaLanhCommand(message);
+        if (isChuaLanh) return;
+
+        // 🖼️ 6. Hệ thống Check Avatar theo yêu cầu
         const isAvatarCmd = await handleAvatarCheck(message);
         if (isAvatarCmd) return;
+
+        // 🏪 6.5. HỆ THỐNG GAME LÀM VIỆC KIẾM TIỀN (MỚI TÍCH HỢP)
+        const isLamViecCmd = await handleLamViecGame(message);
+        if (isLamViecCmd) return; // Nếu đúng lệnh làm việc, dừng xử lý tiếp bên dưới để tránh đụng độ
 
         // 7. Minigame nối từ Tiếng Anh
         await handleNoiTuGame(message);
 
-        // 🎰 8. Minigame Tài Xỉu Thử Vận May (Có Lưu Trữ Ví Tiền)
+        // 🎰 8. Minigame Tài Xỉu Thử Vận May
         await handleTaiXiuGame(message);
 
-        // 🐾 9. Minigame nuôi Linh thú (Pet chỉ chạy tại KENH_NUOI_PET)
+        // 🐾 9. Minigame nuôi Linh thú
         await handlePetSystem(message);
 
     } catch (error) {
@@ -128,12 +152,8 @@ client.on('messageCreate', async (message) => {
 // =========================================================
 client.on('interactionCreate', async (interaction) => {
     
-    // -----------------------------------------------------
-    // 🔘 LUỒNG 1: XỬ LÝ CÁC NÚT BẤM (IS BUTTON)
-    // -----------------------------------------------------
     if (interaction.isButton()) {
         
-        // Phân luồng 1.1: Tương tác hệ thống Ticket
         if (interaction.customId.includes('ticket')) {
             try {
                 await handleTicketInteraction(interaction);
@@ -143,7 +163,6 @@ client.on('interactionCreate', async (interaction) => {
             return; 
         }
 
-        // Phân luồng 1.2: Tương tác hệ thống Tu Tiên
         if (interaction.customId.startsWith('tt_')) {
             try {
                 await handleTuTienInteraction(interaction);
@@ -159,7 +178,6 @@ client.on('interactionCreate', async (interaction) => {
             return; 
         }
 
-        // Phân luồng 1.3: Tương tác Menu Voice điều khiển (vm_)
         if (interaction.customId.startsWith('vm_')) {
             try {
                 await handleVoiceMenuInteraction(interaction);
@@ -170,12 +188,8 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 
-    // -----------------------------------------------------
-    // 📝 LUỒNG 2: XỬ LÝ BẢNG POPUP NHẬP LIỆU (IS MODAL SUBMIT)
-    // -----------------------------------------------------
     if (interaction.isModalSubmit()) {
         
-        // Đón nhận dữ liệu từ bảng Đổi Tên / Giới Hạn Người (vmm_)
         if (interaction.customId.startsWith('vmm_')) {
             try {
                 await handleVoiceModalSubmit(interaction);
@@ -187,7 +201,6 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// Chống crash bot khi gặp lỗi bất ngờ từ các thư viện ngoài
 process.on('unhandledRejection', (reason) => console.error('❌ Lỗi bất đồng bộ toàn cục:', reason));
 process.on('uncaughtException', (err) => console.error('❌ Lỗi nghiêm trọng toàn cục:', err));
 

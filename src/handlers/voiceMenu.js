@@ -1,3 +1,4 @@
+// src/handlers/voiceMenu.js
 const { PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const { activeVoiceChannels } = require('./voice.js');
 
@@ -9,31 +10,32 @@ async function handleVoiceMenuInteraction(interaction) {
     const voiceChannel = member.voice.channel;
 
     if (!voiceChannel || !activeVoiceChannels.has(voiceChannel.id)) {
-        return interaction.reply({ content: '❌ Bạn phải đang ở trong phòng voice của mình để dùng menu này!', flags: [MessageFlags.Ephemeral] });
+        return interaction.reply({ content: '❌ Bạn phải đang ở trong phòng voice của mình để dùng menu này!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
 
     const ownerId = activeVoiceChannels.get(voiceChannel.id);
     if (member.id !== ownerId) {
-        return interaction.reply({ content: '❌ Bạn không phải là chủ của phòng voice này!', flags: [MessageFlags.Ephemeral] });
+        return interaction.reply({ content: '❌ Bạn không phải là chủ của phòng voice này!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
 
     try {
         switch (customId) {
             case 'vm_lock':
                 await voiceChannel.permissionOverwrites.edit(guild.roles.everyone.id, { Connect: false });
-                await interaction.reply({ content: '🔒 Phòng của bạn đã được **Khóa**!', flags: [MessageFlags.Ephemeral] });
+                await interaction.reply({ content: '🔒 Phòng của bạn đã được **Khóa**! Thành viên khác sẽ không thể chủ động tham gia phòng.', flags: [MessageFlags.Ephemeral] });
                 break;
 
             case 'vm_unlock':
                 await voiceChannel.permissionOverwrites.edit(guild.roles.everyone.id, { Connect: true });
-                await interaction.reply({ content: '🔓 Phòng của bạn đã được **Mở Khóa**!', flags: [MessageFlags.Ephemeral] });
+                await interaction.reply({ content: '🔓 Phòng của bạn đã được **Mở Khóa**! Mọi người có thể tự do vào phòng.', flags: [MessageFlags.Ephemeral] });
                 break;
 
-            case 'vm_ghost':
+            case 'vm_ghost': {
                 const isHidden = voiceChannel.permissionOverwrites.cache.get(guild.roles.everyone.id)?.deny.has(PermissionFlagsBits.ViewChannel);
                 await voiceChannel.permissionOverwrites.edit(guild.roles.everyone.id, { ViewChannel: isHidden ? true : false });
-                await interaction.reply({ content: isHidden ? '👁️ Phòng đã **Hiện**.' : '👻 Phòng đã **Ẩn**.', flags: [MessageFlags.Ephemeral] });
+                await interaction.reply({ content: isHidden ? '👁️ Phòng đã **Hiện** trở lại trên danh sách kênh.' : '👻 Phòng đã **Ẩn** (Chỉ những ai trong phòng mới thấy).', flags: [MessageFlags.Ephemeral] });
                 break;
+            }
 
             case 'vm_rename': {
                 const modal = new ModalBuilder().setCustomId('vmm_rename_modal').setTitle('📝 Đổi Tên Phòng Thoại');
@@ -66,32 +68,42 @@ async function handleVoiceMenuInteraction(interaction) {
             }
         }
     } catch (error) {
-        console.error('❌ Lỗi xử lý nút bấm Menu Voice:', error);
+        console.error('❌ Lỗi xử lý nút bấm Menu Voice:', error.message);
+        // Phòng hờ lỗi Discord tự hủy tương tác khi xử lý chậm
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: '❌ Có lỗi xảy ra trong quá trình cài đặt phòng, vui lòng thử lại!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        }
     }
 }
 
 /**
- * Xử lý khi người dùng điền xong bảng Modal và bấm "Submit" (SỬA LỖI FLAGS EPHEMERAL)
+ * Xử lý khi người dùng điền xong bảng Modal và bấm "Submit"
  */
 async function handleVoiceModalSubmit(interaction) {
     const { customId, member } = interaction;
     const voiceChannel = member.voice.channel;
 
     if (!voiceChannel || !activeVoiceChannels.has(voiceChannel.id)) {
-        return interaction.reply({ content: '❌ Bạn đã rời phòng hoặc phòng không hợp lệ!', flags: [MessageFlags.Ephemeral] });
+        return interaction.reply({ content: '❌ Bạn đã rời phòng hoặc phòng không hợp lệ!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
 
     try {
         if (customId === 'vmm_rename_modal') {
             const newName = interaction.fields.getTextInputValue('new_name');
             
-            // ⚡ Dùng flags mới để Discord đóng modal ngay tức khắc
-            await interaction.reply({ content: `📝 Đang gửi yêu cầu đổi tên thành: **${newName}**...`, flags: [MessageFlags.Ephemeral] });
+            // Thông báo ngay cho người dùng để đóng Modal trên màn hình
+            await interaction.reply({ content: `📝 Đang tiến hành đổi tên phòng thành: **${newName}**...`, flags: [MessageFlags.Ephemeral] });
             
-            voiceChannel.setName(newName).catch((err) => {
-                console.error('❌ Hạn chế đổi tên từ Discord:', err.message);
-                interaction.followUp({ content: '⚠️ Discord giới hạn tốc độ đổi tên phòng (Tối đa 2 lần/10 phút). Phòng sẽ tự đổi tên khi hết thời gian chờ!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
-            });
+            try {
+                await voiceChannel.setName(newName);
+            } catch (err) {
+                console.error('❌ Giới hạn đổi tên từ Discord:', err.message);
+                // Dùng followUp an toàn vì đã reply trước đó
+                await interaction.followUp({ 
+                    content: '⚠️ **Hạn chế từ Discord:** Bạn chỉ có thể đổi tên phòng tối đa 2 lần trong vòng 10 phút. Tên phòng sẽ tự thay đổi khi hết thời gian chờ từ hệ thống!', 
+                    flags: [MessageFlags.Ephemeral] 
+                }).catch(() => {});
+            }
         } 
         
         else if (customId === 'vmm_limit_modal') {
@@ -99,20 +111,23 @@ async function handleVoiceModalSubmit(interaction) {
             const limit = parseInt(limitRaw);
 
             if (isNaN(limit) || limit < 0 || limit > 99) {
-                return interaction.reply({ content: '❌ Vui lòng chỉ nhập số nguyên từ 0 đến 99!', flags: [MessageFlags.Ephemeral] });
+                return interaction.reply({ content: '❌ Vui lòng chỉ nhập số nguyên từ 0 đến 99!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
             }
 
             await interaction.reply({ 
-                content: limit === 0 ? '👥 Đang xử lý gỡ bỏ giới hạn phòng...' : `👥 Đang xử lý cài đặt giới hạn: **${limit} người**...`, 
+                content: limit === 0 ? '👥 Đang tiến hành gỡ bỏ giới hạn phòng thoại...' : `👥 Đang tiến hành đặt giới hạn phòng thành: **${limit} người**...`, 
                 flags: [MessageFlags.Ephemeral] 
             });
 
-            voiceChannel.setUserLimit(limit).catch((err) => {
+            try {
+                await voiceChannel.setUserLimit(limit);
+            } catch (err) {
                 console.error('❌ Lỗi đặt giới hạn người:', err.message);
-            });
+                await interaction.followUp({ content: '⚠️ Không thể thay đổi giới hạn số người lúc này. Vui lòng thử lại sau!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
         }
     } catch (error) {
-        console.error('❌ Lỗi hệ thống Modal Voice:', error);
+        console.error('❌ Lỗi hệ thống Modal Voice:', error.message);
     }
 }
 

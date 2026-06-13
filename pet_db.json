@@ -1,23 +1,27 @@
 {
     "910001518328033301": {
-        "hasPet": true,
-        "name": "Tiểu Linh Thú (Hỏa Kỳ Lân)",
-        "level": 1,
-        "exp": 0,
-        "food": 99
+        "activePetId": null,
+        "inventory": [
+            {
+                "id": "pet_legacy_1",
+                "name": "Tiểu Linh Thú (Hắc Ám Ma Lang)",
+                "level": 6,
+                "exp": 30,
+                "food": 100,
+                "originalOwner": "1480876805937430571"
+            }
+        ],
+        "lastClaimTime": 1781332961263
     },
     "1480876805937430571": {
-        "hasPet": true,
-        "name": "Tiểu Linh Thú (Hắc Ám Ma Lang)",
-        "level": 6,
-        "exp": 30,
-        "food": 100
+        "activePetId": null,
+        "inventory": []
     },
     "1037019422918983810": {
         "hasPet": true,
         "name": "[SIÊU NHÂN ĐỎ] (Hỏa Kỳ Lân)",
-        "level": 1,
-        "exp": 0,
+        "level": 7,
+        "exp": 300,
         "food": 100
     },
     "711452436748828693": {
@@ -26,5 +30,9 @@
         "level": 1,
         "exp": 0,
         "food": 100
+    },
+    "1352810217993404416": {
+        "activePetId": null,
+        "inventory": []
     }
 }
