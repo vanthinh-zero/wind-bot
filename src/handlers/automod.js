@@ -1,8 +1,7 @@
-// src/handlers/poem.js (hoặc file chứa mã này)
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const ADMIN_ID = process.env.ADMIN_ID;
 
-// Thiết lập bộ từ khóa cấm dạng Regex Word-Boundary (\b) để tránh lỗi nuốt từ (ví dụ: "đi tắm", "xen kẽ")
+// Bộ từ khóa cấm nặng (Chửi bậy bạ sẽ bị Mute 10 phút)
 const BANNED_REGEX = [
     /\bcặc\b/i, /\bcac\b/i, /\bcajc\b/i, /\bkặc\b/i, /\bkac\b/i,
     /\blồn\b/i, /\blon\b/i, /\blozn\b/i, /\bl0n\b/i,
@@ -10,6 +9,9 @@ const BANNED_REGEX = [
     /\bsex\b/i, /\bporn\b/i, /\bpỏn\b/i, /\bhentai\b/i
 ];
 
+// =========================================================
+// 🚨 LUỒNG 1: QUÉT VÀ XỬ LÝ TỪ CẤM / LINK BẨN (AUTOMOD)
+// =========================================================
 async function handleAutoMod(message) {
     if (message.author.bot || !message.guild) return false;
 
@@ -17,20 +19,28 @@ async function handleAutoMod(message) {
     const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) || 
                         message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers);
 
+    // LƯU Ý: Lệnh có dấu ! thì nhường xuống cho hàm handleAdminCommands xử lý, không quét từ cấm ở đây
+    if (message.content.startsWith('!')) return false;
+
     if (!isBotAdmin && !hasModPerms) {
         const contentLower = message.content.toLowerCase();
         
-        // 1. KIỂM TRA TỪ CẤM (Chuẩn hóa loại bỏ ký tự lạ nhưng giữ khoảng cách từ để ko bị dính chữ)
+        // ✨ ĐẶC CÁCH QUAN TRỌNG: Nếu câu chửi có đích danh chữ "bot" (ví dụ: bot ngu, bot cac, bot lon)
+        // AutoMod sẽ bỏ qua để nhường luồng cho file chat.js nhảy vào đốp chát!
+        if (contentLower.includes('bot')) {
+            return false;
+        }
+
+        // 1. KIỂM TRA TỪ CẤM (Nếu không nhắc gì đến bot mà tự dưng chửi tục)
         const normalizedContent = contentLower.replace(/[\.\-\_\,\;\:\*]/g, ' '); 
         const hasBannedWord = BANNED_REGEX.some(regex => regex.test(normalizedContent));
 
-        // 2. KIỂM TRA LINK (Chỉ chặn link Discord Invite, cho phép link nhạc/các link khác)
+        // 2. KIỂM TRA LINK DISCORD INVITE
         const linkRegex = /(https?:\/\/[^\s]+)/g;
         let hasForbiddenLink = false;
-        const links = contentLower.match(linkRegex); // Lấy thẳng mảng link nếu có
+        const links = contentLower.match(linkRegex); 
         
         if (links && links.length > 0) {
-            // Kiểm tra xem có bất kỳ link nào chứa từ khóa discord.gg hoặc discord.com/invite không
             const containsDiscordInvite = links.some(link => link.includes('discord.gg') || link.includes('discord.com/invite'));
             if (containsDiscordInvite) {
                 hasForbiddenLink = true;
@@ -61,7 +71,7 @@ async function handleAutoMod(message) {
                                 { name: '📍 Kênh vi phạm', value: `${message.channel}`, inline: true },
                                 { name: '📝 Lý do xử lý', value: reason },
                                 { name: '⏳ Hình phạt', value: '**Mute (Timeout) 10 phút**' },
-                                { name: '💬 Nội dung tin nhắn gốc', value: `\`\`\`${violatedContent.slice(0, 1000) || '[Không có chữ]'}\`\`\`` }
+                                { name: '💬 Nội dung tin nhắn gốc', value: `\`\`\`${violatedContent.slice(0, 1000) || '[Không có chữ]'}\`\`\位` }
                             )
                             .setTimestamp();
                         
@@ -87,8 +97,13 @@ async function handleAutoMod(message) {
     return false;
 }
 
-// Giữ nguyên toàn bộ cụm handleAdminCommands phía dưới của bạn...
+// =========================================================
+// 🔨 LUỒNG 2: CÁC LỆNH ĐIỀU HÀNH BAN QUẢN TRỊ (ADMIN COMMANDS)
+// =========================================================
 async function handleAdminCommands(message) {
+    if (message.author.bot || !message.guild) return false;
+
+    // 1. Lệnh dọn dẹp tin nhắn (!clear)
     if (message.content.startsWith('!clear')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền Quản lý tin nhắn!');
@@ -103,16 +118,20 @@ async function handleAdminCommands(message) {
         return true;
     }
 
+    // 2. Lệnh ban thành viên (!ban)
     if (message.content.startsWith('!ban ')) {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers) && message.author.id !== ADMIN_ID) return false;
+        if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers) && message.author.id !== ADMIN_ID) {
+            return message.reply('❌ Bạn không có quyền cấm thành viên!');
+        }
         const target = message.mentions.members.first();
-        if (!target || !target.bannable) return false;
+        if (!target || !target.bannable) return message.reply('❌ Không tìm thấy đối tượng hoặc Bot không đủ quyền cấm người này!');
         const reason = message.content.split(' ').slice(2).join(' ') || 'Không có lý do.';
         await target.ban({ reason }).catch(() => {});
         await message.channel.send(`🔨 Đã cấm thành viên **${target.user.tag}**!`);
         return true;
     }
 
+    // 3. Lệnh gỡ ban thành viên (!unban)
     if (message.content.startsWith('!unban ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền gỡ cấm thành viên!');
@@ -133,17 +152,22 @@ async function handleAdminCommands(message) {
         }
     }
 
+    // 4. Lệnh tắt tiếng (!mute)
     if (message.content.startsWith('!mute ')) {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers) && message.author.id !== ADMIN_ID) return false;
+        if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers) && message.author.id !== ADMIN_ID) {
+            return message.reply('❌ Bạn không có quyền tắt tiếng thành viên!');
+        }
         const args = message.content.split(' ');
         const target = message.mentions.members.first();
         const duration = parseInt(args[2]);
-        if (!target || isNaN(duration)) return false;
+        if (!target || isNaN(duration)) return message.reply('❌ Sai định dạng! Ví dụ: `!mute @Tên 10`');
+        
         await target.timeout(duration * 60 * 1000, "Lệnh phạt").catch(() => {});
         await message.channel.send(`🔇 Đã tắt tiếng **${target.user.tag}** trong ${duration} phút!`);
         return true;
     }
 
+    // 5. Lệnh gỡ tắt tiếng (!unmute)
     if (message.content.startsWith('!unmute ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền bỏ tắt tiếng thành viên!');

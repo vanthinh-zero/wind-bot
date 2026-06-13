@@ -23,6 +23,9 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); // 🩹
 // 🏪 IMPORT HỆ THỐNG GAME LÀM VIỆC MỚI TÍCH HỢP
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 
+// 💬 IMPORT HỆ THỐNG CHAT TỰ ĐỘNG PHẢN HỒI MẠNH BẠO (MỚI TÍCH HỢP)
+const { handleChatInteraction } = require('./src/handlers/chat.js');
+
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot đang tu luyện, vui lòng không làm phiền!'));
@@ -51,7 +54,7 @@ const {
     KENH_NGAM_THO, 
     KENH_CHECK_AVATAR,
     KENH_CHUA_LANH,
-    KENH_LAM_VIEC // Thêm biến kênh làm việc
+    KENH_LAM_VIEC 
 } = process.env;
 
 // Sự kiện khi Bot kích hoạt thành công
@@ -60,7 +63,7 @@ client.once(Events.ClientReady, (readyClient) => {
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log(`🎰 Kênh Tài Xỉu: ${KENH_TAI_XIU || 'Chưa cấu hình'}`);
     console.log(`🐾 Kênh Nuôi Pet: ${KENH_NUOI_PET || 'Chưa cấu hình'}`);
-    console.log(`🏪 Kênh Làm Việc: ${KENH_LAM_VIEC || 'Chưa cấu hình'}`); // Log kiểm tra kênh làm việc
+    console.log(`🏪 Kênh Làm Việc: ${KENH_LAM_VIEC || 'Chưa cấu hình'}`); 
     console.log(`🚨 Kênh Log AutoMod: ${KENH_LOG_AUTOMOD || 'Chưa cấu hình'}`);
     console.log(`📖 Kênh Ngâm Thơ & Chữa Lành: ${KENH_NGAM_THO || 'Chưa cấu hình'}`);
     console.log(`🖼️ Kênh Check Avatar: ${KENH_CHECK_AVATAR || 'Chưa cấu hình'}`);
@@ -121,7 +124,7 @@ client.on('messageCreate', async (message) => {
         const isPoemSystem = await handlePoemCommand(message);
         if (isPoemSystem) return;
 
-        // 🩹 5.5. Hệ thống tự sự chữa lành về thanh xuân (MỚI)
+        // 🩹 5.5. Hệ thống tự sự chữa lành về thanh xuân
         const isChuaLanh = await handleChuaLanhCommand(message);
         if (isChuaLanh) return;
 
@@ -129,9 +132,14 @@ client.on('messageCreate', async (message) => {
         const isAvatarCmd = await handleAvatarCheck(message);
         if (isAvatarCmd) return;
 
-        // 🏪 6.5. HỆ THỐNG GAME LÀM VIỆC KIẾM TIỀN (MỚI TÍCH HỢP)
+        // 🏪 6.5. HỆ THỐNG GAME LÀM VIỆC KIẾM TIỀN
         const isLamViecCmd = await handleLamViecGame(message);
-        if (isLamViecCmd) return; // Nếu đúng lệnh làm việc, dừng xử lý tiếp bên dưới để tránh đụng độ
+        if (isLamViecCmd) return; 
+
+        // 💬 6.6. HỆ THỐNG PHẢN HỒI CHAT TỰ ĐỘNG - GẮT GỎNG (MỚI TÍCH HỢP)
+        // Đặt ở đây để bắt trọn từ khóa ngay trước khi lọt vào các game nối từ hay tài xỉu
+        const isChatInteracted = await handleChatInteraction(message);
+        if (isChatInteracted) return; 
 
         // 7. Minigame nối từ Tiếng Anh
         await handleNoiTuGame(message);
