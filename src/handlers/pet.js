@@ -14,19 +14,43 @@ function writeJson(filePath, data) {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
 }
 
-// Lấy tiền & Thay đổi tiền liên kết với taixiu.js
+// =========================================================
+// 🛡️ HÀM QUẢN LÝ TIỀN TỆ AN TOÀN - CHỐNG TRIỆT ĐỂ LỖI NaN$
+// =========================================================
 function getMoney(userId) {
     const db = readJson(moneyDbPath);
-    return db[userId]?.balance || 0;
+    // Nếu chưa có user hoặc balance không phải là số hợp lệ, ép về 0
+    if (!db[userId] || typeof db[userId].balance !== 'number' || isNaN(db[userId].balance)) {
+        return 0;
+    }
+    return db[userId].balance;
 }
+
 function addMoney(userId, amount) {
     const db = readJson(moneyDbPath);
-    if (!db[userId]) db[userId] = { balance: 0, lastDaily: null };
-    db[userId].balance += amount;
+    
+    // Khởi tạo nếu user chưa tồn tại
+    if (!db[userId]) {
+        db[userId] = { balance: 0, lastDaily: null };
+    }
+    
+    // Bảo vệ biến balance hiện tại không bị undefined/NaN
+    if (typeof db[userId].balance !== 'number' || isNaN(db[userId].balance)) {
+        db[userId].balance = 0;
+    }
+
+    // Ép kiểu lượng tiền thay đổi về số nguyên
+    const safeAmount = parseInt(amount);
+    if (isNaN(safeAmount)) {
+        console.error(`[Lỗi Hệ Thống] Lượng tiền truyền vào addMoney bị NaN:`, amount);
+        return; 
+    }
+
+    db[userId].balance += safeAmount;
     writeJson(moneyDbPath, db);
 }
 
-// Lấy thông tin Pet (Hệ thống Kho đồ tích hợp tự động sinh tiền)
+// --- HÀM ĐỌC/GHI DỮ LIỆU PET ---
 function getPetData(userId) {
     const db = readJson(petDbPath);
     
@@ -34,12 +58,27 @@ function getPetData(userId) {
         db[userId] = {
             activePetId: null,
             inventory: [],
-            lastClaimTime: Date.now() // Lưu mốc thời gian bắt đầu tính tiền thụ động
+            lastClaimTime: Date.now() 
         };
         writeJson(petDbPath, db);
     } else {
-        // Cập nhật cấu hình cho các tài khoản cũ chưa có trường lastClaimTime
-        if (!db[userId].lastClaimTime) {
+        // Tự động sửa cấu trúc dữ liệu nếu là tài khoản từ bản cũ chuyển sang
+        if (db[userId].hasPet !== undefined) {
+            const oldData = db[userId];
+            db[userId] = {
+                activePetId: oldData.hasPet ? "pet_legacy_1" : null,
+                inventory: oldData.hasPet ? [{
+                    id: "pet_legacy_1",
+                    name: oldData.name,
+                    level: oldData.level || 1,
+                    exp: oldData.exp || 0,
+                    food: oldData.food || 100,
+                    originalOwner: userId
+                }] : [],
+                lastClaimTime: Date.now()
+            };
+            writeJson(petDbPath, db);
+        } else if (!db[userId].lastClaimTime) {
             db[userId].lastClaimTime = Date.now();
             writeJson(petDbPath, db);
         }
@@ -62,21 +101,20 @@ function updatePassiveIncome(userId, userPetData) {
     const now = Date.now();
     const timePassedMs = now - userPetData.lastClaimTime;
     
-    // Đổi ra số phút trôi qua (Ví dụ: Cứ mỗi 1 phút sinh tiền 1 lần)
+    // Tính số phút trôi qua (Mỗi 1 phút tích lũy tiền 1 lần)
     const minutesPassed = Math.floor(timePassedMs / (60 * 1000)); 
 
     if (minutesPassed > 0) {
-        // Tính tổng cấp độ của TẤT CẢ các Pet nằm trong kho đồ (bao gồm cả con đang active)
-        const totalPetLevels = userPetData.inventory.reduce((sum, pet) => sum + (pet.level || 1), 0);
+        // Tính tổng cấp độ của TẤT CẢ các Pet nằm trong kho đồ (kể cả con đang dắt)
+        const totalPetLevels = userPetData.inventory.reduce((sum, pet) => sum + (parseInt(pet.level) || 1), 0);
 
-        // Công thức: Số tiền nhận = Số phút trôi qua * Tổng cấp độ Pet
-        // Bạn có thể nhân thêm hệ số nếu muốn cho nhiều tiền hơn, ví dụ: minutesPassed * totalPetLevels * 2;
+        // Công thức: Tiền thụ động = Số phút * Tổng cấp độ Pet
         const passiveMoneyEarned = minutesPassed * totalPetLevels;
 
         if (passiveMoneyEarned > 0) {
             addMoney(userId, passiveMoneyEarned);
             
-            // Cập nhật lại mốc thời gian sang chu kỳ mới (giữ lại số mili-giây dư thừa)
+            // Dịch chuyển mốc thời gian, giữ lại số mili-giây dư thừa chưa đủ 1 phút
             userPetData.lastClaimTime = userPetData.lastClaimTime + (minutesPassed * 60 * 1000);
             return passiveMoneyEarned;
         }
@@ -94,11 +132,11 @@ async function handlePetSystem(message) {
     const args = message.content.trim().split(/\s+/);
     const userId = message.author.id;
 
-    // Danh sách lệnh hợp lệ
+    // Bộ lọc lệnh
     const petCommands = ['!pet', '!shop-pet', '!muapet', '!choan', '!nangcap', '!help', '!tromcho', '!thave', '!khopet', '!laypet'];
     if (!petCommands.some(cmd => content.startsWith(cmd))) return;
 
-    // Kiểm tra kênh cấu hình
+    // Giới hạn kênh nuôi pet
     const configuredPetChannel = process.env.KENH_NUOI_PET;
     if (configuredPetChannel && message.channel.id !== configuredPetChannel) {
         return message.reply(`❌ Khu vực chăm sóc Linh Thú chỉ mở tại riêng kênh <#${configuredPetChannel}>!`).catch(() => {});
@@ -108,7 +146,7 @@ async function handlePetSystem(message) {
     let userPetData = getPetData(userId);
 
     // =========================================================
-    // 💰 THỰC THI THU THẬP TIỀN THỤ ĐỘNG TRƯỚC KHI XỬ LÝ LỆNH
+    // 💰 THU HOẠCH TIỀN THỤ ĐỘNG MỖI KHI GÕ LỆNH PET
     // =========================================================
     const earned = updatePassiveIncome(userId, userPetData);
     if (earned > 0) {
@@ -122,18 +160,18 @@ async function handlePetSystem(message) {
     // 📖 LỆNH: !help
     // =========================================================
     if (content === '!help') {
-        let helpMsg = `📜 **CẨM NANG LINH THÚ (MỚI: SINH TIỀN THỤ ĐỘNG)** 📜\n`;
+        let helpMsg = `📜 **CẨM NANG LINH THÚ (TÍCH HỢP HOÀN CHỈNH)** 📜\n`;
         helpMsg += `-------------------------------------------\n`;
-        helpMsg += `💸 *Cơ chế Thần Tài: Toàn bộ Pet trong kho đồ (cất đi hay dắt theo) đều tự động tạo ra tiền mỗi phút. Cấp độ càng cao, tiền sinh ra càng nhiều!*\n\n`;
+        helpMsg += `💸 *Cơ chế Thần Tài: Toàn bộ Pet trong kho (cất đi hay dắt theo) đều tự động sinh tiền mỗi phút theo cấp độ của chúng. Càng nhiều Pet cấp cao, tiền sinh ra càng khủng!*\n\n`;
         helpMsg += `➔ \`!shop-pet\` : Mở cửa hàng mua trứng và thức ăn.\n`;
-        helpMsg += `➔ \`!muapet [Tên]\` : Mua và khế ước Linh Thú mới (tự động vào kho).\n`;
+        helpMsg += `➔ \`!muapet [Tên]\` : Mua Linh Thú mới (tự động vào kho).\n`;
         helpMsg += `➔ \`!pet\` : Xem chỉ số của Linh Thú đang dắt theo người.\n`;
-        helpMsg += `➔ \`!choan\` / \`!nangcap\` : Chăm sóc nuôi nấng Pet.\n`;
-        helpMsg += `➔ \`!khopet\` : Mở kho đồ xem toàn bộ Linh Thú đang sở hữu.\n`;
-        helpMsg += `➔ \`!laypet [STT]\` : Đổi Linh Thú xuất trận.\n`;
-        helpMsg += `➔ \`!tromcho [@User]\` : Tỉ lệ 30% cướp 1 Pet ngẫu nhiên trong kho nạn nhân.\n`;
+        helpMsg += `➔ \`!choan\` / \`!nangcap\` : Chăm sóc nâng cấp độ Pet.\n`;
+        helpMsg += `➔ \`!khopet\` : Mở kho đồ xem toàn bộ Linh Thú đang sở hữu & tốc độ sinh tiền.\n`;
+        helpMsg += `➔ \`!laypet [STT]\` : Thay thế Linh Thú xuất trận (không cần thả pet cũ).\n`;
+        helpMsg += `➔ \`!tromcho [@User]\` : Tỉ lệ 30% cướp 1 Pet ngẫu nhiên trong kho nạn nhân. Thất bại phạt tiền chuyển THẲNG cho nạn nhân.\n`;
         helpMsg += `➔ \`!thave\` : Phóng sinh vĩnh viễn con Pet đang dắt theo.\n`;
-        helpMsg += `➔ \`!thave @User\` : Trả tự do/Trả lại con Pet đang dắt về cho chủ cũ.\n`;
+        helpMsg += `➔ \`!thave @User\` : Trả lại con Pet đang dắt về cho chủ sở hữu gốc của nó.\n`;
         return message.reply(helpMsg).catch(() => {});
     }
 
@@ -145,7 +183,7 @@ async function handlePetSystem(message) {
         shopMsg += `-------------------------------------------\n`;
         shopMsg += `🥚 **!muapet [Tên_Pet]** ➔ Giá: **${PRICE_BUY_PET}** linh thạch\n`;
         shopMsg += `🍖 **!choan** ➔ Giá: **${PRICE_FOOD}** linh thạch (Tăng +30 no, +15 EXP)\n`;
-        shopMsg += `⚡ **!nangcap** ➔ Tiêu hao linh thạch đột phá cấp bậc.`;
+        shopMsg += `⚡ **!nangcap** ➔ Tiêu hao linh thạch đột phá cấp bậc nhanh chóng.`;
         return message.reply(shopMsg).catch(() => {});
     }
 
@@ -178,7 +216,7 @@ async function handlePetSystem(message) {
         }
 
         savePetData(userId, userPetData);
-        return message.reply(`🎉 Bạn đã mua thành công **${newPet.name}**! Thú đã được đưa vào kho đồ và bắt đầu kích hoạt cơ chế đào mỏ tự động.`);
+        return message.reply(`🎉 Bạn đã mua thành công **${newPet.name}**! Thú đã được đưa vào kho đồ và kích hoạt cơ chế sinh tiền thụ động.`);
     }
 
     // =========================================================
@@ -187,19 +225,18 @@ async function handlePetSystem(message) {
     if (content === '!khopet') {
         if (userPetData.inventory.length === 0) return message.reply(`🎒 Kho linh thú của bạn đang trống rỗng.`);
         
-        // Tính trước tổng tốc độ đào mỏ hiện tại
-        const currentSpeed = userPetData.inventory.reduce((sum, pet) => sum + (pet.level || 1), 0);
+        const currentSpeed = userPetData.inventory.reduce((sum, pet) => sum + (parseInt(pet.level) || 1), 0);
 
         let invMsg = `🎒 **KHO LINH THÚ CỦA ${message.author.username.toUpperCase()}** 🎒\n`;
         invMsg += `-------------------------------------------\n`;
-        invMsg += `💸 Tốc độ sinh linh thạch hiện tại: **+${currentSpeed}/phút**\n\n`;
+        invMsg += `💸 Tổng công suất sinh tiền: **+${currentSpeed} linh thạch/phút**\n\n`;
         
         userPetData.inventory.forEach((petItem, index) => {
             const isActive = petItem.id === userPetData.activePetId ? "👉 [ĐANG DẮT]" : "";
             const isStolen = petItem.originalOwner !== userId ? " 🏴‍☠️ (Thú Trộm Được)" : "";
             invMsg += `**${index + 1}.** ${petItem.name} - Cấp ${petItem.level} ${isActive}${isStolen} *(+${petItem.level}$/phút)*\n`;
         });
-        invMsg += `-------------------------------------------\n💡 Gõ \`!laypet [STT]\` để thay đổi Linh Thú xuất trận hành tẩu.`;
+        invMsg += `-------------------------------------------\n💡 Gõ \`!laypet [STT]\` để thay thế Linh Thú xuất trận.`;
         return message.reply(invMsg);
     }
 
@@ -215,11 +252,11 @@ async function handlePetSystem(message) {
         userPetData.activePetId = userPetData.inventory[index].id;
         savePetData(userId, userPetData);
         
-        return message.reply(`🔄 Bạn đã cất thú cũ và dắt **${userPetData.inventory[index].name}** đi hành tẩu cùng!`);
+        return message.reply(`🔄 Bạn đã cất thú cũ và dắt **${userPetData.inventory[index].name}** xuất trận!`);
     }
 
     // =========================================================
-    // 🥷 LỆNH: TRỘM CHÓ VÀ CHUYỂN TIỀN PHẠT CHO NẠN NHÂN (!tromcho)
+    // 🥷 LỆNH: TRỘM CHÓ - PHẠT TIỀN CHUYỂN THẲNG CHO BỊ HẠI (!tromcho)
     // =========================================================
     if (content.startsWith('!tromcho')) {
         const targetUser = message.mentions.users.first();
@@ -233,17 +270,18 @@ async function handlePetSystem(message) {
             return message.reply(`⏰ Hãy ẩn nấp thêm **${timeRemaining} giây** trước khi thực hiện vụ trộm tiếp theo.`);
         }
 
-        // Đồng bộ cập nhật tiền thụ động cho nạn nhân trước khi kho của họ bị thay đổi
+        // Đồng bộ cập nhật tiền thụ động cho nạn nhân trước khi kho đồ của họ thay đổi
         const targetPetData = getPetData(targetUser.id);
         updatePassiveIncome(targetUser.id, targetPetData);
 
         if (targetPetData.inventory.length === 0) {
-            return message.reply(`❌ Trong kho của **${targetUser.username}** không có bất kỳ con Linh Thú nào để trộm.`);
+            return message.reply(`❌ Trong kho của **${targetUser.username}** không có con Linh Thú nào để trộm.`);
         }
 
         tromchoCooldowns.set(userId, Date.now());
 
         if (Math.random() <= 0.30) {
+            // Thành công: Lấy ngẫu nhiên 1 pet trong kho nạn nhân
             const randomIndex = Math.floor(Math.random() * targetPetData.inventory.length);
             const stolenPet = targetPetData.inventory.splice(randomIndex, 1)[0];
 
@@ -255,13 +293,14 @@ async function handlePetSystem(message) {
             userPetData.inventory.push(stolenPet);
             savePetData(userId, userPetData);
 
-            return message.reply(`🥷 **ĐẠO TẶC THÀNH CÔNG!!** Bạn đã lẻn vào kho đồ của <@${targetUser.id}> và cuỗm mất con **${stolenPet.name}** (Cấp ${stolenPet.level}) đem về kho đồ của mình! Cướp luôn cả tốc độ sinh tiền thụ động của nó!`);
+            return message.reply(`🥷 **ĐẠO TẶC THÀNH CÔNG!!** Bạn đã đột nhập kho của <@${targetUser.id}> và cuỗm mất con **${stolenPet.name}** (Cấp ${stolenPet.level}) về kho của mình!`);
         } else {
+            // Thất bại: Phạt tiền và CHUYỂN THẲNG tiền vào ví nạn nhân
             const fine = 300;
             addMoney(userId, -fine);
-            addMoney(targetUser.id, fine);
+            addMoney(targetUser.id, fine); 
 
-            return message.reply(`🚨 **BẮT QUẢ TANG!** Bạn lẻn vào nhà <@${targetUser.id}> thì đá trúng cái chậu vỡ làm đánh động gia chủ. Bạn bị đấm tơi tả và phải **bồi thường bạt tay nóng ${fine} linh thạch** thẳng vào tài khoản của họ!`);
+            return message.reply(`🚨 **BẮT QUẢ TANG!** Bạn lẻn vào nhà <@${targetUser.id}> thì bị xích chó vướng chân ngã sấp mặt. Bạn bị gia chủ tóm gọn và phải **bồi thường nóng ${fine} linh thạch** chuyển thẳng vào ví của họ!`);
         }
     }
 
@@ -271,14 +310,15 @@ async function handlePetSystem(message) {
     }
 
     // =========================================================
-    // 🍂 LỆNH: !thave VÀ !thave @User (TRẢ PET CHO CHỦ SỞ HỮU GỐC)
+    // 🍂 LỆNH: !thave VÀ !thave @User (TRẢ CHÓ VỀ CHO CHỦ CŨ)
     // =========================================================
     if (content.startsWith('!thave')) {
         const targetMention = message.mentions.users.first();
 
+        // TRƯỜNG HỢP 1: !thave @User (Trả thú trộm được về cho chính chủ)
         if (targetMention) {
             if (activePet.originalOwner !== targetMention.id) {
-                return message.reply(`❌ Con **${activePet.name}** này không phải do <@${targetMention.id}> sở hữu ban đầu, bạn không thể trả lại cho họ!`);
+                return message.reply(`❌ Con **${activePet.name}** này không phải do <@${targetMention.id}> sở hữu ban đầu, không thể trả cho họ!`);
             }
 
             message.reply(`🤝 Bạn muốn hoàn trả Linh Thú **${activePet.name}** về lại cho chủ cũ của nó là <@${targetMention.id}> chứ?\nGõ \`ok\` trong 15 giây để xác nhận trả.`);
@@ -286,13 +326,14 @@ async function handlePetSystem(message) {
             const filter = m => m.author.id === userId && m.content.toLowerCase() === 'ok';
             message.channel.awaitMessages({ filter, max: 1, time: 15000, errors: ['time'] })
                 .then(() => {
+                    // Xóa khỏi kho kẻ trộm
                     userPetData.inventory = userPetData.inventory.filter(p => p.id !== activePet.id);
                     userPetData.activePetId = userPetData.inventory[0]?.id || null;
                     savePetData(userId, userPetData);
 
+                    // Trả lại kho chủ cũ
                     const originalOwnerData = getPetData(targetMention.id);
-                    // Đồng bộ tiền thụ động của chủ cũ trước khi nạp thêm pet mới vào kho của họ
-                    updatePassiveIncome(targetMention.id, originalOwnerData);
+                    updatePassiveIncome(targetMention.id, originalOwnerData); // Cập nhật thu nhập thụ động chủ cũ trước
                     
                     originalOwnerData.inventory.push(activePet);
                     if (!originalOwnerData.activePetId) originalOwnerData.activePetId = activePet.id;
@@ -303,6 +344,7 @@ async function handlePetSystem(message) {
             return;
         }
 
+        // TRƯỜNG HỢP 2: !thave (Phóng sinh thông thường về tự nhiên)
         message.reply(`🍂 Bạn muốn phóng sinh **${activePet.name}** về núi rừng thiên nhiên vĩnh viễn chứ?\nGõ \`ok\` trong 15 giây để xác nhận.`);
         
         const filter = m => m.author.id === userId && m.content.toLowerCase() === 'ok';
@@ -311,7 +353,7 @@ async function handlePetSystem(message) {
                 userPetData.inventory = userPetData.inventory.filter(p => p.id !== activePet.id);
                 userPetData.activePetId = userPetData.inventory[0]?.id || null;
                 savePetData(userId, userPetData);
-                return message.channel.send(`🕊️ Bạn đã tháo khế ước giải thoát cho **${activePet.name}**. Nó tự do chạy thẳng vào rừng sâu.`);
+                return message.channel.send(`🕊️ Bạn đã giải thoát cho **${activePet.name}**. Nó tự do chạy thẳng vào rừng sâu.`);
             }).catch(() => message.reply(`❌ Hủy phóng sinh.`));
         return;
     }
@@ -329,7 +371,7 @@ async function handlePetSystem(message) {
         let petMsg = `🐾 **LINH THÚ ĐANG XUẤT TRẬN CỦA ${message.author.username.toUpperCase()}** 🐾\n`;
         petMsg += `-------------------------------------------\n`;
         petMsg += `🔮 **Danh Xưng:** ${activePet.name}\n`;
-        petMsg += `⭐ **Tu Vi (Cấp):** Cấp ${activePet.level} *(Đang kiếm về: +${activePet.level}$/phút)*\n`;
+        petMsg += `⭐ **Tu Vi (Cấp):** Cấp ${activePet.level} *(Đang kiếm về: +${activePet.level} linh thạch/phút)*\n`;
         petMsg += `✨ **Kinh Nghiệm:** [${activePet.exp}/${expNeeded}] EXP\n`;
         
         let foodBar = "🍖 " + "🟩".repeat(Math.ceil(activePet.food / 10)) + "⬜".repeat(10 - Math.ceil(activePet.food / 10)) + ` (${activePet.food}/100)`;
@@ -358,7 +400,7 @@ async function handlePetSystem(message) {
         if (activePet.exp >= expNeeded) {
             activePet.exp -= expNeeded;
             activePet.level += 1;
-            upLevelText = `\n✨ **ĐỘT PHÁ!** Linh thú đã thăng lên **Cấp ${activePet.level}**! Tốc độ đào tiền thụ động tăng lên!`;
+            upLevelText = `\n✨ **ĐỘT PHÁ!** Linh thú đã thăng lên **Cấp ${activePet.level}**! Tốc độ sinh tiền thụ động tăng lên!`;
         }
 
         savePetData(userId, userPetData);
@@ -383,7 +425,7 @@ async function handlePetSystem(message) {
         if (activePet.exp >= expNeeded) {
             activePet.exp -= expNeeded;
             activePet.level += 1;
-            responseText += `🎉 **ĐỘT PHÁ THÀNH CÔNG!** Thú tiến hóa lên **Cấp ${activePet.level}**! Công suất đào tiền thụ động được nâng cao đáng kể!`;
+            responseText += `🎉 **ĐỘT PHÁ THÀNH CÔNG!** Thú tiến hóa lên **Cấp ${activePet.level}**! Công suất đào tiền thụ động được nâng cao!`;
         } else {
             responseText += `✨ Kinh nghiệm: **[${activePet.exp}/${expNeeded}]** EXP.`;
         }

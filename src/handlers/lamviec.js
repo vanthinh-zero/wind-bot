@@ -1,10 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// Đường dẫn tới file money.json của bạn
+// Đường dẫn tới file money.json
 const moneyPath = path.join(__dirname, '../../money.json'); 
 
-// Hàm đọc dữ liệu
+// =========================================================
+// 🛡️ HÀM ĐỌC/GHI TIỀN AN TOÀN - TRIỆT TIÊU LỖI NaN$
+// =========================================================
 function getMoneyData() {
     if (!fs.existsSync(moneyPath)) return {};
     try {
@@ -14,9 +16,29 @@ function getMoneyData() {
     }
 }
 
-// Hàm ghi dữ liệu
 function saveMoneyData(data) {
     fs.writeFileSync(moneyPath, JSON.stringify(data, null, 4));
+}
+
+// Hàm lấy tiền chống lỗi NaN (đồng bộ hóa cấu trúc dữ liệu)
+function getSafeBalance(moneyData, userId) {
+    if (!moneyData[userId]) {
+        moneyData[userId] = { balance: 0, money: 0, job: null };
+    }
+    
+    // Nếu dữ liệu cũ lưu ở biến .money, tự động chuyển nó về .balance để đồng bộ với Pet
+    if (moneyData[userId].money !== undefined && moneyData[userId].balance === undefined) {
+        moneyData[userId].balance = moneyData[userId].money;
+    }
+
+    // Đảm bảo balance luôn là một con số hợp lệ
+    if (typeof moneyData[userId].balance !== 'number' || isNaN(moneyData[userId].balance)) {
+        moneyData[userId].balance = 0;
+    }
+    
+    // Đồng bộ cả 2 biến để tránh lỗi với các lệnh cũ khác
+    moneyData[userId].money = moneyData[userId].balance; 
+    return moneyData[userId].balance;
 }
 
 // Hệ thống lưu Cooldown chống spam lệnh (60 giây)
@@ -24,7 +46,7 @@ const cooldowns = new Map();
 const COOLDOWN_TIME = 60 * 1000; 
 
 // =========================================================
-// DANH SÁCH TẤT CẢ CÔNG VIỆC (ĐÃ THÊM NGHỀ MỚI)
+// DANH SÁCH TẤT CẢ CÔNG VIỆC
 // =========================================================
 const jobsConfig = {
     "tiemthuoc": {
@@ -54,10 +76,9 @@ const jobsConfig = {
             "Một vị đại gia vào mua bao thuốc lá và không lấy tiền thừa"
         ]
     },
-    // --- CÁC CÔNG VIỆC MỚI THÊM VÀO ---
     "daotach": {
         name: "Đạo Tặc (Ngầm) 🥷",
-        salaryMin: 200, salaryMax: 600, // Thu nhập cao nhưng rủi ro cao
+        salaryMin: 200, salaryMax: 600,
         actions: [
             "Bạn lẻn vào phủ gia giàu có trộm được một túi bạc giá trị",
             "Bạn móc túi một tên lính say rượu bên đường, vớ được",
@@ -87,23 +108,21 @@ const jobsConfig = {
 async function handleLamViecGame(message) {
     const KENH_LAM_VIEC = process.env.KENH_LAM_VIEC;
 
-    // Kiểm tra xem lệnh có đúng kênh quy định không
     if (KENH_LAM_VIEC && message.channel.id !== KENH_LAM_VIEC) return false;
 
     const args = message.content.trim().split(/ +/);
     const command = args[0].toLowerCase();
     const userId = message.author.id;
 
-    // Đọc dữ liệu user hiện tại
     let moneyData = getMoneyData();
     
-    // Đảm bảo cấu trúc dữ liệu không bị lỗi nếu user mới hoàn toàn
-    if (!moneyData[userId]) {
-        moneyData[userId] = { money: 0, job: null };
-    } else if (typeof moneyData[userId] === 'number') {
-        // Chuẩn hóa dữ liệu cũ (nếu trước đó money.json chỉ lưu mỗi một con số tiền)
-        moneyData[userId] = { money: moneyData[userId], job: null };
+    // Chuẩn hóa dữ liệu ngay khi đọc file
+    if (typeof moneyData[userId] === 'number') {
+        moneyData[userId] = { balance: moneyData[userId], money: moneyData[userId], job: null };
     }
+    
+    // Gọi hàm kiểm tra an toàn để kích hoạt ví tiền sạch chống NaN
+    let currentBalance = getSafeBalance(moneyData, userId);
 
     // =========================================================
     // LỆNH 1: XEM DANH SÁCH CÔNG VIỆC (!jobs)
@@ -133,7 +152,7 @@ async function handleLamViecGame(message) {
         const currentJobKey = moneyData[userId].job;
         const jobName = currentJobKey ? jobsConfig[currentJobKey].name : "Thất nghiệp 🛌";
         
-        await message.reply(`👤 **HỒ SƠ CỦA ${message.author.username}**\n💰 Số dư: **${moneyData[userId].money}$**\n💼 Nghề nghiệp: **${jobName}**`);
+        await message.reply(`👤 **HỒ SƠ CỦA ${message.author.username}**\n💰 Số dư: **${currentBalance}$**\n💼 Nghề nghiệp: **${jobName}**`);
         return true;
     }
 
@@ -154,7 +173,6 @@ async function handleLamViecGame(message) {
             return true;
         }
 
-        // Đồng ý nhận việc
         moneyData[userId].job = targetJob;
         saveMoneyData(moneyData);
 
@@ -174,17 +192,17 @@ async function handleLamViecGame(message) {
         }
 
         const oldJobName = jobsConfig[currentJobKey].name;
-        
-        // Phạt một chút tiền phá vỡ hợp đồng lao động (Tùy chọn: Ở đây phạt 50$, có thể sửa thành 0)
         const phạtTiền = 50; 
-        if (moneyData[userId].money >= phạtTiền) {
-            moneyData[userId].money -= phạtTiền;
+
+        if (currentBalance >= phạtTiền) {
+            moneyData[userId].balance -= phạtTiền;
+            moneyData[userId].money = moneyData[userId].balance; // đồng bộ
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
             await message.reply(`💔 Bạn đã nộp đơn xin nghỉ việc tại **${oldJobName}**. Bạn bị trừ **${phạtTiền}$** tiền bồi thường hợp đồng. Hiện tại bạn đã tự do!`);
         } else {
-            // Không đủ tiền phạt vẫn cho nghỉ nhưng tài khoản về 0
-            moneyData[userId].money = 0;
+            moneyData[userId].balance = 0;
+            moneyData[userId].money = 0; // đồng bộ
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
             await message.reply(`💔 Bạn đã trốn việc bỏ ngang tại **${oldJobName}**. Toàn bộ số tiền lương ít ỏi còn lại đã bị chủ tiệm siết nợ!`);
@@ -198,13 +216,11 @@ async function handleLamViecGame(message) {
     if (command === '!lamviec') {
         const currentJobKey = moneyData[userId].job;
 
-        // Nếu chưa xin việc
         if (!currentJobKey || !jobsConfig[currentJobKey]) {
             await message.reply(`❌ Bạn chưa có việc làm! Vui lòng gõ \`!jobs\` và chọn một công việc bằng lệnh \`!xinviec [mã_nghề]\`.`);
             return true;
         }
 
-        // Kiểm tra thời gian hồi (Cooldown chống spam)
         if (cooldowns.has(userId)) {
             const expirationTime = cooldowns.get(userId) + COOLDOWN_TIME;
             const now = Date.now();
@@ -215,24 +231,22 @@ async function handleLamViecGame(message) {
             }
         }
 
-        // Lấy thông tin cấu hình công việc hiện tại
         const job = jobsConfig[currentJobKey];
-        
-        // Chọn ngẫu nhiên lời thoại hành động
         const randomAction = job.actions[Math.floor(Math.random() * job.actions.length)];
-        // Tính toán số tiền ngẫu nhiên nhận được
-        const moneyEarned = Math.floor(Math.random() * (job.salaryMax - job.salaryMin + 1)) + job.salaryMin;
+        
+        // Tính toán số tiền thưởng (Ép kiểu số nguyên chắc chắn với parseInt)
+        const moneyEarned = parseInt(Math.floor(Math.random() * (job.salaryMax - job.salaryMin + 1)) + job.salaryMin);
 
-        // Cộng tiền và lưu lại
-        moneyData[userId].money += moneyEarned;
+        // 🛑 ĐOẠN PHÒNG VỆ CHỐNG LỖI NaN$: Tính toán trên biến an toàn
+        moneyData[userId].balance = currentBalance + moneyEarned;
+        moneyData[userId].money = moneyData[userId].balance; // đồng bộ kép 2 biến tiền
         saveMoneyData(moneyData);
 
-        // Thiết lập Cooldown
         cooldowns.set(userId, Date.now());
         setTimeout(() => cooldowns.delete(userId), COOLDOWN_TIME);
 
-        // Trả tin nhắn kết quả cho user
-        await message.reply(`💼 **[${job.name}]** ${randomAction} **+${moneyEarned}$**. Số dư mới: **${moneyData[userId].money}$**`);
+        // Hiển thị kết quả ra màn hình cực chuẩn
+        await message.reply(`💼 **[${job.name}]** ${randomAction} **+${moneyEarned}$**. Số dư mới: **${moneyData[userId].balance}$**`);
         return true;
     }
 
