@@ -1,16 +1,20 @@
 {
-    "1037019422918983810": {
-        "balance": 0,
-        "lastDaily": null
-    },
-    "910001518328033301": {
-        "balance": 150126,
-        "money": 150126,
-        "job": "daotach",
-        "lastDaily": null
-    },
-    "1480876805937430571": {
-        "balance": 0,
-        "lastDaily": null
-    }
+  "1037019422918983810": {
+    "balance": 0,
+    "lastDaily": null
+  },
+  "910001518328033301": {
+    "balance": 149626,
+    "money": 150126,
+    "job": "daotach",
+    "lastDaily": null
+  },
+  "1480876805937430571": {
+    "balance": 0,
+    "lastDaily": null
+  },
+  "857816288332087307": {
+    "balance": 0,
+    "lastDaily": null
+  }
 }
