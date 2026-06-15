@@ -26,6 +26,12 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 // 💬 IMPORT HỆ THỐNG CHAT TỰ ĐỘNG PHẢN HỒI MẠNH BẠO (MỚI TÍCH HỢP)
 const { handleChatInteraction } = require('./src/handlers/chat.js');
 
+// 🔮 IMPORT HỆ THỐNG TAROT THUẦN TÚY (MỚI TÍCH HỢP)
+const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
+
+// 🚀 IMPORT HỆ THỐNG BẢO MẬT TICKET CHO BOOSTER (MỚI TÍCH HỢP)
+const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
+
 // Khởi tạo Web Server giữ Bot online 24/7
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot đang tu luyện, vui lòng không làm phiền!'));
@@ -54,7 +60,9 @@ const {
     KENH_NGAM_THO, 
     KENH_CHECK_AVATAR,
     KENH_CHUA_LANH,
-    KENH_LAM_VIEC 
+    KENH_LAM_VIEC,
+    TAROT_CHANNEL_ID, // 🔮 Biến môi trường cho kênh Tarot riêng biệt
+    BOOST_THANK_YOU_CHANNEL_ID // 🚀 Biến môi trường cho kênh cảm ơn Boost riêng biệt
 } = process.env;
 
 // Sự kiện khi Bot kích hoạt thành công
@@ -68,6 +76,8 @@ client.once(Events.ClientReady, (readyClient) => {
     console.log(`📖 Kênh Ngâm Thơ & Chữa Lành: ${KENH_NGAM_THO || 'Chưa cấu hình'}`);
     console.log(`🖼️ Kênh Check Avatar: ${KENH_CHECK_AVATAR || 'Chưa cấu hình'}`);
     console.log(`🩹 Kênh Chữa Lành Riêng Biệt: ${KENH_CHUA_LANH || 'Chưa cấu hình'}`);
+    console.log(`🔮 Kênh Định Danh Tarot: ${TAROT_CHANNEL_ID || 'Chưa cấu hình'}`);
+    console.log(`🚀 Kênh Cảm Ơn Boost: ${BOOST_THANK_YOU_CHANNEL_ID || 'Chưa cấu hình'}`);
     console.log('==================================================');
 
     // Kích hoạt luồng chạy ngầm tự động ngâm thơ ngẫu nhiên theo giờ giấc
@@ -79,6 +89,17 @@ client.once(Events.ClientReady, (readyClient) => {
 // =========================================================
 client.on('guildMemberAdd', async (member) => {
     await handleWelcomeMember(member);
+});
+
+// =========================================================
+// 🚀 SỰ KIỆN THEO DÕI CẬP NHẬT THÀNH VIÊN (XỬ LÝ BOOST SERVER)
+// =========================================================
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+    try {
+        await handleServerBoost(oldMember, newMember);
+    } catch (error) {
+        console.error('❌ Lỗi xử lý sự kiện Boost Server:', error);
+    }
 });
 
 // =========================================================
@@ -110,6 +131,12 @@ client.on('messageCreate', async (message) => {
         // 3. Lệnh triệu hồi giao diện Tu Tiên
         if (message.content === '!tutien') {
             await sendTuTienMainMenu(message);
+            return;
+        }
+
+        // 🔮 3.5. Lệnh khởi động sảnh bói bài Tarot thuần túy
+        if (message.content === '!tarot') {
+            await handleTarotCommand(message);
             return;
         }
 
@@ -191,6 +218,32 @@ client.on('interactionCreate', async (interaction) => {
                 await handleVoiceMenuInteraction(interaction);
             } catch (error) {
                 console.error('❌ Lỗi Tương tác Nút Voice:', error);
+            }
+            return;
+        }
+
+        // 🔮 XỬ LÝ CÁC NÚT BẤM CỦA HỆ THỐNG TAROT
+        if (interaction.customId.startsWith('tarot_')) {
+            try {
+                await handleTarotInteraction(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi Tương tác Tarot:', error);
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.reply({ 
+                        content: '🔮 Trục trặc kết nối với các vì sao, không thể bói bài lúc này!', 
+                        ephemeral: true 
+                    }).catch(() => {});
+                }
+            }
+            return;
+        }
+
+        // 🚀 XỬ LÝ NÚT BẤM MỞ TICKET BẢO MẬT CHO BOOSTER (MỚI TÍCH HỢP)
+        if (interaction.customId === 'boost_ticket_create') {
+            try {
+                await handleBoostTicketInteraction(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi Tương tác Nút Boost Ticket:', error);
             }
             return;
         }
