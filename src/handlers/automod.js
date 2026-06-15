@@ -19,23 +19,18 @@ async function handleAutoMod(message) {
     const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) || 
                         message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers);
 
-    // LƯU Ý: Lệnh có dấu ! thì nhường xuống cho hàm handleAdminCommands xử lý, không quét từ cấm ở đây
     if (message.content.startsWith('!')) return false;
 
     if (!isBotAdmin && !hasModPerms) {
         const contentLower = message.content.toLowerCase();
         
-        // ✨ ĐẶC CÁCH QUAN TRỌNG: Nếu câu chửi có đích danh chữ "bot" (ví dụ: bot ngu, bot cac, bot lon)
-        // AutoMod sẽ bỏ qua để nhường luồng cho file chat.js nhảy vào đốp chát!
         if (contentLower.includes('bot')) {
             return false;
         }
 
-        // 1. KIỂM TRA TỪ CẤM (Nếu không nhắc gì đến bot mà tự dưng chửi tục)
         const normalizedContent = contentLower.replace(/[\.\-\_\,\;\:\*]/g, ' '); 
         const hasBannedWord = BANNED_REGEX.some(regex => regex.test(normalizedContent));
 
-        // 2. KIỂM TRA LINK DISCORD INVITE
         const linkRegex = /(https?:\/\/[^\s]+)/g;
         let hasForbiddenLink = false;
         const links = contentLower.match(linkRegex); 
@@ -47,7 +42,6 @@ async function handleAutoMod(message) {
             }
         }
 
-        // 3. XỬ LÝ KHI VI PHẠM
         if (hasBannedWord || hasForbiddenLink) {
             try {
                 const violatedContent = message.content; 
@@ -57,7 +51,6 @@ async function handleAutoMod(message) {
                 const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết mời (Discord Invite) trái phép.";
                 await message.member.timeout(muteDuration, `[AutoMod] ${reason}`);
 
-                // GỬI LOG ĐẾN KÊNH KÍN
                 const logChannelId = process.env.KENH_LOG_AUTOMOD;
                 if (logChannelId) {
                     const logChannel = message.guild.channels.cache.get(logChannelId);
@@ -71,7 +64,7 @@ async function handleAutoMod(message) {
                                 { name: '📍 Kênh vi phạm', value: `${message.channel}`, inline: true },
                                 { name: '📝 Lý do xử lý', value: reason },
                                 { name: '⏳ Hình phạt', value: '**Mute (Timeout) 10 phút**' },
-                                { name: '💬 Nội dung tin nhắn gốc', value: `\`\`\`${violatedContent.slice(0, 1000) || '[Không có chữ]'}\`\`\位` }
+                                { name: '💬 Nội dung tin nhắn gốc', value: `\`\`\`${violatedContent.slice(0, 1000) || '[Không có chữ]'}\`\`\`` }
                             )
                             .setTimestamp();
                         
@@ -79,7 +72,6 @@ async function handleAutoMod(message) {
                     }
                 }
 
-                // CẢNH BÁO TẠI KÊNH CHAT
                 const alertEmbed = new EmbedBuilder()
                     .setColor('#ff3333')
                     .setTitle('⚠️ CẢNH BÁO HỆ THỐNG')
@@ -103,7 +95,6 @@ async function handleAutoMod(message) {
 async function handleAdminCommands(message) {
     if (message.author.bot || !message.guild) return false;
 
-    // 1. Lệnh dọn dẹp tin nhắn (!clear)
     if (message.content.startsWith('!clear')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền Quản lý tin nhắn!');
@@ -118,7 +109,6 @@ async function handleAdminCommands(message) {
         return true;
     }
 
-    // 2. Lệnh ban thành viên (!ban)
     if (message.content.startsWith('!ban ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền cấm thành viên!');
@@ -131,7 +121,6 @@ async function handleAdminCommands(message) {
         return true;
     }
 
-    // 3. Lệnh gỡ ban thành viên (!unban)
     if (message.content.startsWith('!unban ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền gỡ cấm thành viên!');
@@ -152,7 +141,6 @@ async function handleAdminCommands(message) {
         }
     }
 
-    // 4. Lệnh tắt tiếng (!mute)
     if (message.content.startsWith('!mute ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền tắt tiếng thành viên!');
@@ -167,7 +155,6 @@ async function handleAdminCommands(message) {
         return true;
     }
 
-    // 5. Lệnh gỡ tắt tiếng (!unmute)
     if (message.content.startsWith('!unmute ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers) && message.author.id !== ADMIN_ID) {
             return message.reply('❌ Bạn không có quyền bỏ tắt tiếng thành viên!');
@@ -191,4 +178,39 @@ async function handleAdminCommands(message) {
     return false;
 }
 
-module.exports = { handleAutoMod, handleAdminCommands };
+// =========================================================
+// 🎉 LUỒNG 3: TỰ ĐỘNG CẤP VAI TRÒ & CHÀO MỪNG ĐẠO HỮU MỚI
+// =========================================================
+async function handleWelcomeAndAutoRole(member) {
+    // 1. Thực hiện AutoRole (ID vai trò bạn cung cấp)
+    const autoRoleId = '1507794618253709392'; 
+    const role = member.guild.roles.cache.get(autoRoleId);
+    if (role) {
+        await member.roles.add(role).catch(err => {
+            console.error(`❌ Không thể cấp role tự động: Bậc role của Bot thấp hơn hoặc thiếu quyền Manage Roles. Chi tiết:`, err.message);
+        });
+    }
+
+    // 2. Thực hiện gửi tin nhắn chào mừng giống ảnh mẫu
+    const welcomeChannelId = process.env.WELCOME_CHANNEL_ID; // Lấy ID kênh từ file .env của bạn
+    if (!welcomeChannelId) return;
+
+    const channel = member.guild.channels.cache.get(welcomeChannelId);
+    if (!channel) return;
+
+    // Định dạng giờ gửi giống ảnh của bạn (Ví dụ: 10/06/2026 3:49 CH)
+    const currentTimeString = new Date().toLocaleString('vi-VN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    }).replace(',', '');
+
+    const welcomeEmbed = new EmbedBuilder()
+        .setColor('#0099ff') // Màu thanh xanh giống ảnh mẫu
+        .setTitle('🎉 CHÀO MỪNG ĐẠO HỮU MỚI! 🎉')
+        .setDescription(`Chào mừng ${member} đã nhập môn thành công!\n\n📌 **Lên hương nghe giảng luật tại:** <#không xác định>\n🔹 **Cần trưởng lão hỗ trợ bấm tại:** <#ticket>`)
+        .setFooter({ text: currentTimeString });
+
+    await channel.send({ embeds: [welcomeEmbed] }).catch((e) => console.error("Không thể gửi tin nhắn chào mừng:", e));
+}
+
+module.exports = { handleAutoMod, handleAdminCommands, handleWelcomeAndAutoRole };
