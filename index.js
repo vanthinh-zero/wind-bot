@@ -1,10 +1,8 @@
 require('dotenv').config();
 const express = require('express');
-const { Client, GatewayIntentBits, Events } = require('discord.js');
+const { Client, GatewayIntentBits, Events, MessageFlags } = require('discord.js');
 
-// =========================================================
-// IMPORT CÁC MODULES HÀM XỬ LÝ (Đã tối ưu luồng nạp)
-// =========================================================
+// --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG ---
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
@@ -12,34 +10,28 @@ const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
 const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
 
-// CÁC HANDLER KINH TẾ - GIẢI TRÍ - ĐỜI SỐNG - CHỮA LÀNH
 const { handleWelcomeMember } = require('./src/handlers/welcome.js');
 const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
-const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); // 📖 Hệ thống Thơ ca & Tâm sự Chữa lành
-const { handleAvatarCheck } = require('./src/handlers/avatar.js'); // 🖼️ Hệ thống Soi Avatar chuyên biệt
-const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); // 🩹 Hệ thống tự sự Chữa Lành riêng biệt
+const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
+const { handleAvatarCheck } = require('./src/handlers/avatar.js'); 
+const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); 
 
-// 🏪 IMPORT HỆ THỐNG GAME LÀM VIỆC MỚI TÍCH HỢP
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
-
-// 💬 IMPORT HỆ THỐNG CHAT TỰ ĐỘNG PHẢN HỒI MẠNH BẠO (MỚI TÍCH HỢP)
 const { handleChatInteraction } = require('./src/handlers/chat.js');
 
-// 🔮 IMPORT HỆ THỐNG TAROT CHUẨN ĐỜI THỰC
-const { handleTarotCommand, handleTarotInteraction, handleTarotModalSubmit } = require('./src/handlers/tarotModule.js');
-
-// 🚀 IMPORT HỆ THỐNG BẢO MẬT TICKET CHO BOOSTER
+// Hệ thống bói bài Tarot & Server Boost
+const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
 
-// Khởi tạo Web Server giữ Bot online 24/7
-const app = express();
-app.get('/', (req, res) => res.send('🤖 Bot đang tu luyện, vui lòng không làm phiền!'));
+// --- KHỞI TẠO WEB SERVER (Giữ bot luôn online 24/7) ---
+const app = parentExpress = express();
+app.get('/', (req, res) => res.send('🤖 Wind Bot đang vận hành mượt mà!'));
 app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
     console.log('🌐 Web Server đang lắng nghe tại port: 3000');
 });
 
-// Khởi tạo Client Discord Bot
+// --- KHỞI TẠO DISCORD CLIENT VỚI ĐẦY ĐỦ INTENTS ---
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -50,232 +42,93 @@ const client = new Client({
     ]
 });
 
-// Lấy các biến môi trường từ file .env
-const { 
-    TOKEN, 
-    ADMIN_ID, 
-    KENH_TAI_XIU, 
-    KENH_NUOI_PET, 
-    KENH_LOG_AUTOMOD, 
-    KENH_NGAM_THO, 
-    KENH_CHECK_AVATAR,
-    KENH_CHUA_LANH,
-    KENH_LAM_VIEC,
-    TAROT_CHANNEL_ID, // 🔮 Biến môi trường cho kênh Tarot riêng biệt
-    BOOST_THANK_YOU_CHANNEL_ID // 🚀 Biến môi trường cho kênh cảm ơn Boost riêng biệt
-} = process.env;
-
-// Sự kiện khi Bot kích hoạt thành công
+// --- SỰ KIỆN KHỞI CHẠY BOT ---
 client.once(Events.ClientReady, (readyClient) => {
     console.log('==================================================');
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
-    console.log(`🎰 Kênh Tài Xỉu: ${KENH_TAI_XIU || 'Chưa cấu hình'}`);
-    console.log(`🐾 Kênh Nuôi Pet: ${KENH_NUOI_PET || 'Chưa cấu hình'}`);
-    console.log(`🏪 Kênh Làm Việc: ${KENH_LAM_VIEC || 'Chưa cấu hình'}`); 
-    console.log(`🚨 Kênh Log AutoMod: ${KENH_LOG_AUTOMOD || 'Chưa cấu hình'}`);
-    console.log(`📖 Kênh Ngâm Thơ & Chữa Lành: ${KENH_NGAM_THO || 'Chưa cấu hình'}`);
-    console.log(`🖼️ Kênh Check Avatar: ${KENH_CHECK_AVATAR || 'Chưa cấu hình'}`);
-    console.log(`🩹 Kênh Chữa Lành Riêng Biệt: ${KENH_CHUA_LANH || 'Chưa cấu hình'}`);
-    console.log(`🔮 Kênh Định Danh Tarot: ${TAROT_CHANNEL_ID || 'Chưa cấu hình'}`);
-    console.log(`🚀 Kênh Cảm Ơn Boost: ${BOOST_THANK_YOU_CHANNEL_ID || 'Chưa cấu hình'}`);
     console.log('==================================================');
-
-    // Kích hoạt luồng chạy ngầm tự động ngâm thơ ngẫu nhiên theo giờ giấc
     startAutoPoem(readyClient);
 });
 
-// =========================================================
-// 👋 SỰ KIỆN CHÀO MỪNG THÀNH VIÊN MỚI GIA NHẬP SERVER
-// =========================================================
-client.on('guildMemberAdd', async (member) => {
-    await handleWelcomeMember(member);
+// --- SỰ KIỆN THÀNH VIÊN VÀ TRẠNG THÁI VOICE ---
+client.on('guildMemberAdd', async (member) => { 
+    try { await handleWelcomeMember(member); } catch (e) { console.error('Lỗi Welcome:', e); }
+});
+client.on('guildMemberUpdate', async (oldMember, newMember) => { 
+    try { await handleServerBoost(oldMember, newMember); } catch (e) { console.error('Lỗi Boost:', e); }
+});
+client.on('voiceStateUpdate', async (oldState, newState) => { 
+    try { await handleVoiceStateUpdate(oldState, newState); } catch (e) { console.error('Lỗi Voice:', e); }
 });
 
-// =========================================================
-// 🚀 SỰ KIỆN THEO DÕI CẬP NHẬT THÀNH VIÊN (XỬ LÝ BOOST SERVER)
-// =========================================================
-client.on('guildMemberUpdate', async (oldMember, newMember) => {
-    try {
-        await handleServerBoost(oldMember, newMember);
-    } catch (error) {
-        console.error('❌ Lỗi xử lý sự kiện Boost Server:', error);
-    }
-});
-
-// =========================================================
-// 🎤 SỰ KIỆN VOICE (Gọi trực tiếp từ file handler riêng biệt)
-// =========================================================
-client.on('voiceStateUpdate', async (oldState, newState) => {
-    try {
-        await handleVoiceStateUpdate(oldState, newState);
-    } catch (error) {
-        console.error('❌ Lỗi Voice State:', error);
-    }
-});
-
-// =========================================================
-// 💬 XỬ LÝ TIN NHẮN CHAT (MESSAGE CREATE)
-// =========================================================
+// --- SỰ KIỆN XỬ LÝ LỆNH CHAT (MESSAGE CREATE) ---
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
-
+    
     try {
-        // 1. Chạy hệ thống Quét từ cấm & link bẩn
-        const isMuted = await handleAutoMod(message);
-        if (isMuted) return;
+        if (await handleAutoMod(message)) return;
+        if (await handleAdminCommands(message)) return;
 
-        // 2. Chạy lệnh dành cho Ban Quản Trị
-        const isAdminCmd = await handleAdminCommands(message);
-        if (isAdminCmd) return;
-
-        // 3. Lệnh triệu hồi giao diện Tu Tiên
-        if (message.content === '!tutien') {
-            await sendTuTienMainMenu(message);
-            return;
-        }
-
-        // 🔮 3.5. Lệnh khởi động sảnh bói bài Tarot thuần túy
-        if (message.content === '!tarot') {
-            await handleTarotCommand(message);
-            return;
-        }
-
-        // 4. Lệnh đóng Bot khẩn cấp từ xa
-        if (message.content === '!stop-bot' && message.author.id === ADMIN_ID) {
-            await message.channel.send('🤖 Hệ thống đang đóng toàn bộ cổng liên kết...');
+        if (message.content === '!tutien') { await sendTuTienMainMenu(message); return; }
+        if (message.content === '!tarot') { await handleTarotCommand(message); return; }
+        
+        if (message.content === '!stop-bot' && message.author.id === process.env.ADMIN_ID) {
+            await message.channel.send('🤖 Hệ thống đang ngắt kết nối an toàn theo lệnh Admin...');
             client.destroy();
             process.exit(0);
         }
 
-        // 📖 5. Hệ thống gọi thơ thủ công và các mật lệnh tâm sự
-        const isPoemSystem = await handlePoemCommand(message);
-        if (isPoemSystem) return;
+        if (await handlePoemCommand(message)) return;
+        if (await handleChuaLanhCommand(message)) return;
+        if (await handleAvatarCheck(message)) return;
+        if (await handleLamViecGame(message)) return; 
+        if (await handleChatInteraction(message)) return; 
 
-        // 🩹 5.5. Hệ thống tự sự chữa lành về thanh xuân
-        const isChuaLanh = await handleChuaLanhCommand(message);
-        if (isChuaLanh) return;
-
-        // 🖼️ 6. Hệ thống Check Avatar theo yêu cầu
-        const isAvatarCmd = await handleAvatarCheck(message);
-        if (isAvatarCmd) return;
-
-        // 🏪 6.5. HỆ THỐNG GAME LÀM VIỆC KIẾM TIỀN
-        const isLamViecCmd = await handleLamViecGame(message);
-        if (isLamViecCmd) return; 
-
-        // 💬 6.6. HỆ THỐNG PHẢN HỒI CHAT TỰ ĐỘNG - GẮT GỎNG
-        const isChatInteracted = await handleChatInteraction(message);
-        if (isChatInteracted) return; 
-
-        // 7. Minigame nối từ Tiếng Anh
         await handleNoiTuGame(message);
-
-        // 🎰 8. Minigame Tài Xỉu Thử Vận May
         await handleTaiXiuGame(message);
-
-        // 🐾 9. Minigame nuôi Linh thú
         await handlePetSystem(message);
 
-    } catch (error) {
-        console.error('❌ Lỗi xử lý tin nhắn:', error);
+    } catch (error) { 
+        console.error('❌ Lỗi phát sinh tại luồng messageCreate:', error); 
     }
 });
 
-// =========================================================
-// ⚡ HỆ THỐNG XỬ LÝ TƯƠNG TÁC (BUTTON & MODAL INTERACTION)
-// =========================================================
+// --- SỰ KIỆN ĐIỀU PHỐI TƯƠNG TÁC (INTERACTION CREATE) ---
 client.on('interactionCreate', async (interaction) => {
-    
-    // --- LUỒNG XỬ LÝ NÚT BẤM (BUTTONS) ---
-    if (interaction.isButton()) {
+    try {
+        // --- A. XỬ LÝ NÚT BẤM (BUTTONS) ---
+        if (interaction.isButton()) {
+            const customId = interaction.customId;
+            
+            // Tách biệt luồng Tarot độc lập hoàn toàn bằng lệnh return
+            if (customId.startsWith('tarot_')) { 
+                await handleTarotInteraction(interaction); 
+                return; 
+            }
+            
+            if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }
+            if (customId.startsWith('vm_')) { await handleVoiceMenuInteraction(interaction); return; }
+            if (customId.includes('ticket') && !customId.includes('boost')) { await handleTicketInteraction(interaction); return; }
+            if (customId === 'boost_ticket_create') { await handleBoostTicketInteraction(interaction); return; }
+        }
         
-        if (interaction.customId.includes('ticket')) {
-            try {
-                await handleTicketInteraction(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi Tương tác Ticket:', error);
-            }
-            return; 
+        // --- B. XỬ LÝ BIỂU MẪU NHẬP LIỆU (MODAL SUBMITS) ---
+        if (interaction.isModalSubmit()) {
+            const customId = interaction.customId;
+            if (customId.startsWith('vmm_')) { await handleVoiceModalSubmit(interaction); return; }
         }
-
-        if (interaction.customId.startsWith('tt_')) {
-            try {
-                await handleTuTienInteraction(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi Tương tác Tu Tiên:', error);
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.reply({ 
-                        content: '❌ Thiên địa chấn động, chân khí đảo lộn (Hệ thống gặp sự cố)!', 
-                        ephemeral: true 
-                    }).catch(() => {});
-                }
-            }
-            return; 
-        }
-
-        if (interaction.customId.startsWith('vm_')) {
-            try {
-                await handleVoiceMenuInteraction(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi Tương tác Nút Voice:', error);
-            }
-            return;
-        }
-
-        // 🔮 XỬ LÝ CÁC NÚT BẤM CỦA HỆ THỐNG TAROT (Đã sửa bộ lọc nhận diện chính xác tarot_draw)
-        if (interaction.customId.startsWith('tarot_init_') || 
-            interaction.customId.startsWith('tarot_shuffle_') || 
-            interaction.customId.startsWith('tarot_draw_')) {
-            try {
-                await handleTarotInteraction(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi Tương tác Tarot:', error);
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.reply({ 
-                        content: '🔮 Trục trặc kết nối với các vì sao, không thể bói bài lúc này!', 
-                        ephemeral: true 
-                    }).catch(() => {});
-                }
-            }
-            return;
-        }
-
-        // 🚀 XỬ LÝ NÚT BẤM MỞ TICKET BẢO MẬT CHO BOOSTER
-        if (interaction.customId === 'boost_ticket_create') {
-            try {
-                await handleBoostTicketInteraction(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi Tương tác Nút Boost Ticket:', error);
-            }
-            return;
-        }
-    }
-
-    // --- LUỒNG XỬ LÝ BẢNG POP-UP NHẬP LIỆU (MODALS) ---
-    if (interaction.isModalSubmit()) {
         
-        // 🔮 THU THẬP CÂU HỎI TÂM LINH CỦA NGƯỜI XEM TAROT
-        if (interaction.customId.startsWith('tarot_modal_')) {
-            try {
-                await handleTarotModalSubmit(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi xử lý bảng nhập câu hỏi Tarot:', error);
-            }
-            return;
-        }
-
-        if (interaction.customId.startsWith('vmm_')) {
-            try {
-                await handleVoiceModalSubmit(interaction);
-            } catch (error) {
-                console.error('❌ Lỗi xử lý bảng nhập liệu Voice:', error);
-            }
-            return;
-        }
+    } catch (error) {
+        console.error('❌ Lỗi xử lý tương tác phát sinh tại index.js:', error);
     }
 });
 
-process.on('unhandledRejection', (reason) => console.error('❌ Lỗi bất đồng bộ toàn cục:', reason));
-process.on('uncaughtException', (err) => console.error('❌ Lỗi nghiêm trọng toàn cục:', err));
+// --- CƠ CHẾ BẢO VỆ CHỐNG TỰ ĐỘNG SẬP NGUỒN BOT ---
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('⚠️ Phát hiện Unhandled Rejection tại:', promise, '-> Lý do:', reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('❌ Phát hiện Uncaught Exception nghiêm trọng:', err);
+});
 
-client.login(TOKEN);
+client.login(process.env.TOKEN);

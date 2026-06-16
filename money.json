@@ -4,8 +4,8 @@
     "lastDaily": null
   },
   "910001518328033301": {
-    "balance": 149626,
-    "money": 147626,
+    "balance": 150126,
+    "money": 149126,
     "job": "daotach",
     "lastDaily": null
   },
@@ -15,6 +15,13 @@
   },
   "857816288332087307": {
     "balance": 0,
-    "lastDaily": null
+    "lastDaily": null,
+    "money": 738,
+    "job": "daotach"
+  },
+  "1276051091708182599": {
+    "balance": 1074,
+    "money": 1074,
+    "job": "daotach"
   }
 }
