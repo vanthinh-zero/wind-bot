@@ -26,10 +26,10 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 // 💬 IMPORT HỆ THỐNG CHAT TỰ ĐỘNG PHẢN HỒI MẠNH BẠO (MỚI TÍCH HỢP)
 const { handleChatInteraction } = require('./src/handlers/chat.js');
 
-// 🔮 IMPORT HỆ THỐNG TAROT THUẦN TÚY (MỚI TÍCH HỢP)
-const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
+// 🔮 IMPORT HỆ THỐNG TAROT CHUẨN ĐỜI THỰC
+const { handleTarotCommand, handleTarotInteraction, handleTarotModalSubmit } = require('./src/handlers/tarotModule.js');
 
-// 🚀 IMPORT HỆ THỐNG BẢO MẬT TICKET CHO BOOSTER (MỚI TÍCH HỢP)
+// 🚀 IMPORT HỆ THỐNG BẢO MẬT TICKET CHO BOOSTER
 const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
 
 // Khởi tạo Web Server giữ Bot online 24/7
@@ -163,8 +163,7 @@ client.on('messageCreate', async (message) => {
         const isLamViecCmd = await handleLamViecGame(message);
         if (isLamViecCmd) return; 
 
-        // 💬 6.6. HỆ THỐNG PHẢN HỒI CHAT TỰ ĐỘNG - GẮT GỎNG (MỚI TÍCH HỢP)
-        // Đặt ở đây để bắt trọn từ khóa ngay trước khi lọt vào các game nối từ hay tài xỉu
+        // 💬 6.6. HỆ THỐNG PHẢN HỒI CHAT TỰ ĐỘNG - GẮT GỎNG
         const isChatInteracted = await handleChatInteraction(message);
         if (isChatInteracted) return; 
 
@@ -187,6 +186,7 @@ client.on('messageCreate', async (message) => {
 // =========================================================
 client.on('interactionCreate', async (interaction) => {
     
+    // --- LUỒNG XỬ LÝ NÚT BẤM (BUTTONS) ---
     if (interaction.isButton()) {
         
         if (interaction.customId.includes('ticket')) {
@@ -222,8 +222,10 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
-        // 🔮 XỬ LÝ CÁC NÚT BẤM CỦA HỆ THỐNG TAROT
-        if (interaction.customId.startsWith('tarot_')) {
+        // 🔮 XỬ LÝ CÁC NÚT BẤM CỦA HỆ THỐNG TAROT (Đã sửa bộ lọc nhận diện chính xác tarot_draw)
+        if (interaction.customId.startsWith('tarot_init_') || 
+            interaction.customId.startsWith('tarot_shuffle_') || 
+            interaction.customId.startsWith('tarot_draw_')) {
             try {
                 await handleTarotInteraction(interaction);
             } catch (error) {
@@ -238,7 +240,7 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
-        // 🚀 XỬ LÝ NÚT BẤM MỞ TICKET BẢO MẬT CHO BOOSTER (MỚI TÍCH HỢP)
+        // 🚀 XỬ LÝ NÚT BẤM MỞ TICKET BẢO MẬT CHO BOOSTER
         if (interaction.customId === 'boost_ticket_create') {
             try {
                 await handleBoostTicketInteraction(interaction);
@@ -249,8 +251,19 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 
+    // --- LUỒNG XỬ LÝ BẢNG POP-UP NHẬP LIỆU (MODALS) ---
     if (interaction.isModalSubmit()) {
         
+        // 🔮 THU THẬP CÂU HỎI TÂM LINH CỦA NGƯỜI XEM TAROT
+        if (interaction.customId.startsWith('tarot_modal_')) {
+            try {
+                await handleTarotModalSubmit(interaction);
+            } catch (error) {
+                console.error('❌ Lỗi xử lý bảng nhập câu hỏi Tarot:', error);
+            }
+            return;
+        }
+
         if (interaction.customId.startsWith('vmm_')) {
             try {
                 await handleVoiceModalSubmit(interaction);
