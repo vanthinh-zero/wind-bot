@@ -36,9 +36,9 @@ async function handleDeThiCommand(message) {
         return message.reply({ content: `❌ Không tìm thấy đề số ${soDe} cho **${monChon.toUpperCase()}**!` });
     }
 
-    const filePath = path.join(process.cwd(), configMon.file.replace(/^src\//, 'src/'));
+    const filePath = path.resolve(process.cwd(), configMon.file);
     if (!fs.existsSync(filePath)) {
-        return message.reply({ content: `❌ File PDF của **${configMon.name}** chưa được cập nhật!` });
+        return message.reply({ content: `❌ File PDF của **${configMon.name}** chưa được cập nhật!\nĐường dẫn kiểm tra: \`${filePath}\`` });
     }
 
     const embed = new EmbedBuilder()
