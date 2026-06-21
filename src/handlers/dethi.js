@@ -8,7 +8,7 @@ const {
 
 // --- ĐỌC FILE CẤU HÌNH ĐỀ THI ---
 console.log('Đang đọc file:', path.resolve(__dirname, '../config/configDeThi.json'));
-const MON_HOC = require('../config/configDeThi.json');
+const MON_HOC = require(path.resolve(__dirname, '../config/configDeThi.json'));
 
 // --- HÀM XỬ LÝ LỆNH ĐỀ THI ---
 async function handleDeThiCommand(message) {
