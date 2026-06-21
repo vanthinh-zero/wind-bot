@@ -6,9 +6,13 @@ const {
     ModalBuilder, TextInputBuilder, TextInputStyle
 } = require('discord.js');
 
-// --- ĐỌC FILE CẤU HÌNH ĐỀ THI ---
-console.log('Đang đọc file:', path.resolve(__dirname, '../config/configDeThi.json'));
-const MON_HOC = require(path.resolve(process.cwd(), 'src/config/configDeThi.json'));
+// --- ĐỌC FILE CẤU HÌNH ĐỀ THI VỚI FALLBACK ---
+let configPath1 = path.resolve(process.cwd(), 'src/config/configDeThi.json');
+let configPath2 = path.resolve(process.cwd(), 'config/configDeThi.json');
+let finalPath = fs.existsSync(configPath1) ? configPath1 : configPath2;
+
+console.log('Đang đọc file cấu hình đề thi tại:', finalPath);
+const MON_HOC = require(finalPath);
 
 // --- HÀM XỬ LÝ LỆNH ĐỀ THI ---
 async function handleDeThiCommand(message) {
@@ -19,20 +23,20 @@ async function handleDeThiCommand(message) {
 
     const args = message.content.trim().split(/ +/);
     const monChon = args[1]?.toLowerCase();
-    const soDe = parseInt(args[2]) || 1; // Mặc định đề 1 nếu không nhập số
+    const soDe = parseInt(args[2]) || 1;
 
     if (!monChon || !MON_HOC[monChon]) {
         return message.reply({ content: '❌ Vui lòng nhập đúng cú pháp. Ví dụ: `!dethi toan 2`.' });
     }
 
     const danhSachDe = MON_HOC[monChon];
-    const configMon = danhSachDe[soDe - 1];
+    const configMon = Array.isArray(danhSachDe) ? danhSachDe[soDe - 1] : danhSachDe;
 
     if (!configMon) {
         return message.reply({ content: `❌ Không tìm thấy đề số ${soDe} cho **${monChon.toUpperCase()}**!` });
     }
 
-const filePath = path.join(__dirname, `../../${configMon.file.replace('src/', '')}`);
+    const filePath = path.join(process.cwd(), configMon.file.replace(/^src\//, 'src/'));
     if (!fs.existsSync(filePath)) {
         return message.reply({ content: `❌ File PDF của **${configMon.name}** chưa được cập nhật!` });
     }
@@ -60,10 +64,9 @@ const filePath = path.join(__dirname, `../../${configMon.file.replace('src/', ''
 async function handleDeThiInteraction(interaction) {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 
-    // --- Khi người dùng bấm nút ---
     if (interaction.isButton() && interaction.customId.startsWith('submit_full_')) {
         const [_, monChon, soDe] = interaction.customId.split('_');
-        const configMon = MON_HOC[monChon][parseInt(soDe) - 1];
+        const configMon = Array.isArray(MON_HOC[monChon]) ? MON_HOC[monChon][parseInt(soDe) - 1] : MON_HOC[monChon];
 
         const modal = new ModalBuilder()
             .setCustomId(`modal_full_${monChon}_${soDe}`)
@@ -103,10 +106,9 @@ async function handleDeThiInteraction(interaction) {
         await interaction.showModal(modal);
     }
 
-    // --- Khi người dùng nộp bài ---
     if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_full_')) {
         const [_, monChon, soDe] = interaction.customId.split('_');
-        const configMon = MON_HOC[monChon][parseInt(soDe) - 1];
+        const configMon = Array.isArray(MON_HOC[monChon]) ? MON_HOC[monChon][parseInt(soDe) - 1] : MON_HOC[monChon];
         const keyP1 = configMon.dapAn.P1;
         const keyP2 = configMon.dapAn.P2;
         const keyP3 = configMon.dapAn.P3;
