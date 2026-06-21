@@ -7,8 +7,8 @@ const {
 } = require('discord.js');
 
 // --- ĐỌC FILE CẤU HÌNH ĐỀ THI VỚI FALLBACK ---
-let configPath1 = path.resolve(process.cwd(), 'config/configDeThi.json');
-let configPath2 = path.resolve(process.cwd(), 'src/config/configDeThi.json');
+let configPath1 = path.resolve(process.cwd(), 'src/src/config/configDeThi.json'); // Render
+let configPath2 = path.resolve(process.cwd(), 'src/config/configDeThi.json');     // Local
 let finalPath = fs.existsSync(configPath1) ? configPath1 : configPath2;
 
 console.log('Đang đọc file cấu hình đề thi tại:', finalPath);
