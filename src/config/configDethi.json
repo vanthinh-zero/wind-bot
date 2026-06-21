@@ -1,0 +1,26 @@
+{
+  "toan": [
+    {
+      "name": "Môn Toán",
+      "file": "files/de_thi_toan_2026.pdf",
+      "prefix": "TOAN",
+      "dapAn": {
+        "P1": "ABCDABCDABCD",
+        "P2": "TTFFTTFFTTFFTTFF",
+        "P3": ["7.35", "1152", "5.91", "1856", "1275", "1990"]
+      }
+    }
+  ],
+  "ly": [
+    {
+      "name": "Môn Vật Lý",
+      "file": "src/files/de_thi_ly_2026.pdf",
+      "prefix": "LY",
+      "dapAn": {
+        "P1": "DCABDCABDCAB",
+        "P2": "TFTFTFTFTFTFTFTF",
+        "P3": ["12.5", "3.2", "0.8", "9.81", "220", "50"]
+      }
+    }
+  ]
+}

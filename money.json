@@ -1,27 +1,43 @@
 {
-  "1037019422918983810": {
-    "balance": 0,
-    "lastDaily": null
-  },
-  "910001518328033301": {
-    "balance": 150126,
-    "money": 149126,
-    "job": "daotach",
-    "lastDaily": null
-  },
-  "1480876805937430571": {
-    "balance": 0,
-    "lastDaily": null
-  },
-  "857816288332087307": {
-    "balance": 0,
-    "lastDaily": null,
-    "money": 738,
-    "job": "daotach"
-  },
-  "1276051091708182599": {
-    "balance": 1074,
-    "money": 1074,
-    "job": "daotach"
-  }
+    "1037019422918983810": {
+        "balance": 868,
+        "lastDaily": 1781756515098,
+        "money": 868,
+        "job": "daotach"
+    },
+    "910001518328033301": {
+        "balance": 150126,
+        "money": 150126,
+        "job": "daotach",
+        "lastDaily": null
+    },
+    "1480876805937430571": {
+        "balance": 0,
+        "lastDaily": null
+    },
+    "857816288332087307": {
+        "balance": 0,
+        "lastDaily": null,
+        "money": 738,
+        "job": "daotach"
+    },
+    "1276051091708182599": {
+        "balance": 1074,
+        "money": 1074,
+        "job": "daotach"
+    },
+    "1352810217993404416": {
+        "balance": 453,
+        "money": 453,
+        "job": "daotach"
+    },
+    "1164381937499111476": {
+        "balance": 1257,
+        "money": 1257,
+        "job": "daotach"
+    },
+    "365145742932836362": {
+        "balance": 100,
+        "lastDaily": 1781805570279
+    }
 }

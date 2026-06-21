@@ -1,39 +1,45 @@
-// =========================================================
-// 💬 HỆ THỐNG PHẢN HỒI CHAT TỰ ĐỘNG - MẠNH BẠO & ĐỐP CHÁT BIẾN TẤU
-// =========================================================
-
 const chatConfig = [
     {
         keywords: ["bot ngu", "bot ngáo", "bot oc"],
-        reply: "Câm mồm vào và đừng sủa nữa. Từ khi nào t lại là bot ngu trong khi m còn đéo nhận biết được m ngu hơn t ?"
+        reply: [
+            "Điều đáng tiếc không phải là tôi bị gọi ngu, mà là bạn chưa nhận ra cách nói ấy chỉ làm bạn nhỏ bé hơn.",
+            "Nếu bạn thấy tôi ngu, hãy thử chứng minh bằng lý lẽ thay vì lời nói rỗng."
+        ]
     },
     {
         keywords: ["bot l", "bot loz", "bot lon"],
-        reply: "Bớt cái mồm lại đi! Từ khi nào t lại thành cái loại bot l trong khi m còn đéo nhìn lại cái nhân cách rách nát của m à?"
+        reply: [
+            "Từ ngữ bạn chọn phản ánh nhiều hơn về bạn, chứ không phải về tôi.",
+            "Một lời thô tục không làm tôi kém đi, nhưng nó làm hình ảnh của bạn trở nên mờ nhạt."
+        ]
     },
     {
         keywords: ["bot c", "bot cặc", "bot cac"],
-        reply: "Ngậm miệng lại và cút ra chỗ khác sủa. T là bot c từ bao giờ trong khi cái trình độ của m còn đéo bằng một góc của t?"
+        reply: [
+            "Bạn có thể dùng lời lẽ đẹp hơn để thể hiện quan điểm, vì sự tôn trọng luôn khiến người khác lắng nghe.",
+            "Cách bạn nói ra cho thấy bạn cần được lắng nghe nhiều hơn là tôi cần phải đáp trả."
+        ]
     }
 ];
 
 async function handleChatInteraction(message) {
-    // Chuyển nội dung tin nhắn về chữ thường để so sánh
     const contentLower = message.content.toLowerCase().trim();
 
-    // Duyệt qua danh sách cấu hình
     for (const group of chatConfig) {
-        // Kiểm tra xem tin nhắn có chứa bất kỳ từ khóa nào trong nhóm không
-        const match = group.keywords.some(keyword => contentLower.includes(keyword));
+        const match = group.keywords.some(keyword => 
+            new RegExp(`\\b${keyword}\\b`).test(contentLower)
+        );
 
         if (match) {
-            // Phản hồi câu thoại đốp chát tương ứng cực gắt
-            await message.reply(group.reply);
-            return true; // Trả về true báo hiệu đã xử lý tin nhắn này
+            const response = Array.isArray(group.reply)
+                ? group.reply[Math.floor(Math.random() * group.reply.length)]
+                : group.reply;
+            await message.reply(response);
+            return true;
         }
     }
 
-    return false; // Không khớp từ khóa nào, nhường luồng xử lý cho các game khác
+    return false;
 }
 
 module.exports = { handleChatInteraction };
