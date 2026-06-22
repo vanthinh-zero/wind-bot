@@ -1,8 +1,8 @@
 const cron = require('node-cron');
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, MessageFlags } = require('discord.js');
 
 /**
- * ⏰ BỘ HẸN GIỜ TỰ ĐỘNG NHẮC NHỞ BUMP SERVER (CỨ 2 TIẾNG MỘT LẦN)
+ * ⏰ BỘ HẸN GIỜ TỰ ĐỘNG NHẮC NHỜ BUMP SERVER (CỨ 2 TIẾNG MỘT LẦN)
  */
 function start25hReminder(client) {
     // Cú pháp cron: '0 0 */2 * * *' (Cứ cách đúng 2 tiếng đồng hồ sẽ kích hoạt)
@@ -64,10 +64,10 @@ async function sendBumpReminder(channel) {
 
     collector.on('collect', async (interaction) => {
         if (interaction.customId === 'btn_bump_disboard') {
-            // Phản hồi cho người bấm để họ copy lệnh cực nhanh
+            // 🎯 ĐÃ SỬA: Phản hồi chuẩn cú pháp MessageFlags mới nhất năm 2026, sạch bóng Warning!
             await interaction.reply({
                 content: `✨ **Sếp ơi, hãy copy dòng chữ dưới đây rồi dán và gửi vào kênh chat bất kỳ có bot DISBOARD nhé:**\n\n\`/bump\``,
-                ephemeral: true // Chỉ người bấm nút mới nhìn thấy tin nhắn này, không làm rác kênh ẩn
+                flags: [MessageFlags.Ephemeral] 
             });
 
             // Vô hiệu hóa nút bấm sau khi đã có người xử lý xong
