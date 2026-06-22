@@ -2,7 +2,7 @@
   "toan": [
     {
       "name": "Môn Toán",
-      "file": "files/de_thi_toan_2026.pdf",
+      "file": "src/files/de_thi_toan_01.pdf",
       "prefix": "TOAN",
       "dapAn": {
         "P1": "ABCDABCDABCD",
