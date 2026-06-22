@@ -23,6 +23,9 @@ const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handl
 // --- IMPORT MODULE ĐỀ THI ---
 const { handleDeThiCommand, handleDeThiInteraction } = require('./src/handlers/dethi.js');
 
+// --- IMPORT MODULE ANTI-RAID & FAKE-RAID BẢO AN ---
+const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRaid.js');
+
 // --- KHỞI TẠO WEB SERVER ---
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Wind Bot đang vận hành mượt mà!'));
@@ -65,6 +68,14 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     
     try {
+        // 🚨 1. LỆNH TROLL FAKE RAID (Chỉ sếp thấy, tự động hủy dấu vết)
+        if (await handleFakeRaidCommand(message)) return;
+
+        // 🛡️ 2. QUÉT ANTI-RAID SPAM (Bảo vệ tối cao cho Server)
+        const isSpamRaid = await handleAntiSpam(message);
+        if (isSpamRaid) return;
+
+        // --- HỆ THỐNG AUTOMOD & LỆNH ADMIN ---
         if (await handleAutoMod(message)) return;
         if (await handleAdminCommands(message)) return;
 
