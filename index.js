@@ -26,7 +26,10 @@ const { handleDeThiCommand, handleDeThiInteraction } = require('./src/handlers/d
 // --- IMPORT MODULE ANTI-RAID & FAKE-RAID BẢO AN ---
 const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRaid.js');
 
-// --- KHỞI TẠO WEB SERVER ---
+// --- IMPORT MODULE MARKETING (DISBOARD BUMP) ---
+const { start25hReminder, handlePostToFacebook } = require('./src/handlers/marketing.js');
+
+// --- KHỞI TẠO WEB SERVER (ĐÃ SỬA CHUẨN CHỈ) ---
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Wind Bot đang vận hành mượt mà!'));
 app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
@@ -49,7 +52,12 @@ client.once(Events.ClientReady, (readyClient) => {
     console.log('==================================================');
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log('==================================================');
+    
+    // Kích hoạt tự động làm thơ định kỳ
     startAutoPoem(readyClient);
+    
+    // Kích hoạt bộ hẹn giờ đẩy top Disboard
+    start25hReminder(client);
 });
 
 // --- SỰ KIỆN THÀNH VIÊN & VOICE ---
@@ -68,10 +76,10 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     
     try {
-        // 🚨 1. LỆNH TROLL FAKE RAID (Chỉ sếp thấy, tự động hủy dấu vết)
+        // 🚨 1. LỆNH TROLL FAKE RAID (Chỉ sếp thấy, tự hủy tin nhắn gốc)
         if (await handleFakeRaidCommand(message)) return;
 
-        // 🛡️ 2. QUÉT ANTI-RAID SPAM (Bảo vệ tối cao cho Server)
+        // 🛡️ 2. QUÉT ANTI-RAID SPAM THẬT (Bảo vệ tối cao cho Server)
         const isSpamRaid = await handleAntiSpam(message);
         if (isSpamRaid) return;
 
@@ -84,6 +92,9 @@ client.on('messageCreate', async (message) => {
             await handleDeThiCommand(message); 
             return; 
         }
+
+        // ⚡ 3. LỆNH KIỂM TRA HỆ THỐNG DISBOARD TỨC THÌ (!postfb)
+        if (await handlePostToFacebook(message)) return;
 
         if (message.content === '!tutien') { await sendTuTienMainMenu(message); return; }
         if (message.content === '!tarot') { await handleTarotCommand(message); return; }
@@ -98,8 +109,11 @@ client.on('messageCreate', async (message) => {
         if (await handleChuaLanhCommand(message)) return;
         if (await handleAvatarCheck(message)) return;
         if (await handleLamViecGame(message)) return; 
+        
+        // 💬 XỬ LÝ CHAT PHẢN HỒI
         if (await handleChatInteraction(message)) return; 
 
+        // 🎯 CÁC GAME MINI TỰ ĐỘNG
         await handleNoiTuGame(message);
         await handleTaiXiuGame(message);
         await handlePetSystem(message);
