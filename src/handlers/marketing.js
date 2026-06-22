@@ -1,99 +1,103 @@
 const cron = require('node-cron');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, MessageFlags } = require('discord.js');
 
-/**
- * ⏰ BỘ HẸN GIỜ TỰ ĐỘNG NHẮC NHỜ BUMP SERVER (CỨ 2 TIẾNG MỘT LẦN)
- */
 function start25hReminder(client) {
-    // Cú pháp cron: '0 0 */2 * * *' (Cứ cách đúng 2 tiếng đồng hồ sẽ kích hoạt)
     cron.schedule('0 0 */2 * * *', async () => {
         try {
             const channelId = process.env.K_QUANGCAO_ID; 
             if (!channelId) return console.error('⚠️ Thiếu cấu hình K_QUANGCAO_ID trong .env!');
-
             const channel = await client.channels.fetch(channelId);
             if (!channel) return;
-
             await sendBumpReminder(channel);
         } catch (error) {
-            console.error('❌ Lỗi hệ thống hẹn giờ Disboard:', error);
+            console.error('❌ Lỗi hệ thống hẹn giờ Marketing:', error);
         }
     });
 }
 
-/**
- * 📨 HÀM GỬI EMBED KÈM NÚT BẤM THẦN KỲ
- */
 async function sendBumpReminder(channel) {
     const guildId = channel.guild.id;
 
     const bumpEmbed = new EmbedBuilder()
-        .setTitle('🚀 [CHIẾN DỊCH ĐẨY TOP SERVER - DISBOARD]')
+        .setTitle('🔥 [CHIẾN DỊCH TĂNG TỐC KÉO MEM TỔNG LỰC]')
         .setThumbnail(channel.guild.iconURL({ dynamic: true }))
-        .setColor('#ffaa00')
+        .setColor('#ff0055')
         .setDescription(
-            `⚡ **Sếp ơi! Đến giờ hoàng đạo rồi!**\n\n` +
-            `Đã qua 2 tiếng kể từ lần đẩy top trước. Sếp hoặc các bạn Staff hãy mau bấm vào nút **"Đẩy Top Ngay"** phía dưới để đưa phi thuyền **ĐÀN BÒ BIẾT BAY** lên trang chủ Disboard nhé!`
+            `🚀 **Sếp ơi! Chiến dịch đẩy nhanh tiến độ phát triển ĐÀN BÒ BIẾT BAY kích hoạt!**\n\n` +
+            `👉 **Bước 1:** Bấm nút xanh để lấy lệnh nhanh đẩy **Disboard**.\n` +
+            `👉 **Bước 2:** Bấm các nút liên kết để thực hiện Bump siêu tốc trên hệ thống web vệ tinh!`
         )
-        .addFields({ 
-            name: '🛠️ Link cấu hình nhanh (Nếu Disboard báo lỗi link mời):', 
-            value: `🔗 [Bấm vào đây để chỉnh sửa trên Web Disboard](https://disboard.org/server/${guildId})` 
-        })
         .setTimestamp()
-        .setFooter({ text: 'Hệ thống đẩy top tự động | Wind Bot' });
+        .setFooter({ text: 'Hệ thống tăng tốc truyền thông | Wind Bot' });
 
-    // Tạo nút bấm thần kỳ
-    const row = new ActionRowBuilder().addComponents(
+    // Hàng nút 1: Các mũi tấn công chính
+    const row1 = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId('btn_bump_disboard')
-            .setLabel('🚀 Đẩy Top Ngay')
-            .setStyle(ButtonStyle.Success)
+            .setLabel('🚀 Lấy lệnh Disboard')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+            .setLabel('⭐ Top.gg')
+            .setStyle(ButtonStyle.Link)
+            .setURL(`https://top.gg/servers/${guildId}`)
+    );
+
+    // Hàng nút 2: Hệ thống web vệ tinh duyệt nhanh và chất lượng nhất (Đã xóa DiscordStreet)
+    const row2 = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel('🌐 Discord.me')
+            .setStyle(ButtonStyle.Link)
+            .setURL(`https://discord.me/`),
+        new ButtonBuilder()
+            .setLabel('🧭 Discords.com')
+            .setStyle(ButtonStyle.Link)
+            .setURL(`https://discords.com/`),
+        new ButtonBuilder()
+            .setLabel('🎯 Discord Servers')
+            .setStyle(ButtonStyle.Link)
+            .setURL(`https://discordservers.com/`)
     );
 
     const response = await channel.send({ 
-        content: `📢 <@${process.env.ADMIN_ID}> **HẾT THỜI GIAN CHỜ! ĐẾN GIỜ ĐẨY TOP RỒI SẾP ƠI!**`, 
+        content: `📢 <@${process.env.ADMIN_ID}> **ĐẾN GIỜ ĐẨY TIẾN ĐỘ SERVER RỒI SẾP ƠI!**`, 
         embeds: [bumpEmbed],
-        components: [row]
+        components: [row1, row2]
     });
 
-    // Bộ lắng nghe sự kiện bấm nút (Bấm một phát là xử lý luôn)
     const collector = response.createMessageComponentCollector({
         componentType: ComponentType.Button,
-        time: 7200000 // Hết hạn sau 2 tiếng (chờ đến lượt nhắc tiếp theo)
+        time: 7200000 
     });
 
     collector.on('collect', async (interaction) => {
         if (interaction.customId === 'btn_bump_disboard') {
-            // 🎯 ĐÃ SỬA: Phản hồi chuẩn cú pháp MessageFlags mới nhất năm 2026, sạch bóng Warning!
             await interaction.reply({
-                content: `✨ **Sếp ơi, hãy copy dòng chữ dưới đây rồi dán và gửi vào kênh chat bất kỳ có bot DISBOARD nhé:**\n\n\`/bump\``,
+                content: `✨ **Sếp copy dòng này dán gửi để bump Disboard nhé:**\n\n\`/bump\``,
                 flags: [MessageFlags.Ephemeral] 
             });
 
-            // Vô hiệu hóa nút bấm sau khi đã có người xử lý xong
-            const disabledRow = new ActionRowBuilder().addComponents(
+            const disabledRow1 = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('btn_bump_disboard')
-                    .setLabel('✅ Đã Kích Hoạt')
+                    .setLabel('✅ Đã Xử Lý Disboard')
                     .setStyle(ButtonStyle.Secondary)
-                    .setDisabled(true)
+                    .setDisabled(true),
+                new ButtonBuilder()
+                    .setLabel('⭐ Top.gg')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`https://top.gg/servers/${guildId}`)
             );
-            await interaction.message.edit({ components: [disabledRow] });
+            await interaction.message.edit({ components: [disabledRow1, row2] });
             collector.stop();
         }
     });
 }
 
-/**
- * ⚡ LỆNH PHỤ: Sếp gõ !postfb để test hệ thống đẩy top tức thì
- */
 async function handlePostToFacebook(message) {
     if (message.author.id !== process.env.ADMIN_ID) return false;
-
     if (message.content.trim() === '!postfb') {
         await message.delete().catch(() => {});
         await sendBumpReminder(message.channel);
-        console.log('⚡ [Hệ Thống] Sếp vừa test thử nút bấm Disboard.');
         return true;
     }
     return false;
