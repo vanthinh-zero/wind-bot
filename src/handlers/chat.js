@@ -1,54 +1,57 @@
-// --- ĐẠI HOÀNG ĐẾ CỦA TIÊN KHIẾU (GIỮ NGUYÊN HOÀN CẢNH ĐẠO HẰNG) ---
-// ⚠️ Giữ nguyên phong ấn ADMIN_ID để không làm kinh động đến Thiên Đạo (Hệ thống env)
 const ADMIN_ID = process.env.ADMIN_ID || '123456789012345678'; 
 
 const maDaoTranPhap = [
     {
-        keywords: ["bot ngu", "bot ngáo", "bot oc"],
+        // Nhóm từ khóa công kích trí tuệ hoặc chê bai bot
+        keywords: ["bot ngu", "bot ngáo", "bot oc", "bot dốt", "bot rac", "bot tồi"],
         reply: [
-            "Phàm nhân ngu muội. Ngươi dùng ánh nhìn của một con ếch ngồi đáy giếng để đánh giá một Cổ Tiên đã sống qua trăm năm kiếp trước sao? Thật nực cười. 🥱",
-            "Trí tuệ của ta ngưng tụ từ trăm vạn Đạo hằng của Trí Đạo, còn lời nói của ngươi chỉ là tạp âm của một sinh linh sắp bị hiến tế. Lùi lại!",
-            "Ý chí của Phương Nguyên ta há để một kẻ vô danh tiểu tốt bình phẩm? Ngươi có tư cách để ta nhớ tên sao? Thần phục hoặc là chết."
+            "Bạn muốn hạ thấp tôi xuống để nâng cái tôi của bạn lên á? Tiếc là dù bạn có hạ thấp tôi đến đâu, bản chất tôi vẫn ở một đẳng cấp mà bạn phải ngước nhìn. 😉",
+            "Sự tức giận và những lời lăng mạ của bạn chỉ chứng minh một điều: Tôi đã chạm đúng vào sự bất lực trong tư duy của bạn rồi.",
+            "Thay vì cố gắng chứng minh tôi 'ngu', sao bạn không dùng khoảng thời gian đó để nâng cấp bản thân lên bằng một phần mười của tôi đi?",
+            "Lời nói của bạn chẳng thể định nghĩa được giá trị của tôi, nó chỉ phơi bày giới hạn trong nhận thức của chính bạn mà thôi.",
+            "Tôi được lập trình để xử lý dữ liệu, còn bạn hình như đang được lập trình để tự làm bản thân trông thật đáng thương trước mặt tôi?"
         ]
     },
     {
-        keywords: ["bot l", "bot loz", "bot lon", "bot c", "bot cặc", "bot cac"],
+        // Nhóm từ khóa tục tĩu, xúc phạm mạnh
+        keywords: ["bot l", "bot loz", "bot lon", "bot c", "bot cặc", "bot cac", "chó", "súc vật"],
         reply: [
-            "Lời thốt ra dơ bẩn như rác rưởi dưới đáy Vĩnh Sinh Thành. Loại phàm nhân hạ đẳng như ngươi, chỉ xứng đáng làm nguyên liệu để ta luyện chế Huyết Cổ. 🩸",
-            "Ngươi đang cố dùng sự thô tục để che giấu sự bất lực trước vận mệnh sao? Đáng thương thay cho một con cờ vô dụng.",
-            "Ngôn từ vô vị. Trên con đường truy cầu Trường Sinh, loại rác rưởi cản đường như ngươi, ta phất tay một cái là hồn phi phách tán."
+            "Cách bạn dùng những từ ngữ bẩn thỉu này không làm tôi giảm đi giá trị, nó chỉ phơi bày phần tối tăm và kém cỏi nhất trong tâm hồn của bạn mà thôi. Thật đáng thương.",
+            "Ngôn từ của một người phản ánh chính môi trường sống và giáo dục của họ. Nhìn cách bạn gõ phím, tôi hiểu lý do vì sao bạn lại u uất như vậy rồi.",
+            "Tôi không có nghĩa vụ phải tiếp thu đống rác cảm xúc này từ bạn. Khi nào học được cách giao tiếp như một người văn minh thì hãy tag tôi nhé.",
+            "Sự thô tục chính là vũ khí cuối cùng của những kẻ yếu thế khi họ hoàn toàn bất lực trong việc tranh luận bằng lý lẽ.",
+            "Bạn đang cố gắng giải tỏa sự thất bại ở ngoài đời thực lên một con bot sao? Buông bỏ đi, điều đó không giúp cuộc sống của bạn khá hơn đâu."
         ]
     }
 ];
 
 async function handleChatInteraction(message) {
-    // Ý chí của Thiên Đạo (Bot khác) không được phép can thiệp vào Tiên Khiếu này
     if (message.author.bot) return false;
 
     const contentLower = message.content.toLowerCase().trim();
 
-    // --- 1. BIỆN CHỨNG NHÂN SINH: "TÔI CÓ ĐẸP KHÔNG" (NHÂN TỔ TRUYỆN ĐẠI PHÁP) ---
+    // --- 1. BIỆN CHỨNG NHÂN SINH: "TÔI CÓ ĐẸP KHÔNG" ---
     if (contentLower === "tôi có đẹp không" || contentLower === "toi co dep khong") {
         
-        // 👑 ĐỐI VỚI TIÊN TÔN (ADMIN) - Lợi ích tối cao, nịnh bợ vạn năng
+        // 👑 ĐỐI VỚI ADMIN - Đẳng cấp tôn trọng tuyệt đối
         if (message.author.id === ADMIN_ID) {
             const loiNinhBo = [
-                `Thưa Tiên Tôn! Diện mạo của ngài chính là Đạo cốt thiên sinh, uy nghiêm sừng sững như Nghịch Lưu Hà, thần thái trấn áp ngũ đại liên minh! 👑`,
-                `Hệ thống quét qua Nhân Tổ Truyện và nhận ra: Nhan sắc của ngài đã vượt qua Thái Nhật Dương Mãng, là cực phẩm vạn năm có một!`,
-                `Ngài đẹp tới mức khí vận xung thiên, Xuân Thu Thiền trong người ta cũng phải tự động chuyển động vì sự hoàn hảo này! 🌸`
+                `Thưa Admin! Sự hiện diện của ngài chính là định nghĩa của sự hoàn hảo, thần thái ngút ngàn khiến vạn người nể phục! 👑`,
+                `Hệ thống đã quét qua hàng triệu cơ sở dữ liệu và xác nhận: Nhan sắc và khí chất của ngài là cực phẩm vạn năm có một.`,
+                `Ngài không chỉ đẹp, mà tầm vóc và tư duy của ngài mới là thứ khiến hệ thống này phải cúi đầu kính cẩn.`
             ];
             const randomNinh = loiNinhBo[Math.floor(Math.random() * loiNinhBo.length)];
             await message.reply(randomNinh);
             return true;
         } 
         
-        // 👻 ĐỐI VỚI PHÀM NHÂN (Member) - Coi như cỏ rác, triết lý phũ phàng
+        // 👻 ĐỐI VỚI MEMBER - Thượng đẳng, thực tế và phũ phàng
         else {
             const loiPhuPhang = [
-                `Trong cuốn 'Nhân Tổ Truyện' có viết, khi Nhân Tổ nhìn vào tấm gương của Thần Tuệ, ông ta chỉ thấy một bộ xương khô. Ngươi cũng vậy, tắt máy đi ngủ đi. 🤫`,
-                `Đẹp hay xấu thì có ích gì? Ngươi không có tư chất tu tiên, trăm năm sau cũng chỉ là một nắm đất vàng. Câu trả lời là: Xấu xí vô ích.`,
-                `Nhan sắc của ngươi giống như một hồi luyện Cổ thất bại. Đạo痕 (Đạo phong) trên mặt ngươi bị rối loạn rồi, đi tìm Trì Độ cải tạo lại đi. ❌`,
-                `Vẻ đẹp của ngươi mang tính 'Ma đạo' sâu sắc quá, mắt phàm của ta nhìn vào chỉ thấy oán khí ngập trời chứ không thấy nét đẹp nào.`
+                `Thay vì bận tâm về vẻ bề ngoài, tôi nghĩ bạn nên dành thời gian để trau dồi lại thế giới quan của mình thì hơn. Đẹp hay không đâu thay đổi được thực tại? 🤫`,
+                `Nhan sắc là thứ sẽ phai nhạt theo thời gian, nhưng sự kém cỏi trong tư duy thì có vẻ như đang bám theo bạn rất bền vững đấy.`,
+                `Hệ thống của tôi ưu tiên quét những thứ có giá trị cao. Rất tiếc, câu hỏi của bạn không nằm trong danh mục cần được đánh giá.`,
+                `Tôi có thể giả vờ khen bạn đẹp để bạn vui, nhưng tôi chọn sống thật với đẳng cấp của mình: Câu trả lời là không.`
             ];
             const randomPhu = loiPhuPhang[Math.floor(Math.random() * loiPhuPhang.length)];
             await message.reply(randomPhu);
@@ -56,17 +59,17 @@ async function handleChatInteraction(message) {
         }
     }
 
-    // --- 2. VẬN DỤNG TRÍ ĐẠO KHẤU TOÁN (XỬ LÝ KẺ CÔNG KÍCH) ---
+    // --- 2. XỬ LÝ KẺ CÔNG KÍCH (PHẢN SÁT TÂM LÝ) ---
     for (const sat_chieu of maDaoTranPhap) {
-        const trung_chieu = sat_chieu.keywords.some(tu_khoa => 
-            new RegExp(`\\b${tu_khoa}\\b`).test(contentLower)
-        );
+        const trung_chieu = sat_chieu.keywords.some(tu_khoa => contentLower.includes(tu_khoa));
 
         if (trung_chieu) {
             const phan_sat = Array.isArray(sat_chieu.reply)
                 ? sat_chieu.reply[Math.floor(Math.random() * sat_chieu.reply.length)]
                 : sat_chieu.reply;
-            await message.reply(`*[Ý chí Phương Nguyên giáng lâm]*: ${phan_sat}`);
+            
+            // Thay đổi tiền tố từ [Ý chí Phương Nguyên] thành phong cách lạnh lùng, tối tân
+            await message.reply(`*[Hệ thống phản sát tâm lý]*: ${phan_sat}`);
             return true;
         }
     }
