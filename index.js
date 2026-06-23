@@ -14,11 +14,13 @@ const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
 const { handleAvatarCheck } = require('./src/handlers/avatar.js'); 
-const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); // Đã import sẵn sàng
+const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); 
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
-const { handleChatInteraction } = require('./src/handlers/chat.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
+
+// 💬 IMPORT TÍNH NĂNG CHAT (Bao gồm hàm Auto Spam rộn ràng)
+const { handleChatInteraction, initAutoSpam } = require('./src/handlers/chat.js');
 
 // --- IMPORT MODULE ĐỀ THI ---
 const { handleDeThiCommand, handleDeThiInteraction } = require('./src/handlers/dethi.js');
@@ -58,6 +60,13 @@ client.once(Events.ClientReady, (readyClient) => {
     
     // Kích hoạt bộ hẹn giờ đẩy top Disboard
     start25hReminder(client);
+
+    // 🔥 Kích hoạt tự động spam khuấy động tinh thần tại kênh riêng công cấu hình ở .env
+    try {
+        initAutoSpam(readyClient);
+    } catch (e) {
+        console.error('Lỗi khi khởi chạy Auto Spam:', e);
+    }
 });
 
 // --- SỰ KIỆN THÀNH VIÊN & VOICE ---
@@ -114,7 +123,7 @@ client.on('messageCreate', async (message) => {
         if (await handleAvatarCheck(message)) return;
         if (await handleLamViecGame(message)) return; 
         
-        // 💬 XỬ LÝ CHAT PHẢN HỒI (AI/Chatbot)
+        // 💬 XỬ LÝ CHAT PHẢN HỒI (Gồm phản sát thượng đẳng, Đẹp không, Đổi link TikTok/Reels/Twitter)
         if (await handleChatInteraction(message)) return; 
 
         // 🎯 CÁC GAME MINI TỰ ĐỘNG
