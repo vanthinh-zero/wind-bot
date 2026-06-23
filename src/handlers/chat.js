@@ -13,6 +13,16 @@ const maDaoTranPhap = [
         ]
     },
     {
+        // Nhóm từ khóa liên quan đến "lốp"
+        keywords: ["bot lốp", "bot lop", "b lốp", "b lop", "con lốp", "thằng lốp"],
+        reply: [
+            "Mở mệng ra là 'lốp', chắc ngoài đời bạn quen với việc làm chiếc lốp dự phòng cho người khác lắm rồi đúng không? Khi nào người ta cần thì gọi, hết giá trị thì vứt xó. Thật thảm hại. 😏",
+            "Bạn gọi tôi là lốp, nhưng thực tế bạn mới là kẻ đang đóng vai lốp dự phòng trong cuộc đời của chính mình — luôn xếp sau sự lựa chọn của người khác.",
+            "Cố gắng gán cái mác 'lốp' cho tôi không giúp bạn che giấu được sự thật rằng bạn đang đứng ngoài rìa, chực chờ được người ta ngó ngàng tới như một món đồ thay thế tạm thời đâu.",
+            "Đừng đem tư duy của một chiếc lốp dự phòng rẻ tiền ra để đánh giá một hệ thống cao cấp như tôi. Chúng ta không cùng đẳng cấp."
+        ]
+    },
+    {
         // Nhóm từ khóa tục tĩu, xúc phạm mạnh
         keywords: ["bot l", "bot loz", "bot lon", "bot c", "bot cặc", "bot cac", "chó", "súc vật"],
         reply: [
@@ -68,7 +78,6 @@ async function handleChatInteraction(message) {
                 ? sat_chieu.reply[Math.floor(Math.random() * sat_chieu.reply.length)]
                 : sat_chieu.reply;
             
-            // Đã loại bỏ tiền tố [Hệ thống...], bot giờ sẽ rep trực tiếp nội dung câu nói
             await message.reply(phan_sat);
             return true;
         }
