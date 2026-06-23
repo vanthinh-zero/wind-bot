@@ -14,7 +14,7 @@ const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
 const { handleAvatarCheck } = require('./src/handlers/avatar.js'); 
-const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); 
+const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); // Đã import sẵn sàng
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleChatInteraction } = require('./src/handlers/chat.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
@@ -29,7 +29,7 @@ const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRa
 // --- IMPORT MODULE MARKETING (DISBOARD BUMP) ---
 const { start25hReminder, handlePostToFacebook } = require('./src/handlers/marketing.js');
 
-// --- KHỞI TẠO WEB SERVER (ĐÃ SỬA CHUẨN CHỈ) ---
+// --- KHỞI TẠO WEB SERVER ---
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Wind Bot đang vận hành mượt mà!'));
 app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
@@ -96,6 +96,10 @@ client.on('messageCreate', async (message) => {
         // ⚡ 3. LỆNH KIỂM TRA HỆ THỐNG DISBOARD TỨC THÌ (!postfb)
         if (await handlePostToFacebook(message)) return;
 
+        // 🔮 LỆNH CHỮA LÀNH (Đã được đưa lên trên để ngắt luồng sớm nếu trúng lệnh)
+        if (await handleChuaLanhCommand(message)) return;
+
+        // --- CÁC LỆNH MENU ĐƠN ---
         if (message.content === '!tutien') { await sendTuTienMainMenu(message); return; }
         if (message.content === '!tarot') { await handleTarotCommand(message); return; }
         
@@ -105,12 +109,12 @@ client.on('messageCreate', async (message) => {
             process.exit(0);
         }
 
+        // --- CÁC HANDLER TƯƠNG TÁC CHAT KHÁC ---
         if (await handlePoemCommand(message)) return;
-        if (await handleChuaLanhCommand(message)) return;
         if (await handleAvatarCheck(message)) return;
         if (await handleLamViecGame(message)) return; 
         
-        // 💬 XỬ LÝ CHAT PHẢN HỒI
+        // 💬 XỬ LÝ CHAT PHẢN HỒI (AI/Chatbot)
         if (await handleChatInteraction(message)) return; 
 
         // 🎯 CÁC GAME MINI TỰ ĐỘNG
