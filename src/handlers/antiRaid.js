@@ -77,13 +77,13 @@ async function handleFakeRaidCommand(message) {
                 `⚙️ **HÀNH ĐỘNG BẢO AN ĐANG ĐƯỢC THỰC THI BỞI BOT WIN:**\n` +
                 `├ 🔒 *Kích hoạt trạng thái Lockdown: Đóng toàn bộ cổng Server.*\n` +
                 `├ 🛑 *Bật cơ chế Anti-Join: Đóng băng tất cả các Link mời (Invite Link).*\n` +
-                `├ 🗑️ *Quét dọn: Auto-delete 120 tin nhắn rác tại các kênh công cộng.*\n` +
-                `└ ⚡ *Trừng phạt: Đã trục xuất (Ban) vĩnh viễn 48 tài khoản độc hại thành công.*\n\n` +
+                `├ 🗑️ *Quét dọn: Auto-delete 402 tin nhắn rác tại các kênh công cộng.*\n` +
+                `└ ⚡ *Trừng phạt: Đã damage vĩnh viễn 48 tài khoản độc hại thành công, account sẽ không thể đăng nhập trong vòng 6 tháng tới.*\n\n` +
                 `💯 *Hệ thống thông minh đã kiểm soát được tình hình. Báo cáo này chỉ gửi riêng cho Chủ tịch tối cao để nắm rõ tình hình bảo an máy chủ!*`
             )
             .addFields(
                 { name: '🛡️ Tình trạng phòng thủ', value: '🟢 **AN TOÀN (100%)**', inline: true },
-                { name: '⏳ Thời gian phản ứng', value: '`0.42 Giây`', inline: true }
+                { name: '⏳ Thời gian phản ứng', value: '`0.3 Giây`', inline: true }
             )
             .setTimestamp()
             .setFooter({ text: 'Hệ thống bảo an tối cao ĐÀN BÒ BIẾT BAY' });
