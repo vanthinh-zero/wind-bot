@@ -68,8 +68,8 @@ async function handleChatInteraction(message) {
                 ? sat_chieu.reply[Math.floor(Math.random() * sat_chieu.reply.length)]
                 : sat_chieu.reply;
             
-            // Thay đổi tiền tố từ [Ý chí Phương Nguyên] thành phong cách lạnh lùng, tối tân
-            await message.reply(`*[Hệ thống phản sát tâm lý]*: ${phan_sat}`);
+            // Đã loại bỏ tiền tố [Hệ thống...], bot giờ sẽ rep trực tiếp nội dung câu nói
+            await message.reply(phan_sat);
             return true;
         }
     }
