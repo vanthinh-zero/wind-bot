@@ -7,9 +7,10 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Đường dẫn lưu trữ stats chuẩn chỉnh trong thư mục config
 const STATS_FILE = path.join(__dirname, '../config/tag_stats.json');
 
-// Gọi thư viện chính thức của Google Gen AI
+// Gọi thư viện chính thức của Google Gen AI đúng cấu trúc mới
 const { GoogleGenAI } = require('@google/genai');
 const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
 
@@ -100,7 +101,7 @@ async function executeServerAction(message, aiText) {
             const member = await message.guild.members.fetch(uId);
             await member.setNickname(newNick);
             finalBotText = aiText.replace(nickMatch[0], `✅ Đã đổi biệt danh của <@${uId}> thành **${newNick}** rồi nha Sếp!`);
-        } catch (err) { finalBotText = aiText.replace(nickMatch[0], `❌ Thằng này chức to hơn em nên em chịu không đổi tên được.`); }
+        } catch (err) { finalBotText = aiText.replace(nickMatch[0], `❌ Thành viên này quyền cao quá nên em chịu không đổi tên được.`); }
     }
 
     return finalBotText;
@@ -158,14 +159,13 @@ async function handleChatInteraction(message) {
 
     // Kích hoạt khi Sếp tag, Sếp gọi tên, HOẶC Sếp chat chứa từ khóa quyền lực
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
-        // Vẫn chặn tuyệt đối member thông thường
+        // Vẫn chặn tuyệt đối member thông thường, chỉ phục vụ duy nhất Sếp
         if (message.author.id !== ADMIN_ID) return false; 
         if (!ai) return true;
 
         try {
             await message.channel.sendTyping();
             
-            // Dọn rác text tag để prompt sạch hơn
             let userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
             if (userPrompt.toLowerCase().startsWith("wind")) {
                 userPrompt = userPrompt.slice(4).trim();
@@ -184,10 +184,18 @@ async function handleChatInteraction(message) {
             let promptText = `Admin nói: "${userPrompt}"`;
             if (targetUser) promptText += `\n(ID của người được nhắc tới trong câu là: ${targetUser.id})`;
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: `${systemInstruction}\n\n${promptText}`,
-            });
+            // Sử dụng model chuẩn gemini-2.5-flash đi kèm bộ bọc khiên bảo vệ an toàn
+            let response;
+            try {
+                response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: `${systemInstruction}\n\n${promptText}`,
+                });
+            } catch (apiErr) {
+                console.error("Lỗi kết nối Google:", apiErr.message);
+                await message.reply("📡 Máy chủ Google đang bị quá tải nhẹ rồi Sếp ơi, đợi em tầm 5 giây rồi gõ lệnh lại nha!");
+                return true;
+            }
 
             let botReply = response.text || "Em nghe sếp ơi!";
             const processedReply = await executeServerAction(message, botReply);
@@ -196,7 +204,7 @@ async function handleChatInteraction(message) {
         } catch (error) { console.error(error); return true; }
     }
 
-    // 🔥 LỆNH TẠO CONTENT (Giữ nguyên)
+    // 🔥 LỆNH TẠO CONTENT (Đã đồng bộ model 2.5-flash và bọc try-catch)
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
             await message.reply(`Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); return true;
@@ -211,7 +219,10 @@ async function handleChatInteraction(message) {
                 contents: `Lên kịch bản TikTok chi tiết cho chủ đề: ${topic}`,
             });
             await message.channel.send(response.text || "Lỗi dữ liệu."); return true;
-        } catch (e) { return true; }
+        } catch (e) { 
+            await message.reply("📡 Google đang nghẽn mạch lệnh tạo nội dung rồi Sếp ạ, thử lại sau ít giây nhé!");
+            return true; 
+        }
     }
 
     // === TỰ ĐỘNG TẢI VIDEO TIKTOK (Giữ nguyên) ===
