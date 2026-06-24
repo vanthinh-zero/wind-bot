@@ -4,6 +4,7 @@ const GEMINI_KEY = process.env.GEMINI_KEY;
 const KENH_CONTENT_ID = process.env.KENH_CONTENT_ID; 
 const { AttachmentBuilder, PermissionsBitField } = require('discord.js');
 const https = require('https');
+const http = require('http'); // Khai báo thư viện http để dựng server cứu đói cho Render
 const fs = require('fs');
 const path = require('path');
 
@@ -13,6 +14,20 @@ const STATS_FILE = path.join(__dirname, '../config/tag_stats.json');
 // Gọi thư viện chính thức của Google Gen AI đúng cấu trúc mới
 const { GoogleGenAI } = require('@google/genai');
 const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
+
+// --- HÀM TỰ ĐỘNG DỰNG WEB SERVER CHO RENDER GÓI FREE KHÔNG BỊ "CỤP PHA" ---
+function ChayWebServerChoRender() {
+    const port = process.env.PORT || 3000;
+    http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Quản gia Wind đang sống nhăn răng sếp ơi! 🚀');
+    }).listen(port, () => {
+        console.log(`[Render Hub]: Đã mở cổng ${port} để tiếp đón Render Health Check thành công!`);
+    });
+}
+
+// Kích hoạt Server HTTP ngay khi khởi động
+ChayWebServerChoRender();
 
 // --- HÀM ĐỌC/GHI LƯỢT TAG ---
 function CodeDocStats() {
@@ -153,13 +168,12 @@ async function handleChatInteraction(message) {
         return true;
     }
 
-    // 🔥 MẢNG TỪ KHÓA BẬT NÃO AI ĐỘC QUYỀN CHO ADMIN
+    // 🔥 MẢNG TỪ KHÓA BẬT NÃO AI ĐỘC QUYỀN CHO ADMIN (KHÔNG CẦN TAG)
     const tuKhoaQuyenLuc = ["anh", "sếp", "wind", "giúp", "tạo", "xóa", "đổi"];
     const adminKichHoatTuKhoa = message.author.id === ADMIN_ID && tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
 
     // Kích hoạt khi Sếp tag, Sếp gọi tên, HOẶC Sếp chat chứa từ khóa quyền lực
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
-        // Vẫn chặn tuyệt đối member thông thường, chỉ phục vụ duy nhất Sếp
         if (message.author.id !== ADMIN_ID) return false; 
         if (!ai) return true;
 
@@ -184,7 +198,7 @@ async function handleChatInteraction(message) {
             let promptText = `Admin nói: "${userPrompt}"`;
             if (targetUser) promptText += `\n(ID của người được nhắc tới trong câu là: ${targetUser.id})`;
 
-            // Sử dụng model chuẩn gemini-2.5-flash đi kèm bộ bọc khiên bảo vệ an toàn
+            // Gọi model gemini-2.5-flash kèm khiên bọc try/catch thông minh
             let response;
             try {
                 response = await ai.models.generateContent({
@@ -204,7 +218,7 @@ async function handleChatInteraction(message) {
         } catch (error) { console.error(error); return true; }
     }
 
-    // 🔥 LỆNH TẠO CONTENT (Đã đồng bộ model 2.5-flash và bọc try-catch)
+    // 🔥 LỆNH TẠO CONTENT 
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
             await message.reply(`Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); return true;
@@ -225,7 +239,7 @@ async function handleChatInteraction(message) {
         }
     }
 
-    // === TỰ ĐỘNG TẢI VIDEO TIKTOK (Giữ nguyên) ===
+    // === TỰ ĐỘNG TẢI VIDEO TIKTOK ===
     if (contentLower.includes("tiktok.com")) {
         const urlRegex = /(https?:\/\/[^\s]+)/g; const tiktokUrl = content.match(urlRegex)?.[0];
         if (tiktokUrl) {
