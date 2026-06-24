@@ -7,14 +7,13 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-// Đã chuyển đường dẫn lưu trữ file stats vào hẳn trong thư mục config theo ý Sếp
 const STATS_FILE = path.join(__dirname, '../config/tag_stats.json');
 
-// Gọi thư viện chính thức của Google Gen AI đúng cấu trúc hệ thống
+// Gọi thư viện chính thức của Google Gen AI
 const { GoogleGenAI } = require('@google/genai');
 const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
 
-// --- HÀM ĐỌC/GHI LƯỢT TAG TỪ THƯ MỤC CONFIG ---
+// --- HÀM ĐỌC/GHI LƯỢT TAG ---
 function CodeDocStats() {
     try {
         if (!fs.existsSync(STATS_FILE)) return {};
@@ -24,10 +23,10 @@ function CodeDocStats() {
 function CodeGhiStats(data) {
     try {
         fs.writeFileSync(STATS_FILE, JSON.stringify(data, null, 4));
-    } catch (e) { console.error("Lỗi ghi file stats vào config:", e); }
+    } catch (e) { console.error("Lỗi ghi file stats:", e); }
 }
 
-// --- HÀM TẢI DỮ LIỆU AN TOÀN TRÁNH LỖI SSL ---
+// --- HÀM TẢI DỮ LIỆU AN TOÀN ---
 function sfetch(url, options = {}) {
     return new Promise((resolve, reject) => {
         const req = https.request(url, { rejectUnauthorized: false, ...options }, (res) => {
@@ -48,22 +47,22 @@ function sfetch(url, options = {}) {
     });
 }
 
-// --- HÀM XỬ LÝ LỆNH HỆ THỐNG TỐI CAO TỪ AI (Chỉ áp dụng với Admin) ---
+// --- HÀM XỬ LÝ LỆNH HỆ THỐNG TỐI CAO TỪ AI ---
 async function executeServerAction(message, aiText) {
     if (message.author.id !== ADMIN_ID) return aiText;
     let finalBotText = aiText;
 
-    // 1. Lệnh Tạo Role: [CMD:CREATE_ROLE:Tên:Màu]
+    // 1. Tạo Role: [CMD:CREATE_ROLE:Tên:Màu]
     const roleMatch = aiText.match(/\[CMD:CREATE_ROLE:(.*?):(.*?)\]/);
     if (roleMatch) {
         const rName = roleMatch[1].trim(); const rColor = roleMatch[2].trim() || 'Default';
         try {
-            await message.guild.roles.create({ name: rName, color: rColor, reason: 'Lệnh từ Tối Cao Admin' });
+            await message.guild.roles.create({ name: rName, color: rColor, reason: 'Lệnh Admin' });
             finalBotText = aiText.replace(roleMatch[0], `✅ Đã tạo xong role **${rName}** màu **${rColor}** Sếp nhé!`);
         } catch (err) { finalBotText = aiText.replace(roleMatch[0], `❌ Em thiếu quyền Tạo Role rồi.`); }
     }
 
-    // 2. Lệnh Dọn tin nhắn: [CMD:CLEAR_MSG:Số_lượng]
+    // 2. Dọn tin nhắn: [CMD:CLEAR_MSG:Số_lượng]
     const clearMatch = aiText.match(/\[CMD:CLEAR_MSG:(\d+)\]/);
     if (clearMatch) {
         const amount = parseInt(clearMatch[1]) + 1;
@@ -74,7 +73,7 @@ async function executeServerAction(message, aiText) {
         } catch (err) { finalBotText = aiText.replace(clearMatch[0], `❌ Tin nhắn cũ quá em không xóa nhanh được.`); }
     }
 
-    // 3. Lệnh Tạo Kênh: [CMD:CREATE_CHANNEL:Tên:Loại(text/voice)]
+    // 3. Tạo Kênh: [CMD:CREATE_CHANNEL:Tên:Loại(text/voice)]
     const channelMatch = aiText.match(/\[CMD:CREATE_CHANNEL:(.*?):(text|voice)\]/);
     if (channelMatch) {
         const cName = channelMatch[1].trim(); const cType = channelMatch[2] === 'voice' ? 2 : 0;
@@ -84,7 +83,7 @@ async function executeServerAction(message, aiText) {
         } catch (err) { finalBotText = aiText.replace(channelMatch[0], `❌ Em không có quyền tạo kênh rồi Sếp.`); }
     }
 
-    // 4. Lệnh Xóa Kênh Hiện Tại: [CMD:DELETE_CHANNEL]
+    // 4. Xóa Kênh Hiện Tại: [CMD:DELETE_CHANNEL]
     if (aiText.includes('[CMD:DELETE_CHANNEL]')) {
         try {
             await message.channel.send("🚨 Kênh này sẽ tự hủy sau 3 giây...");
@@ -93,7 +92,7 @@ async function executeServerAction(message, aiText) {
         } catch (err) { finalBotText = aiText.replace('[CMD:DELETE_CHANNEL]', `❌ Em không xóa kênh này được Sếp ạ.`); }
     }
 
-    // 5. Lệnh Đổi biệt danh member: [CMD:SET_NICK:ID_User:Nickname_Mới]
+    // 5. Đổi biệt danh member: [CMD:SET_NICK:ID_User:Nickname_Mới]
     const nickMatch = aiText.match(/\[CMD:SET_NICK:(\d+):(.*?)\].*?/);
     if (nickMatch) {
         const uId = nickMatch[1]; const newNick = nickMatch[2].trim();
@@ -101,7 +100,7 @@ async function executeServerAction(message, aiText) {
             const member = await message.guild.members.fetch(uId);
             await member.setNickname(newNick);
             finalBotText = aiText.replace(nickMatch[0], `✅ Đã đổi biệt danh của <@${uId}> thành **${newNick}** rồi nha Sếp!`);
-        } catch (err) { finalBotText = aiText.replace(nickMatch[0], `❌ Thành viên này có chức cao hơn em nên em không đổi tên được.`); }
+        } catch (err) { finalBotText = aiText.replace(nickMatch[0], `❌ Thằng này chức to hơn em nên em chịu không đổi tên được.`); }
     }
 
     return finalBotText;
@@ -110,14 +109,14 @@ async function executeServerAction(message, aiText) {
 // --- HÀM TỰ ĐỘNG KHUẤY ĐỘNG KÊNH CHÁT (Mỗi 1 tiếng) ---
 function initAutoSpam(client) {
     if (!KENH_CHAO_MUNG_ID) return;
-    const THOI_GIAN_SPAM = 60 * 60 * 1000; // 1 tiếng chạy 1 lần theo yêu cầu
+    const THOI_GIAN_SPAM = 60 * 60 * 1000; 
     setInterval(async () => {
         try {
             const channel = await client.channels.fetch(KENH_CHAO_MUNG_ID);
             if (channel && channel.isTextBased()) {
                 await channel.send("Hế lô các thiên tài toán học và các nhà triết học online, hôm nay các bạn đã làm được gì ích nước lợi nhà chưa? ☀️");
             }
-        } catch (error) { console.error("[Auto Spam] Lỗi:", error.message); }
+        } catch (error) { console.error("[Auto Spam]: Lỗi:", error.message); }
     }, THOI_GIAN_SPAM);
 }
 
@@ -131,7 +130,7 @@ async function handleChatInteraction(message) {
     const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
     const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
 
-    // 📊 Ghi nhận lượt tag ngầm của TẤT CẢ thành viên
+    // 📊 Ghi nhận lượt tag ngầm của Member thông thường
     if (isMentioned || isCalledName) {
         let stats = CodeDocStats();
         const mId = message.author.id;
@@ -139,11 +138,11 @@ async function handleChatInteraction(message) {
         CodeGhiStats(stats);
     }
 
-    // 📈 LỆNH ĐỘC QUYỀN ADMIN: XEM THỐNG KÊ LƯỢT TAG ĐỐI VỚI BOT
+    // 📈 LỆNH ĐỘC QUYỀN ADMIN: XEM THỐNG KÊ LƯỢT TAG
     if (contentLower === "!thongketag" && message.author.id === ADMIN_ID) {
         const stats = CodeDocStats();
         const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-        if (sorted.length === 0) return await message.reply("Chưa có dữ liệu thống kê lượt tag Sếp ơi!");
+        if (sorted.length === 0) return await message.reply("Chưa có ai dám tag em Sếp ơi!");
         
         let bieuDo = "📊 **BẢNG XẾP HẠNG GHI PHẠM (LƯỢT TAG BOT WIND):**\n---------------------------------------\n";
         for (let i = 0; i < Math.min(sorted.length, 10); i++) {
@@ -153,17 +152,22 @@ async function handleChatInteraction(message) {
         return true;
     }
 
-    // 🔥 TÍNH NĂNG CHAT TỰ DO / AI AGENT: CHỈ PHẢN HỒI MỘT MÌNH SẾP (ADMIN)
-    if ((isMentioned || isCalledName) && !contentLower.startsWith("!taocontent")) {
-        // Khóa hẳn quyền phản hồi tự do với member, chỉ rep duy nhất một mình Sếp
+    // 🔥 MẢNG TỪ KHÓA BẬT NÃO AI ĐỘC QUYỀN CHO ADMIN
+    const tuKhoaQuyenLuc = ["anh", "sếp", "wind", "giúp", "tạo", "xóa", "đổi"];
+    const adminKichHoatTuKhoa = message.author.id === ADMIN_ID && tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
+
+    // Kích hoạt khi Sếp tag, Sếp gọi tên, HOẶC Sếp chat chứa từ khóa quyền lực
+    if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
+        // Vẫn chặn tuyệt đối member thông thường
         if (message.author.id !== ADMIN_ID) return false; 
         if (!ai) return true;
 
         try {
             await message.channel.sendTyping();
+            
+            // Dọn rác text tag để prompt sạch hơn
             let userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
-
-            if (isCalledName && userPrompt.toLowerCase().startsWith("wind")) {
+            if (userPrompt.toLowerCase().startsWith("wind")) {
                 userPrompt = userPrompt.slice(4).trim();
             }
 
@@ -189,10 +193,10 @@ async function handleChatInteraction(message) {
             const processedReply = await executeServerAction(message, botReply);
             if (processedReply) await message.reply(processedReply);
             return true;
-        } catch (error) { console.error("Lỗi AI Agent:", error.message); return true; }
+        } catch (error) { console.error(error); return true; }
     }
 
-    // 🔥 LỆNH TẠO CONTENT ĐỘC QUYỀN (Tại kênh quy định)
+    // 🔥 LỆNH TẠO CONTENT (Giữ nguyên)
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
             await message.reply(`Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); return true;
@@ -202,16 +206,15 @@ async function handleChatInteraction(message) {
         if (!topic) { await message.reply("Sếp thiếu chủ đề rồi!"); return true; }
         try {
             await message.channel.sendTyping();
-            const prompt = `Bạn là một chuyên gia sáng tạo nội dung xuất sắc trên TikTok. Hãy lên nội dung chi tiết cho một video ngắn về chủ đề: "${topic}". Cấu trúc rõ ràng, bắt trend.`;
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: prompt,
+                contents: `Lên kịch bản TikTok chi tiết cho chủ đề: ${topic}`,
             });
             await message.channel.send(response.text || "Lỗi dữ liệu."); return true;
         } catch (e) { return true; }
     }
 
-    // === TỰ ĐỘNG TẢI VIDEO TIKTOK & DỌN LINK GỐC (Giữ nguyên) ===
+    // === TỰ ĐỘNG TẢI VIDEO TIKTOK (Giữ nguyên) ===
     if (contentLower.includes("tiktok.com")) {
         const urlRegex = /(https?:\/\/[^\s]+)/g; const tiktokUrl = content.match(urlRegex)?.[0];
         if (tiktokUrl) {
