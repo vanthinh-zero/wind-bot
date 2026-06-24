@@ -31,11 +31,19 @@ const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRa
 // --- IMPORT MODULE MARKETING (DISBOARD BUMP) ---
 const { start25hReminder, handlePostToFacebook } = require('./src/handlers/marketing.js');
 
-// --- KHỞI TẠO WEB SERVER ---
+// --- KHỞI TẠO WEB SERVER (ĐÃ SỬA CHUẨN ĐỂ ĐÁNH LỪA HEALTH CHECK CỦA RENDER) ---
 const app = express();
-app.get('/', (req, res) => res.send('🤖 Wind Bot đang vận hành mượt mà!'));
-app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
-    console.log('🌐 Web Server đang lắng nghe tại port: 3000');
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('🤖 Quản gia Wind đang sống nhăn răng trên Render sếp ơi! 🚀');
+});
+
+// Bỏ '0.0.0.0' để Render tự động ánh xạ cổng kết nối mượt mà
+app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`🌐 [Render Hub]: Web Server đang mở tại cổng: ${PORT}`);
+    console.log(`==================================================`);
 });
 
 // --- KHỞI TẠO DISCORD CLIENT ---
@@ -172,5 +180,5 @@ process.on('uncaughtException', (err) => {
     console.error('❌ Phát hiện Uncaught Exception nghiêm trọng:', err);
 });
 
-// --- ĐĂNG NHẬP BOT ---
-client.login(process.env.TOKEN);
+// --- ĐĂNG NHẬP BOT (Đồng bộ chuẩn biến môi trường DISCORD_TOKEN hoặc TOKEN) ---
+client.login(process.env.DISCORD_TOKEN || process.env.TOKEN);
