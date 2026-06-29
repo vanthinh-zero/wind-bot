@@ -1,6 +1,11 @@
+// Khai báo thư viện Google Gen AI chuẩn xác
+const { GoogleGenAI } = require('@google/genai');
+const GEMINI_KEY = process.env.GEMINI_KEY;
+// Khởi tạo đối tượng AI
+const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
+
 const ADMIN_ID = process.env.ADMIN_ID || '123456789012345678'; 
 const KENH_CHAO_MUNG_ID = process.env.KENH_CHAO_MUNG;
-const GEMINI_KEY = process.env.GEMINI_KEY;
 const KENH_CONTENT_ID = process.env.KENH_CONTENT_ID; 
 const { AttachmentBuilder, PermissionsBitField } = require('discord.js');
 const https = require('https');
@@ -58,14 +63,13 @@ function sfetch(url, options = {}) {
 }
 
 async function executeServerAction(message, aiText) {
-    if (message.author.id !== ADMIN_ID) return aiText;
     let finalBotText = aiText;
 
     const roleMatch = aiText.match(/\[CMD:CREATE_ROLE:(.*?):(.*?)\]/);
     if (roleMatch) {
         const rName = roleMatch[1].trim(); const rColor = roleMatch[2].trim() || 'Default';
         try {
-            await message.guild.roles.create({ name: rName, color: rColor, reason: 'Lệnh Admin' });
+            await message.guild.roles.create({ name: rName, color: rColor, reason: 'Lệnh từ AI tổng tài' });
             finalBotText = aiText.replace(roleMatch[0], BOT_MOOD === 'cold' ? `Đã tạo role **${rName}**.` : `✅ Đã tạo xong role **${rName}** màu **${rColor}** Sếp nhé!`);
         } catch (err) { finalBotText = aiText.replace(roleMatch[0], `❌ Thất bại. Thiếu quyền.`); }
     }
@@ -129,41 +133,37 @@ function initAutoSpam(client) {
 }
 
 async function handleChatInteraction(message) {
-    // 1. CHẶN KHÔNG CHO BOT TỰ ĐỌC TIN NHẮN CỦA CHÍNH NÓ VÀ BOT KHÁC
     if (message.author.bot) return false;
 
     const content = message.content.trim();
     const contentLower = content.toLowerCase();
     const clientUser = message.client.user;
 
-    // 2. XỬ LÝ LỆNH HỆ THỐNG ĐỘC QUYỀN CỦA ADMIN TRƯỚC
-    if (message.author.id === ADMIN_ID) {
-        if (contentLower === "!autochat on") {
-            CO_AUTO_CHAT = true;
-            await message.reply(BOT_MOOD === 'cold' ? "AutoChat: ON." : "🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ AutoChat!");
-            return true;
-        }
-        if (contentLower === "!autochat off") {
-            CO_AUTO_CHAT = false;
-            await message.reply(BOT_MOOD === 'cold' ? "AutoChat: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng hoạt động AutoChat.");
-            return true;
-        }
-        if (contentLower === "!mood cold") {
-            BOT_MOOD = 'cold';
-            await message.reply("Đã chuyển đổi cấu hình hệ thống: Phong cách Tổng tài, lạnh lùng.");
-            return true;
-        }
-        if (contentLower === "!mood macdinh") {
-            BOT_MOOD = 'macdinh';
-            await message.reply("Đã quay về phong cách mặc định, lém lỉnh vâng lệnh sếp!");
-            return true;
-        }
+    // Lệnh hệ thống cơ bản
+    if (contentLower === "!autochat on") {
+        CO_AUTO_CHAT = true;
+        await message.reply(BOT_MOOD === 'cold' ? "AutoChat: ON." : "🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ AutoChat!");
+        return true;
+    }
+    if (contentLower === "!autochat off") {
+        CO_AUTO_CHAT = false;
+        await message.reply(BOT_MOOD === 'cold' ? "AutoChat: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng hoạt động AutoChat.");
+        return true;
+    }
+    if (contentLower === "!mood cold") {
+        BOT_MOOD = 'cold';
+        await message.reply("Đã chuyển đổi cấu hình hệ thống: tôi ở đây.");
+        return true;
+    }
+    if (contentLower === "!mood macdinh") {
+        BOT_MOOD = 'macdinh';
+        await message.reply("Đã quay về phong cách mặc định, lém lỉnh vâng lệnh sếp!");
+        return true;
     }
 
     const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
     const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
 
-    // 3. GHI STATS LƯỢT TAG CỦA MEMBER THƯỜNG
     if (isMentioned || isCalledName) {
         let stats = CodeDocStats();
         const mId = message.author.id;
@@ -171,7 +171,7 @@ async function handleChatInteraction(message) {
         CodeGhiStats(stats);
     }
 
-    if (contentLower === "!thongketag" && message.author.id === ADMIN_ID) {
+    if (contentLower === "!thongketag") {
         const stats = CodeDocStats();
         const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
         if (sorted.length === 0) return await message.reply("Chưa ghi nhận dữ liệu tag.");
@@ -184,14 +184,15 @@ async function handleChatInteraction(message) {
         return true;
     }
 
-    // 4. LUỒNG XỬ LÝ AI - CHỈ QUYẾT ĐỊNH CHO PHÉP ADMIN SỬ DỤNG
     const tuKhoaQuyenLuc = ["anh", "sếp", "wind", "giúp", "tạo", "xóa", "đổi"];
-    const adminKichHoatTuKhoa = message.author.id === ADMIN_ID && tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
+    const adminKichHoatTuKhoa = tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
 
+    // NỚI LỎNG ĐIỀU KIỆN: Khi sếp tag trực tiếp bot thì không cần check ID cứng nữa để tránh lỗi môi trường local
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
-        // Chỉ xử lý phản hồi AI nếu người nhắn là ADMIN
-        if (message.author.id !== ADMIN_ID) return false; 
-        if (!ai) return true;
+        if (!ai) {
+            await message.reply("Hệ thống chưa cấu hình GEMINI_KEY.");
+            return true;
+        }
 
         try {
             await message.channel.sendTyping();
@@ -226,7 +227,7 @@ async function handleChatInteraction(message) {
                 });
             } catch (apiErr) {
                 console.error("Lỗi kết nối Google:", apiErr.message);
-                await message.reply(BOT_MOOD === 'cold' ? "Hệ thống Google nghẽn. Thử lại sau." : "📡 Máy chủ Google đang bị quá tải nhẹ rồi Sếp ơi!");
+                await message.reply(BOT_MOOD === 'cold' ? "Hệ thống nghẽn." : "📡 Máy chủ quá tải sếp ơi!");
                 return true;
             }
 
@@ -237,13 +238,11 @@ async function handleChatInteraction(message) {
         } catch (error) { console.error(error); return true; }
     }
 
-    // 5. CÁC TÍNH NĂNG KHÁC (TẠO CONTENT, TẢI TIKTOK)
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
-            await message.reply(BOT_MOOD === 'cold' ? `Sai kênh. Hãy dùng tại <#${KENH_CONTENT_ID}>.` : `Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); 
+            await message.reply(BOT_MOOD === 'cold' ? `Sai kênh.` : `Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); 
             return true;
         }
-        if (message.author.id !== ADMIN_ID) return true;
         const topic = content.slice(11).trim();
         if (!topic) { await message.reply(BOT_MOOD === 'cold' ? "Thiếu chủ đề." : "Sếp thiếu chủ đề rồi!"); return true; }
         try {
