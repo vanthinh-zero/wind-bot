@@ -11,9 +11,8 @@ const path = require('path');
 // Đường dẫn lưu trữ stats chuẩn chỉnh trong thư mục config
 const STATS_FILE = path.join(__dirname, '../config/tag_stats.json');
 
-// Gọi thư viện chính thức của Google Gen AI đúng cấu trúc mới
-const { GoogleGenAI } = require('@google/genai');
-const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
+// Biến lưu trạng thái bật/tắt của hệ thống AutoChat (Mặc định là bật)
+let CO_AUTO_CHAT = true;
 
 // --- HÀM TỰ ĐỘNG DỰNG WEB SERVER CHO RENDER GÓI FREE KHÔNG BỊ "CỤP PHA" ---
 function ChayWebServerChoRender() {
@@ -127,6 +126,9 @@ function initAutoSpam(client) {
     if (!KENH_CHAO_MUNG_ID) return;
     const THOI_GIAN_SPAM = 60 * 60 * 1000; 
     setInterval(async () => {
+        // Kiểm tra xem sếp có cho phép AutoChat chạy không
+        if (!CO_AUTO_CHAT) return;
+        
         try {
             const channel = await client.channels.fetch(KENH_CHAO_MUNG_ID);
             if (channel && channel.isTextBased()) {
@@ -142,6 +144,20 @@ async function handleChatInteraction(message) {
     const content = message.content.trim();
     const contentLower = content.toLowerCase();
     const clientUser = message.client.user;
+
+    // 🛠️ LỆNH ĐỘC QUYỀN ADMIN: TẮT/MỞ AUTO CHAT
+    if (message.author.id === ADMIN_ID) {
+        if (contentLower === "!autochat on") {
+            CO_AUTO_CHAT = true;
+            await message.reply("🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ AutoChat tự động khuấy động kênh chat mỗi giờ theo lệnh sếp!");
+            return true;
+        }
+        if (contentLower === "!autochat off") {
+            CO_AUTO_CHAT = false;
+            await message.reply("🤫 **[Hệ thống]**: Đã tạm dừng hoạt động AutoChat. Em sẽ im lặng cho đến khi sếp ra lệnh bật lại!");
+            return true;
+        }
+    }
 
     const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
     const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");

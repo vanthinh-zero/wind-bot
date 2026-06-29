@@ -1,0 +1,403 @@
+[
+  {
+    "word": "Abandon",
+    "pos": "v",
+    "ipa": "/əˈbændən/",
+    "meaning": "Từ bỏ, ruồng bỏ, đầu hàng",
+    "structure": "Abandon yourself to something (Chìm đắm vào cái gì)",
+    "example": "He decided to abandon his car in the snow. (Anh ấy quyết định bỏ lại xe trong tuyết.)"
+  },
+  {
+    "word": "Ability",
+    "pos": "n",
+    "ipa": "/əˈbɪləti/",
+    "meaning": "Khả năng, năng lực",
+    "structure": "Ability to do something (Có khả năng làm gì)",
+    "example": "She has the ability to speak four languages. (Cô ấy có khả năng nói 4 thứ tiếng.)"
+  },
+  {
+    "word": "Absorb",
+    "pos": "v",
+    "ipa": "/əbˈzɔːrb/",
+    "meaning": "Hấp thu, tiếp thu, miệt mài",
+    "structure": "Be absorbed in something (Miệt mài vào cái gì)",
+    "example": "Plants absorb carbon dioxide from the air. (Cây cối hấp thụ CO2 từ không khí.)"
+  },
+  {
+    "word": "Accept",
+    "pos": "v",
+    "ipa": "/əkˈsept/",
+    "meaning": "Chấp nhận, thừa nhận",
+    "structure": "Accept something from somebody (Chấp nhận cái gì từ ai)",
+    "example": "He turned down the invitation but accepted the gift. (Anh ấy từ chối lời mời nhưng nhận món quà.)"
+  },
+  {
+    "word": "Accompany",
+    "pos": "v",
+    "ipa": "/əˈkʌmpəni/",
+    "meaning": "Đi cùng, đồng hành, hộ tống",
+    "structure": "Accompany somebody on/at something (Đồng hành cùng ai)",
+    "example": "War is always accompanied by economic crisis. (Chiến tranh luôn đi kèm với khủng hoảng kinh tế.)"
+  },
+  {
+    "word": "Account",
+    "pos": "v",
+    "ipa": "/əˈkaʊnt/",
+    "meaning": "Giải thích, chiếm tỉ lệ",
+    "structure": "Account for something (Giải thích cho / Chiếm bao nhiêu %)",
+    "example": "High-tech products account for 20% of our sales. (Sản phẩm công nghệ chiếm 20% doanh số.)"
+  },
+  {
+    "word": "Accuse",
+    "pos": "v",
+    "ipa": "/əˈkjuːz/",
+    "meaning": "Buộc tội, tố cáo",
+    "structure": "Accuse somebody of doing something (Buộc tội ai làm gì)",
+    "example": "She accused him of lying to the council. (Cô ấy buộc tội anh ta nói dối hội đồng.)"
+  },
+  {
+    "word": "Accustomed",
+    "pos": "adj",
+    "ipa": "/əˈkʌstəmd/",
+    "meaning": "Quen thuộc, thành thói quen",
+    "structure": "Be accustomed to + V-ing (Quen với việc làm gì)",
+    "example": "I am accustomed to getting up early. (Tôi đã quen với việc dậy sớm.)"
+  },
+  {
+    "word": "Adapt",
+    "pos": "v",
+    "ipa": "/əˈdæpt/",
+    "meaning": "Thích nghi, sửa đổi cho hợp",
+    "structure": "Adapt to something (Thích nghi với cái gì)",
+    "example": "It takes time to adapt to a new school culture. (Mất thời gian để thích nghi với văn hóa trường mới.)"
+  },
+  {
+    "word": "Addict",
+    "pos": "v/n",
+    "ipa": "/ˈædɪkt/",
+    "meaning": "Nghiện, người nghiện",
+    "structure": "Be addicted to something (Bị nghiện cái gì)",
+    "example": "Many young people are addicted to social media. (Nhiều người trẻ đang bị nghiện mạng xã hội.)"
+  },
+  {
+    "word": "Afford",
+    "pos": "v",
+    "ipa": "/əˈfɔːrd/",
+    "meaning": "Có đủ khả năng chi trả",
+    "structure": "Afford to do something (Đủ khả năng tài chính để làm gì)",
+    "example": "We can't afford to buy a new house right now. (Chúng tôi không đủ tiền mua nhà mới lúc này.)"
+  },
+  {
+    "word": "Agree",
+    "pos": "v",
+    "ipa": "/əˈɡriː/",
+    "meaning": "Đồng ý, tán thành",
+    "structure": "Agree with somebody on something (Đồng ý với ai về việc gì)",
+    "example": "I entirely agree with you on this issue. (Tôi hoàn toàn đồng ý với bạn về vấn đề này.)"
+  },
+  {
+    "word": "Aim",
+    "pos": "v/n",
+    "ipa": "/eɪm/",
+    "meaning": "Mục tiêu, nhắm vào",
+    "structure": "Aim at doing something (Nhắm đến việc làm gì)",
+    "example": "The team aims at winning the championship this year. (Đội nhắm tới việc vô địch năm nay.)"
+  },
+  {
+    "word": "Apologize",
+    "pos": "v",
+    "ipa": "/əˈpɑːlədʒaɪz/",
+    "meaning": "Xin lỗi",
+    "structure": "Apologize to somebody for something (Xin lỗi ai vì cái gì)",
+    "example": "You should apologize to her for being late. (Bạn nên xin lỗi cô ấy vì đến muộn.)"
+  },
+  {
+    "word": "Apply",
+    "pos": "v",
+    "ipa": "/əˈplaɪ/",
+    "meaning": "Nộp đơn, áp dụng",
+    "structure": "Apply for a job / Apply something to life (Nộp đơn / Áp dụng)",
+    "example": "He applied for a job at a software company. (Anh ấy đã nộp đơn xin việc ở công ty phần mềm.)"
+  },
+  {
+    "word": "Approve",
+    "pos": "v",
+    "ipa": "/əˈpruːv/",
+    "meaning": "Tán thành, phê duyệt",
+    "structure": "Approve of something (Tán thành/đồng ý với cái gì)",
+    "example": "My parents don't approve of my career choice. (Bố mẹ không tán thành lựa chọn sự nghiệp của tôi.)"
+  },
+  {
+    "word": "Argue",
+    "pos": "v",
+    "ipa": "/ˈɑːrɡjuː/",
+    "meaning": "Tranh luận, cãi vã",
+    "structure": "Argue with somebody about something (Tranh luận với ai về cái gì)",
+    "example": "Don't argue with your boss about trivial things. (Đừng cãi nhau với sếp về những việc vặt.)"
+  },
+  {
+    "word": "Arrive",
+    "pos": "v",
+    "ipa": "/əˈraɪv/",
+    "meaning": "Đến nơi",
+    "structure": "Arrive at (địa điểm nhỏ) / Arrive in (quốc gia, thành phố)",
+    "example": "The train arrived at the station on time. (Tàu hỏa đã đến ga đúng giờ.)"
+  },
+  {
+    "word": "Ashamed",
+    "pos": "adj",
+    "ipa": "/əˈʃeɪmd/",
+    "meaning": "Xấu hổ, hổ thẹn",
+    "structure": "Be ashamed of something (Xấu hổ về cái gì)",
+    "example": "You should be ashamed of your bad behavior. (Bạn nên thấy xấu hổ vì hành vi tồi tệ của mình.)"
+  },
+  {
+    "word": "Associate",
+    "pos": "v",
+    "ipa": "/əˈsoʊʃieɪt/",
+    "meaning": "Liên kết, gắn liền",
+    "structure": "Associate something with something (Gắn liền cái gì với cái gì)",
+    "example": "People usually associate red with danger. (Mọi người thường gắn màu đỏ với sự nguy hiểm.)"
+  },
+  {
+    "word": "Assure",
+    "pos": "v",
+    "ipa": "/əˈʃʊr/",
+    "meaning": "Cam đoan, bảo đảm",
+    "structure": "Assure somebody of something (Cam đoan với ai về điều gì)",
+    "example": "I can assure you of the safety of this system. (Tôi có thể cam đoan với bạn về độ an toàn của hệ thống.)"
+  },
+  {
+    "word": "Astonish",
+    "pos": "v",
+    "ipa": "/əˈstɑːnɪʃ/",
+    "meaning": "Làm ngạc nhiên, kinh ngạc",
+    "structure": "Be astonished at/by something (Kinh ngạc bởi cái gì)",
+    "example": "We were astonished by his sudden decision to quit. (Chúng tôi kinh ngạc bởi quyết định nghỉ việc đột ngột của anh ta.)"
+  },
+  {
+    "word": "Attach",
+    "pos": "v",
+    "ipa": "/əˈtætʃ/",
+    "meaning": "Đính kèm, gắn bó",
+    "structure": "Be attached to something (Gắn bó/đính kèm với cái gì)",
+    "example": "Please attach your photo to the application form. (Vui lòng đính kèm ảnh của bạn vào đơn đăng ký.)"
+  },
+  {
+    "word": "Aware",
+    "pos": "adj",
+    "ipa": "/əˈwer/",
+    "meaning": "Nhận thức, biết được",
+    "structure": "Be aware of something (Nhận thức được điều gì)",
+    "example": "Drivers must be aware of the speed limit. (Tài xế phải nhận thức được giới hạn tốc độ.)"
+  },
+  {
+    "word": "Base",
+    "pos": "v",
+    "ipa": "/beɪs/",
+    "meaning": "Dựa vào, căn cứ vào",
+    "structure": "Be based on something (Dựa trên cơ sở cái gì)",
+    "example": "This movie is based on a true story. (Bộ phim này được dựa trên một câu chuyện có thật.)"
+  },
+  {
+    "word": "Blame",
+    "pos": "v",
+    "ipa": "/bleɪm/",
+    "meaning": "Đổ lỗi, khiển trách",
+    "structure": "Blame somebody for something (Đổ lỗi cho ai vì cái gì)",
+    "example": "Don't blame me for your own mistakes. (Đừng đổ lỗi cho tôi về sai lầm của chính bạn.)"
+  },
+  {
+    "word": "Borrow",
+    "pos": "v",
+    "ipa": "/ˈbɑːroʊ/",
+    "meaning": "Vay, mượn",
+    "structure": "Borrow something from somebody (Mượn cái gì từ ai)",
+    "example": "Can I borrow a pen from you? (Tôi có thể mượn bạn một chiếc bút không?)"
+  },
+  {
+    "word": "Capable",
+    "pos": "adj",
+    "ipa": "/ˈkeɪpəbl/",
+    "meaning": "Có năng lực, có khả năng",
+    "structure": "Be capable of + V-ing (Có khả năng làm việc gì)",
+    "example": "He is capable of running a large business. (Anh ấy có khả năng quản lý một doanh nghiệp lớn.)"
+  },
+  {
+    "word": "Care",
+    "pos": "v/n",
+    "ipa": "/ker/",
+    "meaning": "Chăm sóc, quan tâm",
+    "structure": "Take care of somebody / Care about something",
+    "example": "Who will take care of the dog while you're away? (Ai sẽ chăm sóc chú chó khi bạn đi vắng?)"
+  },
+  {
+    "word": "Commit",
+    "pos": "v",
+    "ipa": "/kəˈmɪt/",
+    "meaning": "Cam kết, tận tụy, phạm lỗi",
+    "structure": "Commit yourself to doing something (Cam kết làm gì)",
+    "example": "The company committed itself to improving product quality. (Công ty cam kết cải tiến chất lượng sản phẩm.)"
+  },
+  {
+    "word": "Complain",
+    "pos": "v",
+    "ipa": "/kəmˈpleɪn/",
+    "meaning": "Phàn nàn, khiếu nại",
+    "structure": "Complain to somebody about something (Phàn nàn với ai về việc gì)",
+    "example": "Customers complained about the poor service. (Khách hàng đã phàn nàn về dịch vụ kém.)"
+  },
+  {
+    "word": "Concentrate",
+    "pos": "v",
+    "ipa": "/ˈkɑːnsntreɪt/",
+    "meaning": "Tập trung",
+    "structure": "Concentrate on something (Tập trung vào cái gì)",
+    "example": "I need a quiet place to concentrate on my study. (Tôi cần một nơi yên tĩnh để tập trung vào việc học.)"
+  },
+  {
+    "word": "Congratulate",
+    "pos": "v",
+    "ipa": "/kənˈɡrætʃuleɪt/",
+    "meaning": "Chúc mừng",
+    "structure": "Congratulate somebody on something (Chúc mừng ai vì điều gì)",
+    "example": "I congratulated him on passing the exam. (Tôi đã chúc mừng anh ấy vì thi đỗ.)"
+  },
+  {
+    "word": "Cope",
+    "pos": "v",
+    "ipa": "/koʊp/",
+    "meaning": "Đương đầu, giải quyết",
+    "structure": "Cope with something (Đối phó, đương đầu với cái gì)",
+    "example": "It's difficult to cope with stress at work. (Rất khó để đối phó với áp lực trong công việc.)"
+  },
+  {
+    "word": "Depend",
+    "pos": "v",
+    "ipa": "/dɪˈpend/",
+    "meaning": "Phụ thuộc, dựa vào",
+    "structure": "Depend on somebody/something (Phụ thuộc vào ai/cái gì)",
+    "example": "Our success depends on teamwork. (Thành công của chúng tôi phụ thuộc vào làm việc nhóm.)"
+  },
+  {
+    "word": "Deprive",
+    "pos": "v",
+    "ipa": "/dɪˈpraɪv/",
+    "meaning": "Tước đoạt, lấy đi",
+    "structure": "Deprive somebody of something (Tước đoạt cái gì của ai)",
+    "example": "The prison sentence deprived him of his freedom. (Bản án tù đã tước đi sự tự do của anh ta.)"
+  },
+  {
+    "word": "Derive",
+    "pos": "v",
+    "ipa": "/dɪˈraɪv/",
+    "meaning": "Bắt nguồn từ, từ đó mà ra",
+    "structure": "Derive from something (Bắt nguồn từ cái gì)",
+    "example": "Many English words derive from Latin. (Nhiều từ tiếng Anh bắt nguồn từ tiếng Latin.)"
+  },
+  {
+    "word": "Devote",
+    "pos": "v",
+    "ipa": "/dɪˈvoʊt/",
+    "meaning": "Cống hiến, dành hết cho",
+    "structure": "Devote something to something (Cống hiến cái gì cho cái gì)",
+    "example": "She devoted her whole life to helping the poor. (Cô ấy dành cả đời để giúp đỡ người nghèo.)"
+  },
+  {
+    "word": "Differ",
+    "pos": "v",
+    "ipa": "/ˈdɪfər/",
+    "meaning": "Khác biệt, không giống",
+    "structure": "Differ from something (Khác biệt so với cái gì)",
+    "example": "My opinion differs from yours on this project. (Ý kiến của tôi khác với bạn về dự án này.)"
+  },
+  {
+    "word": "Disappoint",
+    "pos": "v",
+    "ipa": "/ˌdɪsəˈpɔɪnt/",
+    "meaning": "Làm thất vọng",
+    "structure": "Be disappointed with/in something (Thất vọng về cái gì)",
+    "example": "I was deeply disappointed with the test results. (Tôi đã vô cùng thất vọng với kết quả kiểm tra.)"
+  },
+  {
+    "word": "Discourage",
+    "pos": "v",
+    "ipa": "/dɪˈskɜːrɪdʒ/",
+    "meaning": "Làm nản lòng, ngăn cản",
+    "structure": "Discourage somebody from doing something (Ngăn ai làm gì)",
+    "example": "The bad weather discouraged us from going out. (Thời tiết xấu đã làm chúng tôi nản lòng không muốn ra ngoài.)"
+  },
+  {
+    "word": "Distinguish",
+    "pos": "v",
+    "ipa": "/dɪˈstɪŋɡwɪʃ/",
+    "meaning": "Phân biệt",
+    "structure": "Distinguish A from B / Distinguish between A and B",
+    "example": "It's hard to distinguish the twins from each other. (Thật khó để phân biệt cặp song sinh với nhau.)"
+  },
+  {
+    "word": "Distract",
+    "pos": "v",
+    "ipa": "/dɪˈstrækt/",
+    "meaning": "Làm sao lãng, mất tập trung",
+    "structure": "Distract somebody from something (Làm ai xao nhãng khỏi cái gì)",
+    "example": "The noise distracted him from his writing. (Tiếng ồn làm anh ấy mất tập trung khỏi việc viết.)"
+  },
+  {
+    "word": "Divide",
+    "pos": "v",
+    "ipa": "/dɪˈvaɪd/",
+    "meaning": "Chia ra, phân chia",
+    "structure": "Divide something into parts (Chia cái gì ra thành các phần)",
+    "example": "The teacher divided the class into four groups. (Giáo viên đã chia lớp thành bốn nhóm.)"
+  },
+  {
+    "word": "Dream",
+    "pos": "v/n",
+    "ipa": "/driːm/",
+    "meaning": "Mơ ước, giấc mơ",
+    "structure": "Dream of/about something (Mơ về điều gì)",
+    "example": "I often dream of traveling around the world. (Tôi thường mơ về việc đi du lịch vòng quanh thế giới.)"
+  },
+  {
+    "word": "Elaborate",
+    "pos": "v/adj",
+    "ipa": "/ɪˈlæbərət/",
+    "meaning": "Tỉ mỉ, giải thích chi tiết",
+    "structure": "Elaborate on something (Giải thích thêm về cái gì)",
+    "example": "Could you elaborate on your new business plan? (Bạn có thể giải thích chi tiết hơn về kế hoạch kinh doanh mới không?)"
+  },
+  {
+    "word": "Emerge",
+    "pos": "v",
+    "ipa": "/ɪˈmɜːrdʒ/",
+    "meaning": "Nổi lên, xuất hiện",
+    "structure": "Emerge from something (Nổi lên, xuất hiện từ cái gì)",
+    "example": "The sun emerged from behind the heavy clouds. (Mặt trời ló rạng từ sau những đám mây dày.)"
+  },
+  {
+    "word": "Emphasize",
+    "pos": "v",
+    "ipa": "/ˈemfəsaɪz/",
+    "meaning": "Nhấn mạnh",
+    "structure": "Place/put emphasis on something (Nhấn mạnh vào cái gì)",
+    "example": "The report emphasizes the importance of education. (Bản báo cáo nhấn mạnh tầm quan trọng của giáo dục.)"
+  },
+  {
+    "word": "Engage",
+    "pos": "v",
+    "ipa": "/ɪnˈɡeɪdʒ/",
+    "meaning": "Tham gia, đính hôn, thu hút",
+    "structure": "Be engaged in something / Engage with somebody",
+    "example": "They are actively engaged in voluntary work. (Họ đang tích cực tham gia vào công việc tình nguyện.)"
+  },
+  {
+    "word": "Escape",
+    "pos": "v",
+    "ipa": "/ɪˈskeɪp/",
+    "meaning": "Trốn thoát, thoát khỏi",
+    "structure": "Escape from somewhere (Trốn thoát khỏi nơi nào)",
+    "example": "The prisoners managed to escape from the jail. (Các tù nhân đã xoay sở trốn thoát khỏi nhà tù.)"
+  }
+  
+]

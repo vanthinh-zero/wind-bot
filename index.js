@@ -31,7 +31,10 @@ const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRa
 // --- IMPORT MODULE MARKETING (DISBOARD BUMP) ---
 const { start25hReminder, handlePostToFacebook } = require('./src/handlers/marketing.js');
 
-// --- KHỞI TẠO WEB SERVER (ĐÃ SỬA CHUẨN ĐỂ ĐÁNH LỪA HEALTH CHECK CỦA RENDER) ---
+// 📚 IMPORT MODULE TỪ VỰNG TIẾNG ANH ĐỊNH KỲ & LỆNH CHAT
+const vocabularySystem = require('./src/handlers/vocabulary.js');
+
+// --- KHỞI TẠO WEB SERVER ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -39,7 +42,6 @@ app.get('/', (req, res) => {
     res.send('🤖 Quản gia Wind đang sống nhăn răng trên Render sếp ơi! 🚀');
 });
 
-// Bỏ '0.0.0.0' để Render tự động ánh xạ cổng kết nối mượt mà
 app.listen(PORT, () => {
     console.log(`==================================================`);
     console.log(`🌐 [Render Hub]: Web Server đang mở tại cổng: ${PORT}`);
@@ -63,13 +65,19 @@ client.once(Events.ClientReady, (readyClient) => {
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log('==================================================');
     
-    // Kích hoạt tự động làm thơ định kỳ
     startAutoPoem(readyClient);
-    
-    // Kích hoạt bộ hẹn giờ đẩy top Disboard
     start25hReminder(client);
 
-    // 🔥 Kích hoạt tự động spam khuấy động tinh thần tại kênh riêng công cấu hình ở .env
+    // 📚 Kích hoạt gửi từ vựng tự động định kỳ (Mỗi 3 tiếng)
+    try {
+        if (typeof vocabularySystem === 'function') {
+            vocabularySystem(readyClient);
+            console.log('📚 [System Check]: Module Từ vựng tiếng Anh tự động đã khởi chạy!');
+        }
+    } catch (e) {
+        console.error('❌ Lỗi khởi chạy Module Từ vựng:', e);
+    }
+
     try {
         initAutoSpam(readyClient);
     } catch (e) {
@@ -93,30 +101,34 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     
     try {
-        // 🚨 1. LỆNH TROLL FAKE RAID (Chỉ sếp thấy, tự hủy tin nhắn gốc)
         if (await handleFakeRaidCommand(message)) return;
 
-        // 🛡️ 2. QUÉT ANTI-RAID SPAM THẬT (Bảo vệ tối cao cho Server)
         const isSpamRaid = await handleAntiSpam(message);
         if (isSpamRaid) return;
 
-        // --- HỆ THỐNG AUTOMOD & LỆNH ADMIN ---
         if (await handleAutoMod(message)) return;
         if (await handleAdminCommands(message)) return;
 
-        // --- LỆNH ĐỀ THI ---
         if (message.content.startsWith('!dethi')) { 
             await handleDeThiCommand(message); 
             return; 
         }
 
-        // ⚡ 3. LỆNH KIỂM TRA HỆ THỐNG DISBOARD TỨC THÌ (!postfb)
         if (await handlePostToFacebook(message)) return;
-
-        // 🔮 LỆNH CHỮA LÀNH (Đã được đưa lên trên để ngắt luồng sớm nếu trúng lệnh)
         if (await handleChuaLanhCommand(message)) return;
 
-        // --- CÁC LỆNH MENU ĐƠN ---
+        // 📚 LỆNH GỌI TỪ VỰNG TỨC THÌ (!vocab)
+        if (message.content === '!vocab') {
+            // Kiểm tra xem handler có hàm support gửi thủ công theo message không
+            if (vocabularySystem && typeof vocabularySystem.sendVocabToMessageChannel === 'function') {
+                await vocabularySystem.sendVocabToMessageChannel(message);
+            } else {
+                // Nếu sếp chưa sửa file vocabulary.js, bot tạm thời thông báo
+                await message.reply('📚 Tính năng đang load dữ liệu, vui lòng đợi trong giây lát hoặc cập nhật file handler!');
+            }
+            return;
+        }
+
         if (message.content === '!tutien') { await sendTuTienMainMenu(message); return; }
         if (message.content === '!tarot') { await handleTarotCommand(message); return; }
         
@@ -126,15 +138,12 @@ client.on('messageCreate', async (message) => {
             process.exit(0);
         }
 
-        // --- CÁC HANDLER TƯƠNG TÁC CHAT KHÁC ---
         if (await handlePoemCommand(message)) return;
         if (await handleAvatarCheck(message)) return;
         if (await handleLamViecGame(message)) return; 
         
-        // 💬 XỬ LÝ CHAT PHẢN HỒI (Gồm phản sát thượng đẳng, Đẹp không, Đổi link TikTok/Reels/Twitter)
         if (await handleChatInteraction(message)) return; 
 
-        // 🎯 CÁC GAME MINI TỰ ĐỘNG
         await handleNoiTuGame(message);
         await handleTaiXiuGame(message);
         await handlePetSystem(message);
@@ -147,13 +156,11 @@ client.on('messageCreate', async (message) => {
 // --- SỰ KIỆN INTERACTION CREATE ---
 client.on('interactionCreate', async (interaction) => {
     try {
-        // --- XỬ LÝ ĐỀ THI ---
         if (interaction.customId?.startsWith('submit_full_') || interaction.customId?.startsWith('modal_full_')) {
             await handleDeThiInteraction(interaction);
             return;
         }
 
-        // --- HANDLER KHÁC ---
         if (interaction.isButton()) {
             const customId = interaction.customId;
             if (customId.startsWith('tarot_')) { await handleTarotInteraction(interaction); return; }
@@ -172,7 +179,6 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// --- CHỐNG SẬP NGUỒN ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ Phát hiện Unhandled Rejection tại:', promise, '-> Lý do:', reason);
 });
@@ -180,5 +186,4 @@ process.on('uncaughtException', (err) => {
     console.error('❌ Phát hiện Uncaught Exception nghiêm trọng:', err);
 });
 
-// --- ĐĂNG NHẬP BOT (Đồng bộ chuẩn biến môi trường DISCORD_TOKEN hoặc TOKEN) ---
 client.login(process.env.DISCORD_TOKEN || process.env.TOKEN);
