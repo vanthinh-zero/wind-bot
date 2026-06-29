@@ -11,7 +11,6 @@ const path = require('path');
 const STATS_FILE = path.join(__dirname, '../config/tag_stats.json');
 
 let CO_AUTO_CHAT = true;
-// Trạng thái tính cách (Mặc định 'macdinh', chuyển đổi sang 'cold')
 let BOT_MOOD = 'macdinh';
 
 function ChayWebServerChoRender() {
@@ -130,11 +129,14 @@ function initAutoSpam(client) {
 }
 
 async function handleChatInteraction(message) {
+    // 1. CHẶN KHÔNG CHO BOT TỰ ĐỌC TIN NHẮN CỦA CHÍNH NÓ VÀ BOT KHÁC
     if (message.author.bot) return false;
+
     const content = message.content.trim();
     const contentLower = content.toLowerCase();
     const clientUser = message.client.user;
 
+    // 2. XỬ LÝ LỆNH HỆ THỐNG ĐỘC QUYỀN CỦA ADMIN TRƯỚC
     if (message.author.id === ADMIN_ID) {
         if (contentLower === "!autochat on") {
             CO_AUTO_CHAT = true;
@@ -146,7 +148,6 @@ async function handleChatInteraction(message) {
             await message.reply(BOT_MOOD === 'cold' ? "AutoChat: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng hoạt động AutoChat.");
             return true;
         }
-        // Đổi từ !mood lanhlung thành !mood cold
         if (contentLower === "!mood cold") {
             BOT_MOOD = 'cold';
             await message.reply("Đã chuyển đổi cấu hình hệ thống: Phong cách Tổng tài, lạnh lùng.");
@@ -162,6 +163,7 @@ async function handleChatInteraction(message) {
     const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
     const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
 
+    // 3. GHI STATS LƯỢT TAG CỦA MEMBER THƯỜNG
     if (isMentioned || isCalledName) {
         let stats = CodeDocStats();
         const mId = message.author.id;
@@ -182,10 +184,12 @@ async function handleChatInteraction(message) {
         return true;
     }
 
+    // 4. LUỒNG XỬ LÝ AI - CHỈ QUYẾT ĐỊNH CHO PHÉP ADMIN SỬ DỤNG
     const tuKhoaQuyenLuc = ["anh", "sếp", "wind", "giúp", "tạo", "xóa", "đổi"];
     const adminKichHoatTuKhoa = message.author.id === ADMIN_ID && tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
 
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
+        // Chỉ xử lý phản hồi AI nếu người nhắn là ADMIN
         if (message.author.id !== ADMIN_ID) return false; 
         if (!ai) return true;
 
@@ -233,6 +237,7 @@ async function handleChatInteraction(message) {
         } catch (error) { console.error(error); return true; }
     }
 
+    // 5. CÁC TÍNH NĂNG KHÁC (TẠO CONTENT, TẢI TIKTOK)
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
             await message.reply(BOT_MOOD === 'cold' ? `Sai kênh. Hãy dùng tại <#${KENH_CONTENT_ID}>.` : `Sếp ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); 
