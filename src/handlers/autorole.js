@@ -1,7 +1,37 @@
-const { EmbedBuilder, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const { EmbedBuilder, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
-// Bộ nhớ lưu tin nhắn tạm thời
-const activeAutoRoles = new Map();
+// Đường dẫn trỏ tới file JSON lưu trữ ở thư mục gốc
+const dataPath = path.join(__dirname, '../../autorole_data.json');
+
+/**
+ * Hàm đọc dữ liệu an toàn từ file JSON
+ */
+function loadAutoRoleData() {
+    try {
+        if (!fs.existsSync(dataPath)) {
+            fs.writeFileSync(dataPath, JSON.stringify({}), 'utf8');
+            return {};
+        }
+        const data = fs.readFileSync(dataPath, 'utf8');
+        return JSON.parse(data || '{}');
+    } catch (error) {
+        console.error('❌ Lỗi đọc file JSON autorole:', error);
+        return {};
+    }
+}
+
+/**
+ * Hàm ghi dữ liệu an toàn vào file JSON
+ */
+function saveAutoRoleData(data) {
+    try {
+        fs.writeFileSync(dataPath, JSON.stringify(data, null, 4), 'utf8');
+    } catch (error) {
+        console.error('❌ Lỗi ghi file JSON autorole:', error);
+    }
+}
 
 /**
  * Xử lý lệnh !autorole wind bằng cách tạo nút mồi
@@ -37,7 +67,6 @@ async function handleAutoRoleCommand(message) {
         components: [row]
     });
 
-    // Tự động xóa nút mồi sau 1 phút nếu không ai bấm
     setTimeout(() => promptMsg.delete().catch(() => {}), 60000);
     return true;
 }
@@ -52,13 +81,11 @@ async function handleAutoRoleInteraction(interaction) {
         return interaction.reply({ content: '❌ Chỉ Quản trị viên mới được dùng nút này!', ephemeral: true });
     }
 
-    // --- BƯỚC 1: HỎI NỘI DUNG (Gửi phản hồi ẩn) ---
     await interaction.reply({ 
         content: "✍️ **[Bước 1/2]** Hãy nhập **Nội dung hiển thị** cho tin nhắn autorole vào kênh này (Đừng lo, chỉ mình bạn thấy tin nhắn phản hồi của bot):", 
         ephemeral: true 
     });
 
-    // Lắng nghe tin nhắn tiếp theo của chính Admin đó trong kênh
     const filter = m => m.author.id === interaction.user.id;
     const channel = interaction.channel;
 
@@ -67,10 +94,8 @@ async function handleAutoRoleInteraction(interaction) {
         const textMsg = collectedContent.first();
         const description = textMsg.content;
         
-        // Xóa tin nhắn cấu hình của bạn ngay lập tức để người khác không kịp thấy
         await textMsg.delete().catch(() => {});
 
-        // --- BƯỚC 2: HỎI DANH SÁCH ROLE (Gửi tiếp tin nhắn ẩn bằng followUp) ---
         await interaction.followUp({
             content: "📌 **[Bước 2/2]** Nhập danh sách **Emoji và Tag Role**. Mỗi cặp một dòng.\n*Ví dụ:*\n🍏 @LOL\n🍎 @Valorant\n👉 Gõ `done` khi hoàn thành.",
             ephemeral: true
@@ -80,7 +105,6 @@ async function handleAutoRoleInteraction(interaction) {
         const roleCollector = channel.createMessageCollector({ filter, time: 180000 });
 
         roleCollector.on('collect', async (m) => {
-            // Xóa tin nhắn cấu hình của bạn ngay lập tức
             await m.delete().catch(() => {});
 
             if (m.content.trim().toLowerCase() === 'done') {
@@ -123,7 +147,6 @@ async function handleAutoRoleInteraction(interaction) {
         });
 
         roleCollector.on('end', async (collected, reason) => {
-            // Xóa tin nhắn chứa nút bấm mồi công khai ban đầu
             await interaction.message.delete().catch(() => {});
 
             if (reason === 'time') {
@@ -134,7 +157,6 @@ async function handleAutoRoleInteraction(interaction) {
                 return interaction.followUp({ content: "❌ Không có dữ liệu hợp lệ. Đã hủy cấu hình.", ephemeral: true });
             }
 
-            // --- BƯỚC 3: XUẤT BẢNG CÔNG KHAI CHO CẢ SERVER THẤY ---
             let embedDescription = "";
             for (const [emoji, roleId] of Object.entries(mapping)) {
                 embedDescription += `${emoji} <@&${roleId}>\n`;
@@ -145,15 +167,15 @@ async function handleAutoRoleInteraction(interaction) {
                 .addFields({ name: 'Danh sách Roles:', value: embedDescription })
                 .setColor(0x2ecc71); 
 
-            // Gửi công khai vào kênh cho mọi người thấy
             const mainMessage = await channel.send({ embeds: [embed] });
 
-            activeAutoRoles.set(mainMessage.id, mapping);
+            // 💾 LƯU DỮ LIỆU VÀO FILE JSON KIÊN CỐ
+            const currentData = loadAutoRoleData();
+            currentData[mainMessage.id] = mapping;
+            saveAutoRoleData(currentData);
 
-            // Thông báo ẩn lần cuối cho riêng Admin biết là thành công
-            await interaction.followUp({ content: "🎉 Hoàn thành! Bảng lấy role đã hiển thị công khai bên dưới.", ephemeral: true });
+            await interaction.followUp({ content: "🎉 Hoàn thành! Bảng lấy role đã hiển thị công khai bên dưới và đã lưu vĩnh viễn.", ephemeral: true });
 
-            // Tự động thả các emoji mẫu công khai dưới bảng thành phẩm
             for (const emoji of Object.keys(mapping)) {
                 try {
                     if (emoji.startsWith('<') && emoji.endsWith('>')) {
@@ -178,7 +200,9 @@ async function handleAutoRoleReactionAdd(reaction, user) {
     if (user.bot) return;
     if (reaction.partial) { try { await reaction.fetch(); } catch (error) { return; } }
 
-    const mapping = activeAutoRoles.get(reaction.message.id);
+    // 🔄 ĐỌC DỮ LIỆU TỪ FILE JSON THAY VÌ RAM TẠM
+    const currentData = loadAutoRoleData();
+    const mapping = currentData[reaction.message.id];
     if (!mapping) return;
 
     const roleId = findRoleId(mapping, reaction.emoji);
@@ -194,7 +218,9 @@ async function handleAutoRoleReactionRemove(reaction, user) {
     if (user.bot) return;
     if (reaction.partial) { try { await reaction.fetch(); } catch (error) { return; } }
 
-    const mapping = activeAutoRoles.get(reaction.message.id);
+    // 🔄 ĐỌC DỮ LIỆU TỪ FILE JSON THAY VÌ RAM TẠM
+    const currentData = loadAutoRoleData();
+    const mapping = currentData[reaction.message.id];
     if (!mapping) return;
 
     const roleId = findRoleId(mapping, reaction.emoji);
