@@ -19,6 +19,14 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
 
+// 🏷️ IMPORT MODULE AUTOROLE (Bản cấu hình hỏi đáp ẩn - Giữ cách làm cũ)
+const { 
+    handleAutoRoleCommand, 
+    handleAutoRoleInteraction,
+    handleAutoRoleReactionAdd, 
+    handleAutoRoleReactionRemove 
+} = require('./src/handlers/autorole.js');
+
 // 💬 IMPORT TÍNH NĂNG CHAT (Bao gồm hàm Auto Spam rộn ràng)
 const { handleChatInteraction, initAutoSpam } = require('./src/handlers/chat.js');
 
@@ -55,7 +63,8 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent, 
         GatewayIntentBits.GuildMembers, 
-        GatewayIntentBits.GuildVoiceStates 
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions
     ]
 });
 
@@ -109,6 +118,9 @@ client.on('messageCreate', async (message) => {
         if (await handleAutoMod(message)) return;
         if (await handleAdminCommands(message)) return;
 
+        // 🏷️ LUỒNG KIỂM TRA LỆNH TẠO AUTOROLE TỰ ĐỘNG
+        if (await handleAutoRoleCommand(message)) return;
+
         if (message.content.startsWith('!dethi')) { 
             await handleDeThiCommand(message); 
             return; 
@@ -119,11 +131,9 @@ client.on('messageCreate', async (message) => {
 
         // 📚 LỆNH GỌI TỪ VỰNG TỨC THÌ (!vocab)
         if (message.content === '!vocab') {
-            // Kiểm tra xem handler có hàm support gửi thủ công theo message không
             if (vocabularySystem && typeof vocabularySystem.sendVocabToMessageChannel === 'function') {
                 await vocabularySystem.sendVocabToMessageChannel(message);
             } else {
-                // Nếu sếp chưa sửa file vocabulary.js, bot tạm thời thông báo
                 await message.reply('📚 Tính năng đang load dữ liệu, vui lòng đợi trong giây lát hoặc cập nhật file handler!');
             }
             return;
@@ -156,6 +166,12 @@ client.on('messageCreate', async (message) => {
 // --- SỰ KIỆN INTERACTION CREATE ---
 client.on('interactionCreate', async (interaction) => {
     try {
+        // ⚙️ KIỂM TRA TƯƠNG TÁC NÚT BẤM ẨN CỦA AUTOROLE WIND
+        if (interaction.customId === 'start_private_autorole') {
+            await handleAutoRoleInteraction(interaction);
+            return;
+        }
+
         if (interaction.customId?.startsWith('submit_full_') || interaction.customId?.startsWith('modal_full_')) {
             await handleDeThiInteraction(interaction);
             return;
@@ -179,6 +195,24 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
+// --- SỰ KIỆN LẮNG NGHE THẢ / BỎ REACTION CHO AUTOROLE ---
+client.on('messageReactionAdd', async (reaction, user) => {
+    try { 
+        await handleAutoRoleReactionAdd(reaction, user); 
+    } catch (e) { 
+        console.error('❌ Lỗi khi người dùng thả reaction autorole:', e); 
+    }
+});
+
+client.on('messageReactionRemove', async (reaction, user) => {
+    try { 
+        await handleAutoRoleReactionRemove(reaction, user); 
+    } catch (e) { 
+        console.error('❌ Lỗi khi người dùng bỏ thả reaction autorole:', e); 
+    }
+});
+
+// --- CÁC SỰ KIỆN BẮT LỖI HỆ THỐNG TOÀN CỤC ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ Phát hiện Unhandled Rejection tại:', promise, '-> Lý do:', reason);
 });
