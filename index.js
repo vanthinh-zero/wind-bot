@@ -3,6 +3,7 @@ const express = require('express');
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 
 // --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG ---
+const { handleWindCommand } = require('./src/handlers/wind.js'); // 📜 THÊM: Import handler cho lệnh !wind
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
@@ -128,6 +129,12 @@ client.on('messageCreate', async (message) => {
 
         if (await handlePostToFacebook(message)) return;
         if (await handleChuaLanhCommand(message)) return;
+
+        // 📜 THÊM: LỆNH TRA CỨU TỔNG HỢP TOÀN HỆ THỐNG (!wind)
+        if (message.content.trim().toLowerCase() === '!wind') {
+            await handleWindCommand(message);
+            return;
+        }
 
         // 📚 LỆNH GỌI TỪ VỰNG TỨC THÌ (!vocab)
         if (message.content === '!vocab') {
