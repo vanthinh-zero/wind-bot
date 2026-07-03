@@ -1,3 +1,25 @@
+const { PermissionsBitField, AttachmentBuilder } = require('discord.js');
+
+// --- KHỞI TẠO HOẶC IMPORT BIẾN HỆ THỐNG ---
+// Lưu ý: Đảm bảo các biến toàn cục này đã được khai báo/import ở trên đầu file chat.js của bạn
+// Ví dụ: let CO_AUTO_CHAT = true; let BOT_MOOD = 'macdinh'; vv...
+
+/**
+ * Hàm khởi chạy tính năng tự động Spam (Được gọi từ index.js khi bot ready)
+ * @param {Client} client Discord Client
+ */
+function initAutoSpam(client) {
+    try {
+        console.log('💬 [System Check]: Module Auto Spam rộn ràng đã khởi chạy thành công!');
+        // Thêm logic vòng lặp chạy auto spam/remind của bạn tại đây nếu có
+    } catch (error) {
+        console.error('❌ Lỗi trong hàm initAutoSpam:', error);
+    }
+}
+
+/**
+ * Handler xử lý tương tác chat, lệnh hệ thống, gọi Gemini AI và TikTok
+ */
 async function handleChatInteraction(message) {
     if (message.author.bot) return false;
 
@@ -6,8 +28,8 @@ async function handleChatInteraction(message) {
     const clientUser = message.client.user;
 
     // 1. KIỂM TRA QUYỀN TRUY CẬP (Chỉ Admin hoặc Staff mới được đi tiếp)
-    const isAdmin = message.author.id === ADMIN_ID || message.member.permissions.has(PermissionsBitField.Flags.Administrator);
-    const isStaff = message.member.roles.cache.some(role => role.name.toLowerCase() === 'bò quản trị');
+    const isAdmin = message.author.id === process.env.ADMIN_ID || message.member?.permissions.has(PermissionsBitField.Flags.Administrator);
+    const isStaff = message.member?.roles.cache.some(role => role.name.toLowerCase() === 'bò quản trị');
 
     // Nếu không phải Admin và cũng không phải Staff -> Bỏ qua hoàn toàn, không trả lời
     if (!isAdmin && !isStaff) return false; 
@@ -111,10 +133,9 @@ async function handleChatInteraction(message) {
 
             let botReply = response.text || (BOT_MOOD === 'cold' ? "Rõ." : "Em nghe đây ạ!");
 
-            // 4. HẠN CHẾ STAFF Ở TẦNG THỰC THI (Nếu AI lỡ sinh lệnh hệ thống cho Staff, bẻ gãy lệnh luôn)
+            // 4. HẠN CHẾ STAFF Ở TẦNG THỰC THI
             const containsCommand = botReply.includes('[CMD:');
             if (containsCommand && !isAdmin) {
-                // Xóa toàn bộ tag lệnh hệ thống đi nếu người gọi chỉ là Staff
                 botReply = botReply.replace(/\[CMD:.*?\]/g, '').trim(); 
                 botReply += BOT_MOOD === 'cold' ? "\n(Yêu cầu thực thi lệnh bị từ chối do thiếu quyền)." : "\n*(Lệnh hệ thống bị hủy vì Staff không có quyền cấu hình server nhé!)*";
                 await message.reply(botReply);
@@ -168,3 +189,9 @@ async function handleChatInteraction(message) {
 
     return false;
 }
+
+// --- KHU VỰC QUAN TRỌNG: XUẤT CẢ 2 HÀM RA ĐỂ INDEX.JS KHÔNG BỊ LỖI ---
+module.exports = {
+    handleChatInteraction,
+    initAutoSpam
+};

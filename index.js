@@ -3,7 +3,7 @@ const express = require('express');
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 
 // --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG ---
-const { handleWindCommand } = require('./src/handlers/wind.js'); // 📜 THÊM: Import handler cho lệnh !wind
+const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js');
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
@@ -20,7 +20,10 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleServerBoost, handleBoostTicketInteraction } = require('./src/handlers/boostHandler.js');
 
-// 🏷️ IMPORT MODULE AUTOROLE (Bản cấu hình hỏi đáp ẩn - Giữ cách làm cũ)
+// 📊 IMPORT MODULE ĐẾM TIN NHẮN & TOP CHAT (MỚI THÊM)
+const { addMessageCount, getTopChat } = require('./src/handlers/counter.js');
+
+// 🏷️ IMPORT MODULE AUTOROLE
 const { 
     handleAutoRoleCommand, 
     handleAutoRoleInteraction,
@@ -28,7 +31,7 @@ const {
     handleAutoRoleReactionRemove 
 } = require('./src/handlers/autorole.js');
 
-// 💬 IMPORT TÍNH NĂNG CHAT (Bao gồm hàm Auto Spam rộn ràng)
+// 💬 IMPORT TÍNH NĂNG CHAT
 const { handleChatInteraction, initAutoSpam } = require('./src/handlers/chat.js');
 
 // --- IMPORT MODULE ĐỀ THI ---
@@ -78,7 +81,6 @@ client.once(Events.ClientReady, (readyClient) => {
     startAutoPoem(readyClient);
     start25hReminder(client);
 
-    // 📚 Kích hoạt gửi từ vựng tự động định kỳ (Mỗi 3 tiếng)
     try {
         if (typeof vocabularySystem === 'function') {
             vocabularySystem(readyClient);
@@ -110,6 +112,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     
+    // 📊 TỰ ĐỘNG ĐẾM TIN NHẮN TRƯỚC KHI CHECK CÁC LỆNH KHÁC
+    addMessageCount(message.author.id, message.author.username);
+
     try {
         if (await handleFakeRaidCommand(message)) return;
 
@@ -119,7 +124,6 @@ client.on('messageCreate', async (message) => {
         if (await handleAutoMod(message)) return;
         if (await handleAdminCommands(message)) return;
 
-        // 🏷️ LUỒNG KIỂM TRA LỆNH TẠO AUTOROLE TỰ ĐỘNG
         if (await handleAutoRoleCommand(message)) return;
 
         if (message.content.startsWith('!dethi')) { 
@@ -130,13 +134,32 @@ client.on('messageCreate', async (message) => {
         if (await handlePostToFacebook(message)) return;
         if (await handleChuaLanhCommand(message)) return;
 
-        // 📜 THÊM: LỆNH TRA CỨU TỔNG HỢP TOÀN HỆ THỐNG (!wind)
         if (message.content.trim().toLowerCase() === '!wind') {
             await handleWindCommand(message);
             return;
         }
 
-        // 📚 LỆNH GỌI TỪ VỰNG TỨC THÌ (!vocab)
+        // 📊 LỆNH XEM BẢNG XẾP HẠNG TOP CHAT
+        if (message.content.trim().toLowerCase() === '!topchat') {
+            const top10 = getTopChat(10);
+            if (top10.length === 0) {
+                return message.reply("Chưa có dữ liệu chat nào cả!");
+            }
+
+            let leaderboard = "🏆 **BẢNG XẾP HẠNG TOP CHAT** 🏆\n\n";
+            top10.forEach((user, index) => {
+                let medal = `${index + 1}.`;
+                if (index === 0) medal = "🥇";
+                if (index === 1) medal = "🥈";
+                if (index === 2) medal = "🥉";
+
+                leaderboard += `${medal} **${user.username}**: ${user.count} tin nhắn\n`;
+            });
+
+            await message.channel.send(leaderboard);
+            return;
+        }
+
         if (message.content === '!vocab') {
             if (vocabularySystem && typeof vocabularySystem.sendVocabToMessageChannel === 'function') {
                 await vocabularySystem.sendVocabToMessageChannel(message);
@@ -173,7 +196,6 @@ client.on('messageCreate', async (message) => {
 // --- SỰ KIỆN INTERACTION CREATE ---
 client.on('interactionCreate', async (interaction) => {
     try {
-        // ⚙️ KIỂM TRA TƯƠNG TÁC NÚT BẤM ẨN CỦA AUTOROLE WIND
         if (interaction.customId === 'start_private_autorole') {
             await handleAutoRoleInteraction(interaction);
             return;
@@ -202,24 +224,16 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-// --- SỰ KIỆN LẮNG NGHE THẢ / BỎ REACTION CHO AUTOROLE ---
+// --- SỰ KIỆN REACTION ---
 client.on('messageReactionAdd', async (reaction, user) => {
-    try { 
-        await handleAutoRoleReactionAdd(reaction, user); 
-    } catch (e) { 
-        console.error('❌ Lỗi khi người dùng thả reaction autorole:', e); 
-    }
+    try { await handleAutoRoleReactionAdd(reaction, user); } catch (e) { console.error('❌ Lỗi thả reaction:', e); }
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-    try { 
-        await handleAutoRoleReactionRemove(reaction, user); 
-    } catch (e) { 
-        console.error('❌ Lỗi khi người dùng bỏ thả reaction autorole:', e); 
-    }
+    try { await handleAutoRoleReactionRemove(reaction, user); } catch (e) { console.error('❌ Lỗi bỏ reaction:', e); }
 });
 
-// --- CÁC SỰ KIỆN BẮT LỖI HỆ THỐNG TOÀN CỤC ---
+// --- LỖI HỆ THỐNG TOÀN CỤC ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ Phát hiện Unhandled Rejection tại:', promise, '-> Lý do:', reason);
 });
