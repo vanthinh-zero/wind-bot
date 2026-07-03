@@ -1,25 +1,13 @@
 const { PermissionsBitField, AttachmentBuilder } = require('discord.js');
 
-// --- KHỞI TẠO HOẶC IMPORT BIẾN HỆ THỐNG ---
-// Lưu ý: Đảm bảo các biến toàn cục này đã được khai báo/import ở trên đầu file chat.js của bạn
-// Ví dụ: let CO_AUTO_CHAT = true; let BOT_MOOD = 'macdinh'; vv...
-
-/**
- * Hàm khởi chạy tính năng tự động Spam (Được gọi từ index.js khi bot ready)
- * @param {Client} client Discord Client
- */
 function initAutoSpam(client) {
     try {
         console.log('💬 [System Check]: Module Auto Spam rộn ràng đã khởi chạy thành công!');
-        // Thêm logic vòng lặp chạy auto spam/remind của bạn tại đây nếu có
     } catch (error) {
         console.error('❌ Lỗi trong hàm initAutoSpam:', error);
     }
 }
 
-/**
- * Handler xử lý tương tác chat, lệnh hệ thống, gọi Gemini AI và TikTok
- */
 async function handleChatInteraction(message) {
     if (message.author.bot) return false;
 
@@ -31,7 +19,6 @@ async function handleChatInteraction(message) {
     const isAdmin = message.author.id === process.env.ADMIN_ID || message.member?.permissions.has(PermissionsBitField.Flags.Administrator);
     const isStaff = message.member?.roles.cache.some(role => role.name.toLowerCase() === 'bò quản trị');
 
-    // Nếu không phải Admin và cũng không phải Staff -> Bỏ qua hoàn toàn, không trả lời
     if (!isAdmin && !isStaff) return false; 
 
     // 2. CÁC LỆNH CẤU HÌNH HỆ THỐNG (Chỉ DUY NHẤT Admin được chỉnh)
@@ -83,7 +70,6 @@ async function handleChatInteraction(message) {
             return true;
         }
 
-        // Cập nhật thống kê tag
         let stats = CodeDocStats();
         const mId = message.author.id;
         stats[mId] = (stats[mId] || 0) + 1;
@@ -97,7 +83,6 @@ async function handleChatInteraction(message) {
                 userPrompt = userPrompt.slice(4).trim();
             }
 
-            // Điều chỉnh cách xưng hô của AI dựa theo việc người gọi là Admin hay Staff
             const roleUserText = isAdmin ? "Admin tối cao" : "Staff (Nhân viên cấp dưới)";
 
             const systemInstruction = BOT_MOOD === 'cold'
@@ -142,14 +127,13 @@ async function handleChatInteraction(message) {
                 return true;
             }
 
-            // Nếu là Admin, tiến hành chạy lệnh như bình thường
             const processedReply = await executeServerAction(message, botReply);
             if (processedReply) await message.reply(processedReply);
             return true;
         } catch (error) { console.error(error); return true; }
     }
 
-    // Lệnh tạo content (Cả Admin và Staff đều dùng được nhưng kiểm tra đúng kênh)
+    // Lệnh tạo content
     if (contentLower.startsWith("!taocontent")) {
         if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
             await message.reply(BOT_MOOD === 'cold' ? `Sai kênh.` : `Sếp/Staff ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); 
@@ -170,7 +154,7 @@ async function handleChatInteraction(message) {
         }
     }
 
-    // Auto lấy video TikTok (Cá Admin và Staff đều dùng được công khai)
+    // Auto lấy video TikTok
     if (contentLower.includes("tiktok.com")) {
         const urlRegex = /(https?:\/\/[^\s]+)/g; const tiktokUrl = content.match(urlRegex)?.[0];
         if (tiktokUrl) {
@@ -190,7 +174,6 @@ async function handleChatInteraction(message) {
     return false;
 }
 
-// --- KHU VỰC QUAN TRỌNG: XUẤT CẢ 2 HÀM RA ĐỂ INDEX.JS KHÔNG BỊ LỖI ---
 module.exports = {
     handleChatInteraction,
     initAutoSpam

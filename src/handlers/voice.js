@@ -1,11 +1,48 @@
 const { ChannelType, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { addVoiceMinutes } = require('./counter.js'); // Import hàm cộng giờ từ counter
 
 const CREATOR_CHANNEL_ID = process.env.VOICE_CREATOR_CHANNEL_ID;
 const activeVoiceChannels = new Map();
+const voiceTimeTrack = new Map(); // Map ngầm theo dõi thời điểm bắt đầu vào voice của từng user
 
 async function handleVoiceStateUpdate(oldState, newState) {
     const member = newState.member;
     if (!member || member.user.bot) return;
+
+    // =========================================================
+    // HỆ THỐNG GHI NHẬN VOICE ACTIVITY CHẠY NGẦM
+    // =========================================================
+    // 1. Nếu User vừa kết nối vào một phòng Voice bất kỳ (Từ trạng thái không ở trong phòng nào)
+    if (!oldState.channelId && newState.channelId) {
+        voiceTimeTrack.set(member.id, Date.now());
+    }
+
+    // 2. Nếu User đổi từ phòng Voice này sang phòng Voice khác
+    if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
+        const joinTime = voiceTimeTrack.get(member.id);
+        if (joinTime) {
+            const durationMs = Date.now() - joinTime;
+            const minutes = Math.floor(durationMs / 60000); // Quy đổi ra số phút thực tế
+            if (minutes > 0) {
+                addVoiceMinutes(member.id, member.user.username, minutes);
+            }
+        }
+        // Reset lại mốc thời gian bắt đầu tại phòng mới
+        voiceTimeTrack.set(member.id, Date.now());
+    }
+
+    // 3. Nếu User ngắt kết nối hoàn toàn khỏi các phòng thoại
+    if (oldState.channelId && !newState.channelId) {
+        const joinTime = voiceTimeTrack.get(member.id);
+        if (joinTime) {
+            const durationMs = Date.now() - joinTime;
+            const minutes = Math.floor(durationMs / 60000);
+            if (minutes > 0) {
+                addVoiceMinutes(member.id, member.user.username, minutes);
+            }
+            voiceTimeTrack.delete(member.id); // Xóa khỏi bộ nhớ theo dõi
+        }
+    }
 
     // =========================================================
     // PHẦN 1: TỰ ĐỘNG TẠO PHÒNG & GỬI MENU CONTROL PANEL
@@ -63,7 +100,7 @@ async function handleVoiceStateUpdate(oldState, newState) {
                 new ButtonBuilder().setCustomId('vm_ghost').setLabel('👻 Ẩn/Hiện').setStyle(ButtonStyle.Secondary)
             );
 
-            // Hàng nút 2: Chỉnh sửa thông số (Mới thêm)
+            // Hàng nút 2: Chỉnh sửa thông số
             const row2 = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId('vm_rename').setLabel('📝 Đổi Tên Phòng').setStyle(ButtonStyle.Primary),
                 new ButtonBuilder().setCustomId('vm_limit').setLabel('👥 Giới Hạn Người').setStyle(ButtonStyle.Primary)
