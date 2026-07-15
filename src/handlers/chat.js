@@ -1,4 +1,42 @@
 const { PermissionsBitField, AttachmentBuilder } = require('discord.js');
+// 🚀 Tích hợp thư viện Google Gen AI SDK mới nhất để định nghĩa biến 'ai'
+const { GoogleGenAI } = require('@google/genai');
+require('dotenv').config();
+
+// Khởi tạo thực thể AI an toàn từ file môi trường .env
+const apiKey = process.env.GEMINI_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey }) : null;
+
+// Định nghĩa các biến cấu hình hệ thống dự phòng (Nếu chưa được định nghĩa toàn cục)
+let CO_AUTO_CHAT = true;
+let BOT_MOOD = 'macdinh'; 
+let KENH_CONTENT_ID = process.env.KENH_CONTENT_ID || null;
+
+// Giả lập hoặc bọc các hàm hệ thống lưu trữ thống kê tránh lỗi crash
+function CodeDocStats() {
+    if (global.CodeDocStats && typeof global.CodeDocStats === 'function') return global.CodeDocStats();
+    if (!global.statsMemory) global.statsMemory = {};
+    return global.statsMemory;
+}
+
+function CodeGhiStats(newStats) {
+    if (global.CodeGhiStats && typeof global.CodeGhiStats === 'function') return global.CodeGhiStats(newStats);
+    global.statsMemory = newStats;
+}
+
+async function executeServerAction(message, botReply) {
+    if (global.executeServerAction && typeof global.executeServerAction === 'function') {
+        return await global.executeServerAction(message, botReply);
+    }
+    return botReply; // Trả về nội dung chat gốc nếu module thực thi lệnh CMD chưa nạp
+}
+
+async function sfetch(url, options) {
+    if (global.sfetch && typeof global.sfetch === 'function') return await global.sfetch(url, options);
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const res = await fetch(url, options);
+    return await res.json();
+}
 
 function initAutoSpam(client) {
     try {
@@ -65,8 +103,9 @@ async function handleChatInteraction(message) {
 
     // 3. XỬ LÝ NHẬN DIỆN ĐỂ GỌI AI
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
+        // Kiểm tra thực thể AI đã được tạo thành công chưa
         if (!ai) {
-            await message.reply("Hệ thống chưa cấu hình GEMINI_KEY.");
+            await message.reply("Hệ thống chưa cấu hình hoặc cấu hình sai biến GEMINI_KEY tại file .env.");
             return true;
         }
 
@@ -111,8 +150,8 @@ async function handleChatInteraction(message) {
                     contents: `${systemInstruction}\n\n${promptText}`,
                 });
             } catch (apiErr) {
-                console.error("Lỗi kết nối Google:", apiErr.message);
-                await message.reply(BOT_MOOD === 'cold' ? "Hệ thống nghẽn." : "📡 Máy chủ quá tải sếp ơi!");
+                console.error("Lỗi kết nối Google Gemini:", apiErr.message);
+                await message.reply(BOT_MOOD === 'cold' ? "Hệ thống nghẽn." : "📡 Máy chủ quá tải hoặc API Key hết hạn sếp ơi!");
                 return true;
             }
 
@@ -142,6 +181,7 @@ async function handleChatInteraction(message) {
         const topic = content.slice(11).trim();
         if (!topic) { await message.reply(BOT_MOOD === 'cold' ? "Thiếu chủ đề." : "Thiếu chủ đề rồi kìa!"); return true; }
         try {
+            if (!ai) return await message.reply("Hệ thống chưa nạp API Key.");
             await message.channel.sendTyping();
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',

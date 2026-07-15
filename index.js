@@ -19,14 +19,20 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js');
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 
-// 🚀 IMPORT HỆ THỐNG BOOSTER (ĐÃ TÍCH HỢP QUÉT DỌN PHÒNG VOICE VIP)
-const { handleServerBoost, handleBoostTicketInteraction, checkAndCleanVipRoom } = require('./src/handlers/boostHandler.js');
+// 🚀 HỆ THỐNG BOOSTER
+const { 
+    handleServerBoost, 
+    handleBoostTicketInteraction, 
+    checkAndCleanVipRoom, 
+    handleMenuVipCommand, 
+    handleSpawnVipRoomCommand 
+} = require('./src/handlers/boostHandler.js');
 
-// 📊 IMPORT HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
+// 📊 HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
 const { addMessageCount } = require('./src/handlers/counter.js');
 const { handleTopChatImageCommand } = require('./src/handlers/topchatImage.js');
 
-// 🏷️ IMPORT MODULE AUTOROLE
+// 🏷️ MODULE AUTOROLE
 const { 
     handleAutoRoleCommand, 
     handleAutoRoleInteraction,
@@ -34,28 +40,28 @@ const {
     handleAutoRoleReactionRemove 
 } = require('./src/handlers/autorole.js');
 
-// 💬 IMPORT TÍNH NĂNG CHAT (Đã sửa lỗi nhận diện hàm)
+// 💬 TÍNH NĂNG CHAT TỰ ĐỘNG
 const { handleChatInteraction, initAutoSpam } = require('./src/handlers/chat.js');
 
-// --- IMPORT MODULE ĐỀ THI ---
+// --- MODULE ĐỀ THI ---
 const { handleDeThiCommand, handleDeThiInteraction } = require('./src/handlers/dethi.js');
 
-// --- IMPORT MODULE ANTI-RAID & FAKE-RAID BẢO AN ---
+// --- MODULE ANTI-RAID & FAKE-RAID BẢO AN ---
 const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRaid.js');
 
-// --- IMPORT MODULE MARKETING (DISBOARD BUMP) ---
+// --- MODULE MARKETING (DISBOARD BUMP) ---
 const start25hReminder = require('./src/handlers/marketing.js').start25hReminder || require('./src/handlers/marketing.js');
 const handlePostToFacebook = require('./src/handlers/marketing.js').handlePostToFacebook;
 
-// 📚 IMPORT MODULE TỪ VỰNG TIẾNG ANH ĐỊNH KỲ
+// 📚 MODULE TỪ VỰNG TIẾNG ANH ĐỊNH KỲ
 const vocabularySystem = require('./src/handlers/vocabulary.js');
 
-// --- KHỞI TẠO WEB SERVER ĐỂ TREO RENDER ---
+// --- KHỞI TẠO WEB SERVER ĐỂ TREO BOT ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-    res.send('🤖 Quản gia Wind đang sống nhăn răng trên Render sếp ơi! 🚀');
+    res.send('🤖 Quản gia Wind đang hoạt động bình thường sếp ơi! 🚀');
 });
 
 app.listen(PORT, () => {
@@ -64,7 +70,7 @@ app.listen(PORT, () => {
     console.log(`==================================================`);
 });
 
-// --- KHỞI TẠO DISCORD CLIENT THẦN THÁNH ---
+// --- KHỞI TẠO DISCORD CLIENT ---
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -88,7 +94,6 @@ client.once(Events.ClientReady, (readyClient) => {
     try {
         if (typeof vocabularySystem === 'function') {
             vocabularySystem(readyClient);
-            console.log('📚 [System Check]: Module Từ vựng tiếng Anh tự động đã khởi chạy!');
         }
     } catch (e) {
         console.error('❌ Lỗi khởi chạy Module Từ vựng:', e);
@@ -101,7 +106,7 @@ client.once(Events.ClientReady, (readyClient) => {
     }
 });
 
-// --- SỰ KIỆN THÀNH VIÊN VÀ GIỌNG NÓI ---
+// --- SỰ KIỆN THÀNH VIÊN VÀ VOICE STATE ---
 client.on('guildMemberAdd', async (member) => { 
     try { await handleWelcomeMember(member); } catch (e) { console.error('Lỗi Welcome:', e); }
 });
@@ -112,8 +117,8 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 
 client.on('voiceStateUpdate', async (oldState, newState) => { 
     try { 
-        await handleVoiceStateUpdate(oldState, newState); // Chạy VoiceMaster thường sẵn có của bạn
-        await checkAndCleanVipRoom(oldState, newState);   // Chạy hệ thống quét dọn phòng Voice VIP Booster mới
+        await handleVoiceStateUpdate(oldState, newState); 
+        await checkAndCleanVipRoom(oldState, newState);   
     } catch (e) { 
         console.error('Lỗi Voice:', e); 
     }
@@ -126,8 +131,19 @@ client.on('messageCreate', async (message) => {
     addMessageCount(message.author.id, message.author.username);
 
     try {
-        if (await handleFakeRaidCommand(message)) return;
+        const msgContent = message.content.trim().toLowerCase();
 
+        if (msgContent === '!spawnviproom') {
+            await handleSpawnVipRoomCommand(message);
+            return; 
+        }
+
+        if (msgContent === '!menuvip') {
+            await handleMenuVipCommand(message);
+            return;
+        }
+
+        if (await handleFakeRaidCommand(message)) return;
         const isSpamRaid = await handleAntiSpam(message);
         if (isSpamRaid) return;
 
@@ -143,12 +159,12 @@ client.on('messageCreate', async (message) => {
         if (handlePostToFacebook && await handlePostToFacebook(message)) return;
         if (await handleChuaLanhCommand(message)) return;
 
-        if (message.content.trim().toLowerCase() === '!wind') {
+        if (msgContent === '!wind') {
             await handleWindCommand(message);
             return;
         }
 
-        if (message.content.trim().toLowerCase() === '!topchat') {
+        if (msgContent === '!topchat') {
             await handleTopChatImageCommand(message);
             return;
         }
@@ -156,8 +172,6 @@ client.on('messageCreate', async (message) => {
         if (message.content === '!vocab') {
             if (vocabularySystem && typeof vocabularySystem.sendVocabToMessageChannel === 'function') {
                 await vocabularySystem.sendVocabToMessageChannel(message);
-            } else {
-                await message.reply('📚 Tính năng đang load dữ liệu, vui lòng đợi trong giây lát!');
             }
             return;
         }
@@ -174,7 +188,6 @@ client.on('messageCreate', async (message) => {
         if (await handlePoemCommand(message)) return;
         if (await handleAvatarCheck(message)) return;
         if (await handleLamViecGame(message)) return; 
-        
         if (await handleChatInteraction(message)) return; 
 
         await handleNoiTuGame(message);
@@ -186,51 +199,57 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC (BUTTON / MODAL / MENU) ---
+// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC (LOCK CHỐNG XUNG ĐỘT) ---
 client.on('interactionCreate', async (interaction) => {
+    const customId = interaction.customId || '';
+
     try {
-        if (interaction.customId === 'start_private_autorole') {
+        // 🚀 ĐIỀU HƯỚNG ƯU TIÊN SỐ 1: Phân phối thẳng các tương tác liên quan đến Voice Menu thường
+        if (interaction.isButton() && customId.startsWith('vm_')) {
+            await handleVoiceMenuInteraction(interaction);
+            return;
+        }
+        if (interaction.isModalSubmit() && customId.startsWith('vmm_')) {
+            await handleVoiceModalSubmit(interaction);
+            return;
+        }
+
+        // 🛡️ BẢO VỆ 2: Cụm tính năng VIP Booster
+        const isBoostInteraction = 
+            customId === 'boost_ticket_create' || 
+            customId === 'boost_voice_modal_trigger' || 
+            customId === 'boost_voice_modal_submit' || 
+            customId.startsWith('vip_');
+
+        if (isBoostInteraction) {
+            await handleBoostTicketInteraction(interaction);
+            return; 
+        }
+
+        // 🛡️ BẢO VỆ 3: Hệ thống tự phát Role cá nhân công khai
+        if (customId === 'start_private_autorole') {
             await handleAutoRoleInteraction(interaction);
             return;
         }
 
-        if (interaction.customId?.startsWith('submit_full_') || interaction.customId?.startsWith('modal_full_')) {
+        // 🛡️ BẢO VỆ 4: Hệ thống nộp đề thi học tập
+        if (customId.startsWith('submit_full_') || customId.startsWith('modal_full_')) {
             await handleDeThiInteraction(interaction);
             return;
         }
 
-        // --- KIỂM TRA NÚT BẤM (BUTTONS) ---
+        // 5. Phân phối các nút bấm thông thường còn lại
         if (interaction.isButton()) {
-            const customId = interaction.customId;
             if (customId.startsWith('tarot_')) { await handleTarotInteraction(interaction); return; }
             if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }
-            if (customId.startsWith('vm_')) { await handleVoiceMenuInteraction(interaction); return; }
-            if (customId.includes('ticket') && !customId.includes('boost')) { await handleTicketInteraction(interaction); return; }
-            
-            // Chạy qua handler boost cho cả 2 nút bấm đặc quyền (Nhận ticket role & Kích hoạt hiện Form Voice)
-            if (customId === 'boost_ticket_create' || customId === 'boost_voice_modal_trigger') { 
-                await handleBoostTicketInteraction(interaction); 
-                return; 
-            }
-        }
-
-        // --- KIỂM TRA GỬI FORM (MODAL SUBMIT) ---
-        if (interaction.isModalSubmit()) {
-            const customId = interaction.customId;
-            if (customId.startsWith('vmm_')) { await handleVoiceModalSubmit(interaction); return; }
-            
-            // Xử lý khi Booster nhấn nút gửi (Submit) tên phòng từ Form
-            if (customId === 'boost_voice_modal_submit') {
-                await handleBoostTicketInteraction(interaction);
-                return;
-            }
+            if (customId.includes('ticket')) { await handleTicketInteraction(interaction); return; }
         }
     } catch (error) {
         console.error('❌ Lỗi xử lý tương tác phát sinh tại index.js:', error);
     }
 });
 
-// --- SỰ KIỆN THẢ VÀ GỠ REACTION ---
+// --- SỰ KIỆN THÀNH VIÊN THẢ VÀ GỠ REACTION ---
 client.on('messageReactionAdd', async (reaction, user) => {
     try { await handleAutoRoleReactionAdd(reaction, user); } catch (e) { console.error('❌ Lỗi thả reaction:', e); }
 });
@@ -239,7 +258,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
     try { await handleAutoRoleReactionRemove(reaction, user); } catch (e) { console.error('❌ Lỗi bỏ reaction:', e); }
 });
 
-// --- CHỐNG CRASH BOT TOÀN CỤC ---
+// --- BIỆN PHÁP CHỐNG SẬP BOT TOÀN CỤC ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ Phát hiện lỗi Unhandled Rejection tại:', promise, '-> Lý do:', reason);
 });

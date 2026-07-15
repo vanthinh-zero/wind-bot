@@ -2,7 +2,14 @@ const { ChannelType, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, Button
 const { addVoiceMinutes } = require('./counter.js'); // Import hàm cộng giờ từ counter
 
 const CREATOR_CHANNEL_ID = process.env.VOICE_CREATOR_CHANNEL_ID;
-const activeVoiceChannels = new Map();
+
+// =========================================================
+// ⚡ THIẾT LẬP MAP TOÀN CỤC ĐỂ ĐỒNG BỘ REAL-TIME VỚI VOICEMENU.JS
+// =========================================================
+if (!global.activeVoiceChannels) {
+    global.activeVoiceChannels = new Map();
+}
+const activeVoiceChannels = global.activeVoiceChannels;
 const voiceTimeTrack = new Map(); // Map ngầm theo dõi thời điểm bắt đầu vào voice của từng user
 
 async function handleVoiceStateUpdate(oldState, newState) {
@@ -78,7 +85,8 @@ async function handleVoiceStateUpdate(oldState, newState) {
                 ],
             });
 
-            activeVoiceChannels.set(newCustomChannel.id, member.id);
+            // ⚡ Ghi trực tiếp vào định dạng String để voiceMenu.js check .has() chuẩn 100%
+            activeVoiceChannels.set(String(newCustomChannel.id), String(member.id));
             await member.voice.setChannel(newCustomChannel);
 
             // --- TẠO MENU LINK NÚT BẤM (Đã nâng cấp 2 hàng nút) ---
@@ -123,7 +131,7 @@ async function handleVoiceStateUpdate(oldState, newState) {
     if (newState.channelId && oldState.channelId !== newState.channelId) {
         const voiceChannel = newState.channel;
         if (voiceChannel && voiceChannel.viewable && newState.channelId !== CREATOR_CHANNEL_ID) {
-            const isCreatorJoiningOwnNewRoom = activeVoiceChannels.get(voiceChannel.id) === member.id && !oldState.channelId;
+            const isCreatorJoiningOwnNewRoom = activeVoiceChannels.get(String(voiceChannel.id)) === String(member.id) && !oldState.channelId;
             if (!isCreatorJoiningOwnNewRoom) {
                 await voiceChannel.send({ content: `<@${member.id}> vừa tham gia vào channel.` }).catch(() => {});
             }
@@ -133,13 +141,14 @@ async function handleVoiceStateUpdate(oldState, newState) {
     if (oldState.channelId && oldState.channelId !== newState.channelId) {
         const voiceChannel = oldState.channel;
         if (voiceChannel && voiceChannel.viewable && oldState.channelId !== CREATOR_CHANNEL_ID) {
-            if (voiceChannel.members.size === 0 && activeVoiceChannels.has(voiceChannel.id)) {
+            const channelIdStr = String(voiceChannel.id);
+            if (voiceChannel.members.size === 0 && activeVoiceChannels.has(channelIdStr)) {
                 try {
                     await voiceChannel.delete();
-                    activeVoiceChannels.delete(voiceChannel.id);
+                    activeVoiceChannels.delete(channelIdStr);
                 } catch (error) {
                     if (error.code !== 10003) console.error('❌ Lỗi khi dọn phòng:', error);
-                    activeVoiceChannels.delete(voiceChannel.id);
+                    activeVoiceChannels.delete(channelIdStr);
                 }
             } else {
                 await voiceChannel.send({ content: `<@${member.id}> vừa rời khỏi channel.` }).catch(() => {});
@@ -148,5 +157,7 @@ async function handleVoiceStateUpdate(oldState, newState) {
     }
 }
 
-module.exports.handleVoiceStateUpdate = handleVoiceStateUpdate;
-module.exports.activeVoiceChannels = activeVoiceChannels;
+module.exports = {
+    handleVoiceStateUpdate,
+    activeVoiceChannels
+};

@@ -178,39 +178,4 @@ async function handleAdminCommands(message) {
     return false;
 }
 
-// =========================================================
-// 🎉 LUỒNG 3: TỰ ĐỘNG CẤP VAI TRÒ & CHÀO MỪNG ĐẠO HỮU MỚI
-// =========================================================
-async function handleWelcomeAndAutoRole(member) {
-    // 1. Thực hiện AutoRole (ID vai trò bạn cung cấp)
-    const autoRoleId = '1507794618253709392'; 
-    const role = member.guild.roles.cache.get(autoRoleId);
-    if (role) {
-        await member.roles.add(role).catch(err => {
-            console.error(`❌ Không thể cấp role tự động: Bậc role của Bot thấp hơn hoặc thiếu quyền Manage Roles. Chi tiết:`, err.message);
-        });
-    }
-
-    // 2. Thực hiện gửi tin nhắn chào mừng giống ảnh mẫu
-    const welcomeChannelId = process.env.WELCOME_CHANNEL_ID; // Lấy ID kênh từ file .env của bạn
-    if (!welcomeChannelId) return;
-
-    const channel = member.guild.channels.cache.get(welcomeChannelId);
-    if (!channel) return;
-
-    // Định dạng giờ gửi giống ảnh của bạn (Ví dụ: 10/06/2026 3:49 CH)
-    const currentTimeString = new Date().toLocaleString('vi-VN', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    }).replace(',', '');
-
-    const welcomeEmbed = new EmbedBuilder()
-        .setColor('#0099ff') // Màu thanh xanh giống ảnh mẫu
-        .setTitle('🎉 CHÀO MỪNG ĐẠO HỮU MỚI! 🎉')
-        .setDescription(`Chào mừng ${member} đã nhập môn thành công!\n\n📌 **Lên hương nghe giảng luật tại:** <#không xác định>\n🔹 **Cần trưởng lão hỗ trợ bấm tại:** <#ticket>`)
-        .setFooter({ text: currentTimeString });
-
-    await channel.send({ embeds: [welcomeEmbed] }).catch((e) => console.error("Không thể gửi tin nhắn chào mừng:", e));
-}
-
-module.exports = { handleAutoMod, handleAdminCommands, handleWelcomeAndAutoRole };
+module.exports = { handleAutoMod, handleAdminCommands };

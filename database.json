@@ -2,22 +2,55 @@
     "910001518328033301": {
         "username": "vanthinh_11",
         "count": 9,
-        "totalMessages": 103,
+        "totalMessages": 186,
         "dailyMessages": {
-            "2026-07-03": 103
+            "2026-07-03": 103,
+            "2026-07-04": 24,
+            "2026-07-05": 11,
+            "2026-07-06": 15,
+            "2026-07-09": 9,
+            "2026-07-10": 3,
+            "2026-07-13": 4,
+            "2026-07-16": 17
+        },
+        "totalVoiceMinutes": 341,
+        "dailyVoice": {
+            "2026-07-09": 310,
+            "2026-07-10": 19,
+            "2026-07-13": 11,
+            "2026-07-16": 1
         }
     },
     "986537662066327583": {
         "username": "bongchuadauthai",
         "count": 6,
-        "totalMessages": 84,
+        "totalMessages": 153,
         "dailyMessages": {
-            "2026-07-03": 84
+            "2026-07-03": 84,
+            "2026-07-05": 6,
+            "2026-07-06": 41,
+            "2026-07-09": 6,
+            "2026-07-10": 11,
+            "2026-07-14": 4,
+            "2026-07-16": 1
+        },
+        "totalVoiceMinutes": 88,
+        "dailyVoice": {
+            "2026-07-10": 63,
+            "2026-07-14": 25
         }
     },
     "1124929842975084627": {
         "username": "quang_bi_ngu_si",
-        "count": 1
+        "count": 1,
+        "totalMessages": 1,
+        "dailyMessages": {
+            "2026-07-09": 1
+        },
+        "totalVoiceMinutes": 19,
+        "dailyVoice": {
+            "2026-07-09": 19
+        }
     },
     "1480876805937430571": {
         "username": "chimcutnuongg.",
@@ -29,28 +62,43 @@
     },
     "1446090268683141253": {
         "username": "_thiznn120809",
-        "totalMessages": 122,
+        "totalMessages": 124,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-03": 122
+            "2026-07-03": 122,
+            "2026-07-04": 2
         },
         "dailyVoice": {}
     },
     "1314257018294501488": {
         "username": "_3012212_",
-        "totalMessages": 97,
-        "totalVoiceMinutes": 0,
+        "totalMessages": 432,
+        "totalVoiceMinutes": 727,
         "dailyMessages": {
-            "2026-07-03": 97
+            "2026-07-03": 97,
+            "2026-07-04": 22,
+            "2026-07-05": 45,
+            "2026-07-06": 188,
+            "2026-07-09": 6,
+            "2026-07-10": 16,
+            "2026-07-13": 13,
+            "2026-07-14": 45
         },
-        "dailyVoice": {}
+        "dailyVoice": {
+            "2026-07-06": 334,
+            "2026-07-10": 37,
+            "2026-07-14": 356
+        }
     },
     "1380184105081110578": {
         "username": "elmmanh",
-        "totalMessages": 1,
+        "totalMessages": 15,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-03": 1
+            "2026-07-03": 1,
+            "2026-07-05": 11,
+            "2026-07-06": 1,
+            "2026-07-09": 2
         },
         "dailyVoice": {}
     },
@@ -64,5 +112,157 @@
         "dailyVoice": {
             "2026-07-03": 1
         }
+    },
+    "1037019422918983810": {
+        "username": "nmdang140209",
+        "totalMessages": 166,
+        "totalVoiceMinutes": 155,
+        "dailyMessages": {
+            "2026-07-04": 37,
+            "2026-07-05": 8,
+            "2026-07-06": 22,
+            "2026-07-09": 5,
+            "2026-07-10": 3,
+            "2026-07-13": 33,
+            "2026-07-14": 58
+        },
+        "dailyVoice": {
+            "2026-07-06": 9,
+            "2026-07-13": 134,
+            "2026-07-14": 12
+        }
+    },
+    "1518814090976297141": {
+        "username": "chii.0604",
+        "totalMessages": 61,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-05": 13,
+            "2026-07-06": 48
+        },
+        "dailyVoice": {}
+    },
+    "857816288332087307": {
+        "username": "nhimbelfi",
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-06": 2
+        },
+        "dailyVoice": {}
+    },
+    "1515095390364500139": {
+        "username": "kiet.0612",
+        "totalMessages": 62,
+        "totalVoiceMinutes": 76,
+        "dailyMessages": {
+            "2026-07-06": 62
+        },
+        "dailyVoice": {
+            "2026-07-06": 76
+        }
+    },
+    "1352810217993404416": {
+        "username": "hazy_4610_52654",
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-06": 2
+        },
+        "dailyVoice": {}
+    },
+    "1164381937499111476": {
+        "username": "nvrmeetagain",
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-09": 1
+        },
+        "dailyVoice": {}
+    },
+    "1222550658498953298": {
+        "username": "cuong_82111",
+        "totalMessages": 5,
+        "totalVoiceMinutes": 27,
+        "dailyMessages": {
+            "2026-07-09": 5
+        },
+        "dailyVoice": {
+            "2026-07-10": 27
+        }
+    },
+    "1258088716715692094": {
+        "username": "fengyijun_",
+        "totalMessages": 3,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-09": 3
+        },
+        "dailyVoice": {}
+    },
+    "1262442743808921671": {
+        "username": "aseng2504.",
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-09": 1
+        },
+        "dailyVoice": {}
+    },
+    "1451224422441554014": {
+        "username": "thanhtan1337",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 7,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-07-10": 7
+        }
+    },
+    "1464181315636170797": {
+        "username": "meooz0022",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 41,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-07-13": 41
+        }
+    },
+    "1512444021358727275": {
+        "username": "linhhiu0848",
+        "totalMessages": 1,
+        "totalVoiceMinutes": 303,
+        "dailyMessages": {
+            "2026-07-13": 1
+        },
+        "dailyVoice": {
+            "2026-07-14": 303
+        }
+    },
+    "1372115844024242186": {
+        "username": "wjynsa",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 2,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-07-14": 2
+        }
+    },
+    "1453654354782584853": {
+        "username": "maclaurrin",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 6,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-07-14": 6
+        }
+    },
+    "1484554919360073900": {
+        "username": "fwbx16",
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-14": 2
+        },
+        "dailyVoice": {}
     }
 }

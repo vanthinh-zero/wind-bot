@@ -172,11 +172,6 @@ async function handleTaiXiuGame(message) {
 
         return message.reply(`💸 Giao dịch thành công! Đạo hữu **${message.author.username}** đã chuyển **${transferAmount}** linh thạch sang túi của **${targetUser.username}**!`).catch(() => {});
     }
-
-    // =========================================================
-    // ⚡ 4. LỆNH THU HỒI LINH THẠCH (CHỈ DÀNH CHO ADMIN)
-    // Cú pháp: !thuhoi @user [số tiền] hoặc !thuhoi [ID_User] [số tiền]
-    // =========================================================
     if (isThuHoiCmd) {
         const ADMIN_ID = process.env.ADMIN_ID;
         const isBotAdmin = message.author.id === ADMIN_ID;
