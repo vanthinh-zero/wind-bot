@@ -5,7 +5,7 @@ const { Client, GatewayIntentBits, Events } = require('discord.js');
 // --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG SẴN CÓ ---
 const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
-const { handleNoiTuGame } = require('./src/handlers/noitu.js');
+const { handleNoiTuGame } = require('./src/handlers/noitu.js'); 
 const { handleTicketInteraction } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
@@ -19,13 +19,13 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js');
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 
-// 🚀 HỆ THỐNG BOOSTER
+// 🚀 HỆ THỐNG BOOSTER (ĐÃ ĐỒNG BỘ HÓA LỆNH GỘP)
 const { 
     handleServerBoost, 
     handleBoostTicketInteraction, 
     checkAndCleanVipRoom, 
     handleMenuVipCommand, 
-    handleSpawnVipRoomCommand 
+    handleSpawnVipCommand // Đã đổi tên hàm ở đây tương thích với file handler mới
 } = require('./src/handlers/boostHandler.js');
 
 // 📊 HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
@@ -133,8 +133,9 @@ client.on('messageCreate', async (message) => {
     try {
         const msgContent = message.content.trim().toLowerCase();
 
-        if (msgContent === '!spawnviproom') {
-            await handleSpawnVipRoomCommand(message);
+        // 🏛️ CẬP NHẬT LỆNH GỘP MỚI !svip
+        if (msgContent === '!svip') {
+            await handleSpawnVipCommand(message);
             return; 
         }
 
@@ -199,12 +200,11 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC (LOCK CHỐNG XUNG ĐỘT) ---
+// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC ---
 client.on('interactionCreate', async (interaction) => {
     const customId = interaction.customId || '';
 
     try {
-        // 🚀 ĐIỀU HƯỚNG ƯU TIÊN SỐ 1: Phân phối thẳng các tương tác liên quan đến Voice Menu thường
         if (interaction.isButton() && customId.startsWith('vm_')) {
             await handleVoiceMenuInteraction(interaction);
             return;
@@ -214,11 +214,14 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
-        // 🛡️ BẢO VỆ 2: Cụm tính năng VIP Booster
+        // 🛡️ CẬU LỆNH TƯƠNG TÁC VIP BOOSTER (Hỗ trợ thêm Menu Chọn Màu)
         const isBoostInteraction = 
             customId === 'boost_ticket_create' || 
             customId === 'boost_voice_modal_trigger' || 
             customId === 'boost_voice_modal_submit' || 
+            customId === 'vip_color_suggest_start' || 
+            customId === 'vip_color_select_tone' || 
+            customId === 'vip_color_select_match' || 
             customId.startsWith('vip_');
 
         if (isBoostInteraction) {
@@ -226,19 +229,16 @@ client.on('interactionCreate', async (interaction) => {
             return; 
         }
 
-        // 🛡️ BẢO VỆ 3: Hệ thống tự phát Role cá nhân công khai
         if (customId === 'start_private_autorole') {
             await handleAutoRoleInteraction(interaction);
             return;
         }
 
-        // 🛡️ BẢO VỆ 4: Hệ thống nộp đề thi học tập
         if (customId.startsWith('submit_full_') || customId.startsWith('modal_full_')) {
             await handleDeThiInteraction(interaction);
             return;
         }
 
-        // 5. Phân phối các nút bấm thông thường còn lại
         if (interaction.isButton()) {
             if (customId.startsWith('tarot_')) { await handleTarotInteraction(interaction); return; }
             if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }

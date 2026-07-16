@@ -2,7 +2,7 @@
     "910001518328033301": {
         "username": "vanthinh_11",
         "count": 9,
-        "totalMessages": 186,
+        "totalMessages": 201,
         "dailyMessages": {
             "2026-07-03": 103,
             "2026-07-04": 24,
@@ -11,7 +11,8 @@
             "2026-07-09": 9,
             "2026-07-10": 3,
             "2026-07-13": 4,
-            "2026-07-16": 17
+            "2026-07-16": 17,
+            "2026-07-17": 15
         },
         "totalVoiceMinutes": 341,
         "dailyVoice": {
@@ -258,10 +259,11 @@
     },
     "1484554919360073900": {
         "username": "fwbx16",
-        "totalMessages": 2,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-14": 2
+            "2026-07-14": 2,
+            "2026-07-17": 2
         },
         "dailyVoice": {}
     }
