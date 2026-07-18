@@ -71,7 +71,7 @@ async function handleServerBoost(oldMember, newMember) {
         if (!boostChannel) return;
 
         const thankYouEmbed = new EmbedBuilder()
-            .setColor('#D4AF37')
+            .setColor('#4BB8FA')
             .setAuthor({ name: 'N I T R O   B O O S T E R   H U B' })
             .setTitle('🏛️ TRI ÂN THÀNH VIÊN TÀI TRỢ SERVER')
             .setDescription(
@@ -89,7 +89,7 @@ async function handleServerBoost(oldMember, newMember) {
         );
 
         const inviteEmbed = new EmbedBuilder()
-            .setColor('#2ECC71')
+            .setColor('#4BB8FA')
             .setDescription(`> 📢 **Đặc quyền dành riêng cho <@${newMember.user.id}>:** Bạn nhận được quyền sở hữu **01 Role màu sắc tự động** và **01 Phòng Voice VIP Vĩnh Viễn**.\n> Nhấn nút phía dưới để bắt đầu thiết lập.`);
 
         await boostChannel.send({ content: `📢 Thông báo đặc quyền: <@${newMember.user.id}>`, embeds: [inviteEmbed], components: [boosterActionRow] });

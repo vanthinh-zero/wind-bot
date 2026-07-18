@@ -23,27 +23,23 @@ async function handleWelcomeMember(member) {
         // =========================================================
         if (process.env.WELCOME_CHANNEL_ID) {
             const channel1 = member.guild.channels.cache.get(process.env.WELCOME_CHANNEL_ID)
-                          || await member.guild.channels.fetch(process.env.WELCOME_CHANNEL_ID).catch(() => null);
+                             || await member.guild.channels.fetch(process.env.WELCOME_CHANNEL_ID).catch(() => null);
 
             if (channel1 && channel1.isTextBased()) {
                 const embed1 = new EmbedBuilder()
-                    .setColor('#2ECC71') // Màu xanh lá cây nông trại
+                    .setColor('#8CC0EB')
                     .setAuthor({ 
                         name: `WELCOME TO ${member.guild.name.toUpperCase()} FARM! 🚜`, 
                         iconURL: guildIcon 
                     })
-                    .setTitle('🌾 CHÀO MỪNG THÀNH VIÊN MỚI VÀO NÔNG TRẠI! 🐮')
+                    // 📑 Đã xóa Title chào mừng cũ theo ý sếp
                     .setDescription(
                         `Chào mừng ${member} đã gia nhập trang trại **${member.guild.name}**!\n` +
                         `Chúc bạn có những giờ phút chăn nuôi vui vẻ, gặt hái nhiều niềm vui!`
                     )
                     .setThumbnail(avatarURL)
                     .addFields(
-                        { 
-                            name: '📜 **Nội Quy Nông Trại**', 
-                            value: '🔹 Nhớ xem kỹ quy định để không bị Bác Nông Dân (AutoMod) phạt nha.\n🔹 Mọi sự cố về chuồng trại hãy mở **Ticket** để BQT hỗ trợ.', 
-                            inline: false 
-                        },
+                        // 📑 Đã xóa mục Nội Quy Nông Trại ở đây
                         { 
                             name: '🏷️ **Tên tài khoản**', 
                             value: `${member.user.tag}`, 
@@ -58,10 +54,8 @@ async function handleWelcomeMember(member) {
                     .setFooter({ text: `${member.guild.name} • Sổ Gia Súc`, iconURL: guildIcon })
                     .setTimestamp();
 
+                // Kênh 1 bây giờ chỉ thông báo thường, không tag role thông báo nữa
                 let mention1 = `✨ Loa loa loa! Thành viên ${member} đã bước vào trang trại!`;
-                if (process.env.ROLE_CAN_THONG_BAO) {
-                    mention1 += ` <@&${process.env.ROLE_CAN_THONG_BAO}> ơi, ra chào thành viên mới nào! 🚜`;
-                }
 
                 await channel1.send({
                     content: mention1,
@@ -75,19 +69,25 @@ async function handleWelcomeMember(member) {
         // =========================================================
         if (process.env.KENH_CHAO_MUNG) {
             const channel2 = member.guild.channels.cache.get(process.env.KENH_CHAO_MUNG)
-                          || await member.guild.channels.fetch(process.env.KENH_CHAO_MUNG).catch(() => null);
+                             || await member.guild.channels.fetch(process.env.KENH_CHAO_MUNG).catch(() => null);
 
             if (channel2 && channel2.isTextBased()) {
                 const embed2 = new EmbedBuilder()
-                    .setColor('#F1C40F') // Màu vàng rơm ấm áp
+                    .setColor('#8CC0EB')
                     .setTitle('🥛 THÀNH VIÊN MỚI GHÉ CHUỒNG TỔNG!')
                     .setDescription(`Mọi người ơi, ${member} vừa mới chuyển tới chuồng trò chuyện nè!\nHãy gửi một lời chào ngọt ngào đến thành viên chú bò thứ **#${member.guild.memberCount}** nha! 🐄🌾`)
                     .setThumbnail(avatarURL)
                     .setFooter({ text: 'Chúc bạn có một ngày gặm cỏ vui vẻ!' })
                     .setTimestamp();
 
+                // ⚡ Đã chuyển phần tag role thông báo sang nội dung chat chung ở đây
+                let mention2 = `📢 Moo moo ~ Chào mừng ${member} đã cập bến khu giao lưu! 🍀`;
+                if (process.env.ROLE_CAN_THONG_BAO) {
+                    mention2 += ` <@&${process.env.ROLE_CAN_THONG_BAO}> ơi, ra chào thành viên mới nào! 🚜`;
+                }
+
                 await channel2.send({
-                    content: `📢 Moo moo ~ Chào mừng ${member} đã cập bến khu giao lưu! 🍀`,
+                    content: mention2,
                     embeds: [embed2]
                 }).catch(e => console.error("❌ Lỗi gửi chào mừng Kênh 2:", e.message));
             }

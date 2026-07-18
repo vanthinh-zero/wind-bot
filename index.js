@@ -19,13 +19,16 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js');
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 
+// 🎀 MODULE THIẾT LẬP LUẬT SERVER (MỚI THÊM)
+const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
+
 // 🚀 HỆ THỐNG BOOSTER (ĐÃ ĐỒNG BỘ HÓA LỆNH GỘP)
 const { 
     handleServerBoost, 
     handleBoostTicketInteraction, 
     checkAndCleanVipRoom, 
     handleMenuVipCommand, 
-    handleSpawnVipCommand // Đã đổi tên hàm ở đây tương thích với file handler mới
+    handleSpawnVipCommand 
 } = require('./src/handlers/boostHandler.js');
 
 // 📊 HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
@@ -131,6 +134,9 @@ client.on('messageCreate', async (message) => {
     addMessageCount(message.author.id, message.author.username);
 
     try {
+        // Kiểm tra và xử lý lệnh tạo luật !setrule trước tiên
+        if (await handleRuleCommand(message)) return;
+
         const msgContent = message.content.trim().toLowerCase();
 
         // 🏛️ CẬP NHẬT LỆNH GỘP MỚI !svip
@@ -140,7 +146,7 @@ client.on('messageCreate', async (message) => {
         }
 
         if (msgContent === '!menuvip') {
-            await handleMenuVipCommand(message);
+            await menuVipCommand(message);
             return;
         }
 
@@ -244,6 +250,10 @@ client.on('interactionCreate', async (interaction) => {
             if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }
             if (customId.includes('ticket')) { await handleTicketInteraction(interaction); return; }
         }
+
+        // Xử lý các tương tác của hệ thống thiết lập luật (Nút bấm, Modal, Chọn Kênh)
+        await handleRuleInteraction(interaction);
+
     } catch (error) {
         console.error('❌ Lỗi xử lý tương tác phát sinh tại index.js:', error);
     }

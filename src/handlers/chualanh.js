@@ -133,7 +133,7 @@ async function handleChuaLanhCommand(message) {
         const embed = new EmbedBuilder()
             .setTitle(baiVan.tieuDe)
             .setDescription(baiVan.noiDung)
-            .setColor('#E3C4A8') // Đổi sang màu nâu be/vàng cát ấm áp, đem lại sự an tâm, nhẹ nhàng
+            .setColor('#8CC0EB') // Đổi sang màu nâu be/vàng cát ấm áp, đem lại sự an tâm, nhẹ nhàng
             .setTimestamp()
             .setFooter({ 
                 text: `🌿 Chậm lại một chút để vỗ về tâm hồn • Yêu cầu bởi ${message.author.username}`, 
