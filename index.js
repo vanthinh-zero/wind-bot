@@ -20,8 +20,8 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
 
-// 👤 MODULE PROFILE & BIO
-const { handleProfileCommand } = require('./src/handlers/profile.js');
+// 👤 MODULE PROFILE & BIO (DÙNG SLASH COMMANDS ĐỂ TẠO TIN NHẮN ẨN)
+const { commandsData: profileCommands, handleInteraction: handleProfileInteraction } = require('./src/handlers/profile.js');
 
 // 🎵 IMPORT MODULE KIỂM TRA BOT NHẠC
 const { handleMusicCheckCommand } = require('./src/handlers/musicChecker.js');
@@ -110,11 +110,23 @@ const client = new Client({
 });
 
 // --- SỰ KIỆN KHỞI CHẠY BOT ---
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
     console.log('==================================================');
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log('==================================================');
     
+    // Đăng ký Slash Commands trực tiếp theo Server Guilds (Hiện lên NGAY LẬP TỨC)
+    try {
+        if (profileCommands && Array.isArray(profileCommands)) {
+            for (const [guildId, guild] of readyClient.guilds.cache) {
+                await guild.commands.set(profileCommands);
+                console.log(`✅ [Slash Commands] Đã đăng ký tức thì cho Server: ${guild.name} (${guildId})`);
+            }
+        }
+    } catch (e) {
+        console.error('❌ Lỗi khi đăng ký Slash Commands Profile:', e);
+    }
+
     if (typeof startAutoPoem === 'function') startAutoPoem(readyClient);
     if (typeof start25hReminder === 'function') start25hReminder(client);
 
@@ -221,8 +233,13 @@ client.on('messageCreate', async (message) => {
 
         if (await handleRuleCommand(message)) return;
 
-        // 👤 XỬ LÝ LỆNH PROFILE VÀ BIO (!profile / !bio)
-        if (await handleProfileCommand(message)) return;
+        // 💡 NHẮC BỎ TẬP QUÁN DÙNG LỆNH PREFIX CỦA PROFILE
+        const textCmd = message.content.toLowerCase();
+        if (textCmd.startsWith('!profile') || textCmd.startsWith('!bio') || textCmd.startsWith('!setcolor') || textCmd.startsWith('!setbadge') || textCmd.startsWith('!setgif')) {
+            const replyMsg = await message.reply('✨ **Mẹo:** Hệ thống đã chuyển sang dùng lệnh ẩn Slash `/profile`, `/bio`, `/setcolor`, `/setbadge`, `/setgif` rồi sếp ơi!');
+            setTimeout(() => replyMsg.delete().catch(() => {}), 6000);
+            return;
+        }
 
         const msgContent = message.content.trim().toLowerCase();
 
@@ -302,8 +319,18 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC ---
+// --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC (SLASH COMMANDS & BUTTONS) ---
 client.on('interactionCreate', async (interaction) => {
+    // 1. Xử lý Slash Commands cho Profile
+    if (interaction.isChatInputCommand()) {
+        try {
+            await handleProfileInteraction(interaction);
+        } catch (e) {
+            console.error('❌ Lỗi xử lý Slash Command Profile:', e);
+        }
+        return;
+    }
+
     const customId = interaction.customId || '';
 
     try {
