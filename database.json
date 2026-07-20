@@ -2,7 +2,7 @@
     "910001518328033301": {
         "username": "vanthinh_11",
         "count": 9,
-        "totalMessages": 216,
+        "totalMessages": 236,
         "dailyMessages": {
             "2026-07-03": 103,
             "2026-07-04": 24,
@@ -13,7 +13,8 @@
             "2026-07-13": 4,
             "2026-07-16": 17,
             "2026-07-17": 15,
-            "2026-07-18": 15
+            "2026-07-18": 15,
+            "2026-07-19": 20
         },
         "totalVoiceMinutes": 341,
         "dailyVoice": {
@@ -26,7 +27,7 @@
     "986537662066327583": {
         "username": "bongchuadauthai",
         "count": 6,
-        "totalMessages": 176,
+        "totalMessages": 193,
         "dailyMessages": {
             "2026-07-03": 84,
             "2026-07-05": 6,
@@ -36,7 +37,7 @@
             "2026-07-14": 4,
             "2026-07-16": 1,
             "2026-07-18": 22,
-            "2026-07-19": 1
+            "2026-07-19": 18
         },
         "totalVoiceMinutes": 90,
         "dailyVoice": {
@@ -60,9 +61,10 @@
     "1480876805937430571": {
         "username": "chimcutnuongg.",
         "count": 1,
-        "totalMessages": 3,
+        "totalMessages": 10,
         "dailyMessages": {
-            "2026-07-03": 3
+            "2026-07-03": 3,
+            "2026-07-19": 7
         }
     },
     "1446090268683141253": {
@@ -121,7 +123,7 @@
     "1037019422918983810": {
         "username": "nmdang140209",
         "totalMessages": 169,
-        "totalVoiceMinutes": 155,
+        "totalVoiceMinutes": 175,
         "dailyMessages": {
             "2026-07-04": 37,
             "2026-07-05": 8,
@@ -136,7 +138,8 @@
         "dailyVoice": {
             "2026-07-06": 9,
             "2026-07-13": 134,
-            "2026-07-14": 12
+            "2026-07-14": 12,
+            "2026-07-19": 20
         }
     },
     "1518814090976297141": {
@@ -272,5 +275,25 @@
             "2026-07-17": 2
         },
         "dailyVoice": {}
+    },
+    "1214249074879111208": {
+        "username": "_pahmdamg_",
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-19": 1
+        },
+        "dailyVoice": {}
+    },
+    "862540407942021171": {
+        "username": "tnhw274",
+        "totalMessages": 16,
+        "totalVoiceMinutes": 20,
+        "dailyMessages": {
+            "2026-07-19": 16
+        },
+        "dailyVoice": {
+            "2026-07-19": 20
+        }
     }
 }

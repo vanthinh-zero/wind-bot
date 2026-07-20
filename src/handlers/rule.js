@@ -5,6 +5,13 @@ const { ChannelSelectMenuBuilder, ChannelType, ActionRowBuilder, EmbedBuilder } 
 const ruleStorage = new Map();
 
 /**
+ * Hàm kiểm tra xem chuỗi văn bản có phải là đường dẫn ảnh hợp lệ không
+ */
+function isImageUrl(url) {
+    return (url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null) || url.startsWith('https://images-ext-');
+}
+
+/**
  * Xử lý lệnh chat !setrule tuần tự bằng câu hỏi
  */
 async function handleRuleCommand(message) {
@@ -34,11 +41,12 @@ async function handleRuleCommand(message) {
 
     // Tạo bộ thu thập tin nhắn từ chính Admin đó trong kênh này
     const filter = (m) => m.author.id === authorId;
-    const collector = currentChannel.createMessageCollector({ filter, time: 3600000 }); // Chờ tối đa 60 giây mỗi câu hỏi
+    const collector = currentChannel.createMessageCollector({ filter, time: 3600000 }); // Chờ tối đa 60 phút
 
     let step = 1;
     let title = '';
     let content = '';
+    let imageUrl = null; // Biến lưu trữ link ảnh nhận diện được
 
     collector.on('collect', async (m) => {
         // Hỗ trợ hủy lệnh giữa chừng
@@ -47,29 +55,56 @@ async function handleRuleCommand(message) {
             return collector.stop('user_cancelled');
         }
 
+        // TỰ ĐỘNG BẮT ẢNH: Kiểm tra nếu có file đính kèm là hình ảnh
+        if (m.attachments.size > 0) {
+            const attachment = m.attachments.first();
+            if (attachment.contentType && attachment.contentType.startsWith('image/')) {
+                imageUrl = attachment.url;
+            }
+        } 
+        // Hoặc kiểm tra xem Admin có dán link ảnh thuần túy vào không
+        else if (isImageUrl(m.content.trim())) {
+            imageUrl = m.content.trim();
+        }
+
         if (step === 1) {
-            title = m.content.trim();
+            // Nếu bước 1 sếp kéo thả ảnh luôn, bot lấy text mặc định làm tiêu đề để tránh lỗi trống text
+            if (m.attachments.size > 0 || isImageUrl(m.content.trim())) {
+                title = "Quy Định & Nội Quy Server";
+            } else {
+                title = m.content.trim();
+            }
+
             step = 2;
             // BƯỚC 2: Hỏi Nội dung
-            await m.reply('📝 **[Bước 2/2]** Nhận tiêu đề thành công! Bây giờ hãy nhập tiếp **Nội dung chi tiết** (Có thể dùng Shift + Enter để xuống dòng viết nhiều luật):');
+            await m.reply('📝 **[Bước 2/2]** Nhận tiêu đề thành công! Bây giờ hãy nhập tiếp **Nội dung chi tiết** (Sếp có thể thoải mái **KÉO THẢ ẢNH** kèm nội dung chữ hoặc dán link ảnh tại đây):');
         } else if (step === 2) {
-            content = m.content.trim();
+            // Nếu bước này sếp dán mỗi ảnh trống, bot sẽ ghi nhận chữ placeholder tránh trống Description
+            if ((m.attachments.size > 0 || isImageUrl(m.content.trim())) && !m.content.replace(m.content.trim(), '')) {
+                content = m.content.trim() && !isImageUrl(m.content.trim()) ? m.content.trim() : "*(Hình ảnh đính kèm bên dưới)*";
+            } else {
+                content = m.content.trim();
+            }
             collector.stop('completed');
         }
     });
 
     collector.on('end', async (collected, reason) => {
         if (reason === 'time') {
-       await currentChannel.send(`⏰ Hết thời gian phản hồi (60 phút). Vui lòng gõ lại lệnh \`!setrule\` nếu muốn thực hiện lại.`);
-       return;
-             }
+            await currentChannel.send(`⏰ Hết thời gian phản hồi (60 phút). Vui lòng gõ lại lệnh \`!setrule\` nếu muốn thực hiện lại.`);
+            return;
+        }
         
         if (reason === 'completed') {
-            // Khởi tạo khung viền Embed dựa trên thông tin vừa chat
             const embedOutput = new EmbedBuilder()
                 .setTitle(title)
                 .setDescription(content)
-                .setColor('#4BB8FA'); // Khung viền màu hồng
+                .setColor('#8CC0EB'); // Giữ nguyên màu xanh của sếp
+
+            // Nếu trong quá trình chat hệ thống nhặt được ảnh, gán vào Embed ngay
+            if (imageUrl) {
+                embedOutput.setImage(imageUrl);
+            }
 
             // Lưu dữ liệu Embed vào bộ nhớ tạm
             ruleStorage.set(authorId, embedOutput);
@@ -84,7 +119,7 @@ async function handleRuleCommand(message) {
 
             // Gửi thông báo hoàn tất và hiện menu chọn kênh
             await currentChannel.send({
-                content: '✅ Đã đóng gói bảng luật thành công! Vui lòng chọn kênh bên dưới để bot tiến hành gửi khung viền luật:',
+                content: '✅ Đã đóng gói bảng luật (bao gồm hình ảnh) thành công! Vui lòng chọn kênh bên dưới để bot tiến hành gửi:',
                 components: [row]
             });
         }

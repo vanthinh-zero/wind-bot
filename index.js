@@ -6,7 +6,8 @@ const { Client, GatewayIntentBits, Events } = require('discord.js');
 const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js'); 
-const { handleTicketInteraction } = require('./src/handlers/ticket.js');
+// 🔴 ĐÃ CẬP NHẬT ĐỂ NHẬN THÊM HÀM SENDTICKETSETUP
+const { handleTicketInteraction, sendTicketSetup } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
 const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
@@ -19,17 +20,34 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js');
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 
-// 🎀 MODULE THIẾT LẬP LUẬT SERVER (MỚI THÊM)
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
 
-// 🚀 HỆ THỐNG BOOSTER (ĐÃ ĐỒNG BỘ HÓA LỆNH GỘP)
+// 🚀 HỆ THỐNG BOOSTER
 const { 
     handleServerBoost, 
     handleBoostTicketInteraction, 
-    checkAndCleanVipRoom, 
     handleMenuVipCommand, 
     handleSpawnVipCommand 
 } = require('./src/handlers/boostHandler.js');
+
+// Bổ sung logic quét phòng trống an toàn trực tiếp
+async function checkAndCleanVipRoom(oldState, newState) {
+    try {
+        const oldChannel = oldState.channel;
+        if (!oldChannel) return;
+
+        if (oldChannel.parentId === process.env.BOOSTER_CATEGORY_ID && oldChannel.members.size === 0) {
+            setTimeout(async () => {
+                const checkChannel = oldState.guild.channels.cache.get(oldChannel.id);
+                if (checkChannel && checkChannel.members.size === 0) {
+                    await checkChannel.delete().catch(() => null);
+                }
+            }, 2000);
+        }
+    } catch (e) {
+        console.error('Lỗi khi dọn dẹp phòng VIP trống:', e);
+    }
+}
 
 // 📊 HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
 const { addMessageCount } = require('./src/handlers/counter.js');
@@ -122,8 +140,63 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     try { 
         await handleVoiceStateUpdate(oldState, newState); 
         await checkAndCleanVipRoom(oldState, newState);   
+        
+        if (newState.channelId && oldState.channelId !== newState.channelId) {
+            const voiceChannel = newState.channel;
+            const member = newState.member;
+            
+            if (voiceChannel.parentId === process.env.BOOSTER_CATEGORY_ID) {
+                const roomName = voiceChannel.name.toLowerCase();
+                const memberName = member.displayName.toLowerCase();
+                const userName = member.user.username.toLowerCase();
+
+                if (roomName.includes(memberName) || roomName.includes(userName)) {
+                    
+                    const messages = await voiceChannel.messages.fetch({ limit: 20 }).catch(() => null);
+                    const hasMenuAlready = messages && messages.some(msg => 
+                        msg.author.id === client.user.id && 
+                        msg.embeds.length > 0 && 
+                        msg.embeds[0].title === '👑 BẢNG ĐIỀU KHIỂN PHÒNG VOICE VIP 👑'
+                    );
+
+                    if (!hasMenuAlready) {
+                        const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
+                        const embed = new EmbedBuilder()
+                            .setTitle('👑 BẢNG ĐIỀU KHIỂN PHÒNG VOICE VIP 👑')
+                            .setDescription(`Chào mừng sếp **${member.displayName}** đã trở lại phòng voice!\nĐây là bộ công cụ tối cao để sếp quản lý phòng **${voiceChannel.name}** của mình.`)
+                            .setColor('#FF007F')
+                            .addFields(
+                                { name: '🔒 Khóa/Mở Phòng', value: 'Ẩn hoặc chặn người lạ vào phòng.', inline: true },
+                                { name: '👥 Giới Hạn', value: 'Thay đổi số lượng người tối đa.', inline: true },
+                                { name: '🚫 Kích Người', value: 'Trục xuất thành viên không mong muốn.', inline: true }
+                            )
+                            .setFooter({ text: 'Quản gia Wind - Tự động phục vụ sếp!', iconURL: newState.guild.iconURL() })
+                            .setTimestamp();
+
+                        const row1 = new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId('vm_lock').setLabel('🔒 Khóa Phòng').setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId('vm_unlock').setLabel('🔓 Mở Khóa').setStyle(ButtonStyle.Success),
+                            new ButtonBuilder().setCustomId('vm_limit').setLabel('👥 Đổi Giới Hạn').setStyle(ButtonStyle.Primary)
+                        );
+
+                        const row2 = new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId('vm_kick').setLabel('🚫 Kick Thành Viên').setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId('vm_rename').setLabel('✏️ Đổi Tên Phòng').setStyle(ButtonStyle.Primary)
+                        );
+
+                        await voiceChannel.send({
+                            content: `👋 Tự động nhận diện Chủ Phòng ${member}! Bảng điều khiển tối cao đã được kích hoạt.`,
+                            embeds: [embed],
+                            components: [row1, row2]
+                        }).catch(e => console.error("Lỗi tự động spawn menu VIP:", e));
+                    }
+                }
+            }
+        }
+
     } catch (e) { 
-        console.error('Lỗi Voice:', e); 
+        console.error('Lỗi Luồng Voice State Update:', e); 
     }
 });
 
@@ -134,19 +207,27 @@ client.on('messageCreate', async (message) => {
     addMessageCount(message.author.id, message.author.username);
 
     try {
-        // Kiểm tra và xử lý lệnh tạo luật !setrule trước tiên
         if (await handleRuleCommand(message)) return;
 
         const msgContent = message.content.trim().toLowerCase();
 
-        // 🏛️ CẬP NHẬT LỆNH GỘP MỚI !svip
+        // 🔴 ĐOẠN XỬ LÝ LỆNH SPAWN TICKET MỚI
+        if (msgContent === '!set ticket') {
+            if (!message.member.permissions.has('Administrator')) {
+                return message.reply('❌ Bạn cần có quyền \`Administrator\` để sử dụng lệnh này.');
+            }
+            await sendTicketSetup(message.channel);
+            await message.delete().catch(() => {});
+            return;
+        }
+
         if (msgContent === '!svip') {
             await handleSpawnVipCommand(message);
             return; 
         }
 
         if (msgContent === '!menuvip') {
-            await menuVipCommand(message);
+            await handleMenuVipCommand(message);
             return;
         }
 
@@ -220,7 +301,6 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
-        // 🛡️ CẬU LỆNH TƯƠNG TÁC VIP BOOSTER (Hỗ trợ thêm Menu Chọn Màu)
         const isBoostInteraction = 
             customId === 'boost_ticket_create' || 
             customId === 'boost_voice_modal_trigger' || 
@@ -228,6 +308,7 @@ client.on('interactionCreate', async (interaction) => {
             customId === 'vip_color_suggest_start' || 
             customId === 'vip_color_select_tone' || 
             customId === 'vip_color_select_match' || 
+            customId.startsWith('vip_role_modal_submit_') ||
             customId.startsWith('vip_');
 
         if (isBoostInteraction) {
@@ -248,10 +329,11 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.isButton()) {
             if (customId.startsWith('tarot_')) { await handleTarotInteraction(interaction); return; }
             if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }
+            
+            // 🔴 XỬ LÝ NÚT BẤM TICKET (Hỗ trợ định dạng customId mới chứa chữ 'ticket')
             if (customId.includes('ticket')) { await handleTicketInteraction(interaction); return; }
         }
 
-        // Xử lý các tương tác của hệ thống thiết lập luật (Nút bấm, Modal, Chọn Kênh)
         await handleRuleInteraction(interaction);
 
     } catch (error) {
