@@ -71,7 +71,7 @@ async function handleServerBoost(oldMember, newMember) {
         if (!boostChannel) return;
 
         const thankYouEmbed = new EmbedBuilder()
-            .setColor('#4BB8FA')
+            .setColor('#8CC0EB')
             .setAuthor({ name: 'N I T R O   B O O S T E R   H U B' })
             .setTitle('🏛️ TRI ÂN THÀNH VIÊN TÀI TRỢ SERVER')
             .setDescription(
@@ -89,7 +89,7 @@ async function handleServerBoost(oldMember, newMember) {
         );
 
         const inviteEmbed = new EmbedBuilder()
-            .setColor('#4BB8FA')
+            .setColor('#8CC0EB')
             .setDescription(`> 📢 **Đặc quyền dành riêng cho <@${newMember.user.id}>:** Bạn nhận được quyền sở hữu **01 Role màu sắc tự động** và **01 Phòng Voice VIP Vĩnh Viễn**.\n> Nhấn nút phía dưới để bắt đầu thiết lập.`);
 
         await boostChannel.send({ content: `📢 Thông báo đặc quyền: <@${newMember.user.id}>`, embeds: [inviteEmbed], components: [boosterActionRow] });
@@ -107,7 +107,8 @@ function createVipControlPanel(channelId) {
         .setDescription(
             `Trung tâm quản trị không gian riêng <#${channelId}>:\n\n` +
             `🔒 **Quyền vào:** Khóa/Mở kết nối chung cho người ngoài.\n` +
-            `➕ **Duyệt bạn:** Cấp quyền kết nối cho 1 thành viên chỉ định.\n` +
+            `➕ **Thêm người:** Tag trực tiếp tên bạn bè vào chat để mời vào room.\n` +
+            `👥 **Giới hạn:** Tự do điều chỉnh số lượng người vào room **(Nhập 0 = Vô Hạn)**.\n` +
             `🔇 **Micro:** Tắt hoặc mở quyền phát thanh toàn phòng.\n` +
             `👢 **Truy xuất:** Ngắt kết nối thành viên bất kỳ khỏi kênh.\n` +
             `👁️ **Hiển thị:** Giấu hoặc mở công khai không gian trên danh sách.\n` +
@@ -119,7 +120,7 @@ function createVipControlPanel(channelId) {
     const row1 = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`vip_unlock_${channelId}`).setLabel('🔓 Mở Khóa').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(`vip_lock_${channelId}`).setLabel('🔒 Khóa Lại').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`vip_allowuser_${channelId}`).setLabel('➕ Duyệt Bạn Vào').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId(`vip_allowuser_${channelId}`).setLabel('➕ Thêm Người').setStyle(ButtonStyle.Primary),
         new ButtonBuilder().setCustomId(`vip_kick_${channelId}`).setLabel('👢 Đuổi Người').setStyle(ButtonStyle.Danger)
     );
 
@@ -132,8 +133,8 @@ function createVipControlPanel(channelId) {
 
     const row3 = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`vip_rename_${channelId}`).setLabel('✏️ Đổi Tên').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId(`vip_limit5_${channelId}`).setLabel('👥 Limit 5').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`vip_unlimit_${channelId}`).setLabel('🔄 Vô Hạn').setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`vip_customlimit_${channelId}`).setLabel('👥 Đổi Giới Hạn').setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(`vip_unlimit_${channelId}`).setLabel('🔄 Vô Hạn (0)').setStyle(ButtonStyle.Secondary),
         new ButtonBuilder().setCustomId(`vip_delete_${channelId}`).setLabel('❌ Xóa Phòng').setStyle(ButtonStyle.Danger)
     );
 
@@ -156,20 +157,55 @@ async function handleMenuVipCommand(message) {
 }
 
 // =========================================================================
-// 5. XỬ LÝ TOÀN BỘ INTERACTION (TỰ ĐỘNG KHỞI TẠO VÀ CẤP PHÁT ROLE VIP)
+// 5. TỰ ĐỘNG CẤP QUYỀN KHI CHỦ PHÒNG TAG TÊN TRONG CHAT VOICE
+// =========================================================================
+async function handleAutoGrantPermission(message) {
+    if (!message.guild || message.author.bot) return;
+    if (message.channel.type !== ChannelType.GuildVoice) return;
+    if (message.channel.parentId !== process.env.BOOSTER_CATEGORY_ID) return;
+
+    const mentionedMembers = message.mentions.members;
+    if (!mentionedMembers || mentionedMembers.size === 0) return;
+
+    const isOwner = message.channel.permissionsFor(message.author).has(PermissionsBitField.Flags.ManageChannels) || message.author.id === process.env.ADMIN_ID;
+    if (!isOwner) return;
+
+    try {
+        const addedUsers = [];
+        for (const [id, member] of mentionedMembers) {
+            if (member.user.bot) continue;
+            await message.channel.permissionOverwrites.edit(member.id, {
+                ViewChannel: true,
+                Connect: true,
+                Speak: true
+            });
+            addedUsers.push(`<@${member.id}>`);
+        }
+
+        if (addedUsers.length > 0) {
+            await message.channel.send({
+                content: `✅ **Đã thêm quyền truy cập phòng thành công cho:** ${addedUsers.join(', ')}`
+            });
+        }
+    } catch (error) {
+        console.error('Lỗi tự động cấp quyền VIP qua Tag:', error);
+    }
+}
+
+// =========================================================================
+// 6. XỬ LÝ TOÀN BỘ INTERACTION (TỰ ĐỘNG KHỞI TẠO VÀ CẤP PHÁT ROLE VIP)
 // =========================================================================
 async function handleBoostTicketInteraction(interaction) {
     const customId = interaction.customId || '';
 
     if (interaction.isModalSubmit()) {
-        // --- XỬ LÝ MODAL HOÀN TẤT TẠO VÀ ĐẶT TÊN ROLE VIP (ÉP SANG TAB CHUYỂN MÀU THỰC TẾ) ---
+        // --- XỬ LÝ MODAL HOÀN TẤT TẠO VÀ ĐẶT TÊN ROLE VIP ---
         if (customId.startsWith('vip_role_modal_submit_')) {
             await interaction.deferUpdate(); 
             
             const rawColors = customId.replace('vip_role_modal_submit_', '');
             const [color1, color2] = rawColors.split('-');
             
-            // Chuyển đổi mã màu Hex "#FFFFFF" thành dạng Integer phục vụ REST API Discord
             const intColor1 = parseInt(color1.replace('#', ''), 16);
             const intColor2 = parseInt(color2.replace('#', ''), 16);
 
@@ -179,36 +215,31 @@ async function handleBoostTicketInteraction(interaction) {
             const ticketChannel = interaction.channel;
 
             try {
-                // Tạo Role bằng phương thức REST Raw Payload nâng cao để ép thuộc tính style_type: 1 (Chuyển Màu)
                 const rawRoleData = await guild.client.rest.post(
                     `/guilds/${guild.id}/roles`,
                     {
                         body: {
                             name: roleNameInput,
                             color: intColor1,
-                            theme_colors: [intColor1, intColor2], // Mảng 2 đầu màu chuyển đổi
-                            style_type: 1, // 1 biểu thị cho tab Phong cách: "Chuyển Màu"
+                            theme_colors: [intColor1, intColor2],
+                            style_type: 1,
                             hoist: false,
                             mentionable: false
                         }
                     }
                 );
 
-                // Fetch Role mới tạo từ bộ nhớ đệm Discord
                 const vipRole = await guild.roles.fetch(rawRoleData.id);
                 if (!vipRole) throw new Error("Không thể map dữ liệu vai trò.");
 
-                // Cấp thẳng Role Chuyển Màu xịn cho Booster tạo phòng
                 await member.roles.add(vipRole);
 
-                // Đồng bộ vị trí Role dưới quyền cao nhất của Bot để hiển thị màu sắc chuẩn xác nhất
                 const botMember = await guild.members.fetchMe();
                 const botHighestRole = botMember.roles.highest;
                 if (botHighestRole && botHighestRole.position > 1) {
                     await vipRole.setPosition(botHighestRole.position - 1).catch(() => null);
                 }
 
-                // Gửi thông báo thành công và đếm ngược đóng ticket 10s
                 let timeLeft = 10;
                 const successEmbed = new EmbedBuilder()
                     .setColor(color1)
@@ -242,11 +273,11 @@ async function handleBoostTicketInteraction(interaction) {
                 return;
             } catch (error) {
                 console.error('Lỗi quy trình tạo Role VIP Gradient:', error);
-                return await ticketChannel.send({ content: `❌ **Lỗi đồng bộ phân quyền:** Không thể kích hoạt tab Chuyển Màu. Sếp kiểm tra lại cài đặt Server, kéo Role mang tên con Bot lên trên cùng bảng danh sách vai trò nhé!` });
+                return await ticketChannel.send({ content: `❌ **Lỗi đồng bộ phân quyền:** Không thể kích hoạt tab Chuyển Màu. Sếp kiểm tra lại cài đặt Server!` });
             }
         }
 
-        // [Giữ nguyên logic modal Voice cũ của sếp]
+        // --- MODAL KHỞI TẠO PHÒNG VOICE VIP ---
         if (customId === 'boost_voice_modal_submit') {
             await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
             const roomName = interaction.fields.getTextInputValue('voice_room_name_input');
@@ -287,7 +318,7 @@ async function handleBoostTicketInteraction(interaction) {
             }
         }
 
-        // Logic Modal Đổi Tên, Duyệt Bạn, Đuổi Người cũ giữ nguyên...
+        // --- MODAL ĐỔI TÊN PHÒNG ---
         if (customId.startsWith('vip_modal_rename_')) {
             const channelId = customId.replace('vip_modal_rename_', '');
             const channel = interaction.guild.channels.cache.get(channelId);
@@ -297,18 +328,23 @@ async function handleBoostTicketInteraction(interaction) {
             return await interaction.reply({ content: `✅ Đã cập nhật danh xưng mới: **💎｜${newName}**`, flags: [MessageFlags.Ephemeral] });
         }
 
-        if (customId.startsWith('vip_modal_allowuser_')) {
-            const channelId = customId.replace('vip_modal_allowuser_', '');
+        // --- MODAL CHỈNH GIỚI HẠN NGƯỜI TỰ DO ---
+        if (customId.startsWith('vip_modal_limit_')) {
+            const channelId = customId.replace('vip_modal_limit_', '');
             const channel = interaction.guild.channels.cache.get(channelId);
             if (!channel) return await interaction.reply({ content: '❌ Kênh không tồn tại!', flags: [MessageFlags.Ephemeral] });
-            const userInput = interaction.fields.getTextInputValue('vip_user_id_input').trim().replace(/[<@!>]/g, '');
-            try {
-                const member = await interaction.guild.members.fetch(userInput);
-                await channel.permissionOverwrites.edit(member.id, { Connect: true, ViewChannel: true });
-                return await interaction.reply({ content: `✅ Đã duyệt quyền kết nối cho <@${member.id}>!`, flags: [MessageFlags.Ephemeral] });
-            } catch (e) { return await interaction.reply({ content: '❌ Người dùng không hợp lệ!', flags: [MessageFlags.Ephemeral] }); }
+            
+            const limitVal = parseInt(interaction.fields.getTextInputValue('vip_limit_input').trim(), 10);
+            if (isNaN(limitVal) || limitVal < 0 || limitVal > 99) {
+                return await interaction.reply({ content: '❌ Vui lòng nhập số nguyên từ **0 đến 99**!', flags: [MessageFlags.Ephemeral] });
+            }
+
+            await channel.setUserLimit(limitVal);
+            const msgText = limitVal === 0 ? '🔄 Đã đặt phòng thành **Vô Hạn người**!' : `👥 Đã chỉnh giới hạn phòng thành **${limitVal} người**!`;
+            return await interaction.reply({ content: msgText, flags: [MessageFlags.Ephemeral] });
         }
 
+        // --- MODAL KICK NGƯỜI ---
         if (customId.startsWith('vip_modal_kick_')) {
             const channelId = customId.replace('vip_modal_kick_', '');
             const channel = interaction.guild.channels.cache.get(channelId);
@@ -324,7 +360,7 @@ async function handleBoostTicketInteraction(interaction) {
         return; 
     }
 
-    // --- XỬ LÝ MENU CHỌN TONE MÀU CHÍNH VỚI 24 MÀU KHỦNG ---
+    // --- XỬ LÝ MENU CHỌN TONE MÀU ---
     if (interaction.isStringSelectMenu()) {
         if (customId === 'vip_color_select_tone') {
             const selectedTone = interaction.values[0];
@@ -410,7 +446,6 @@ async function handleBoostTicketInteraction(interaction) {
             });
         }
 
-        // --- SỰ KIỆN CHỌN MÀU: BẮN TIẾP MODAL ĐỂ NHẬP TÊN ROLE MONG MUỐN ---
         if (customId === 'vip_color_select_match') {
             const colorPairValue = interaction.values[0];
             
@@ -452,7 +487,6 @@ async function handleBoostTicketInteraction(interaction) {
             });
         }
 
-        // [Giữ nguyên nút bấm Voice VIP cũ]
         if (customId === 'boost_voice_modal_trigger') {
             if (!interaction.member.premiumSince && interaction.user.id !== process.env.ADMIN_ID) {
                 return await interaction.reply({ content: `❌ Quyền khởi tạo chỉ dành riêng cho **Nitro Booster**!`, flags: [MessageFlags.Ephemeral] });
@@ -469,7 +503,6 @@ async function handleBoostTicketInteraction(interaction) {
             return await interaction.showModal(modal);
         }
 
-        // SỰ KIỆN BẤM NÚT NHẬN ROLE: Mở không gian Ticket hỗ trợ riêng tư
         if (customId === 'boost_ticket_create') {
             if (!interaction.member.premiumSince && interaction.user.id !== process.env.ADMIN_ID) {
                 return await interaction.reply({ content: `❌ Yêu cầu quyền **Nitro Booster**!`, flags: [MessageFlags.Ephemeral] });
@@ -518,7 +551,7 @@ async function handleBoostTicketInteraction(interaction) {
             }
         }
 
-        // --- Cụm lệnh tương tác quản trị Voice VIP cũ giữ nguyên hoàn toàn ---
+        // --- BỘ NÚT TƯƠNG TÁC QUẢN TRỊ VOICE VIP ---
         if (customId.startsWith('vip_')) {
             const parts = customId.split('_');
             const action = parts[1]; 
@@ -539,10 +572,10 @@ async function handleBoostTicketInteraction(interaction) {
                     return await interaction.reply({ content: '🔓 Đã chuyển trạng thái: **Công khai**.', flags: [MessageFlags.Ephemeral] });
                 }
                 else if (action === 'allowuser') {
-                    const modal = new ModalBuilder().setCustomId(`vip_modal_allowuser_${channelId}`).setTitle('Duyệt Cấp Quyền Kết Nối');
-                    const userInput = new TextInputBuilder().setCustomId('vip_user_id_input').setLabel("Nhập ID hoặc Tag người được cấp quyền:").setStyle(TextInputStyle.Short).setRequired(true);
-                    modal.addComponents(new ActionRowBuilder().addComponents(userInput));
-                    return await interaction.showModal(modal);
+                    return await interaction.reply({ 
+                        content: `💡 **Mẹo thêm bạn vào room cực nhanh:** Sếp chỉ cần **Tag trực tiếp tên bạn đó (ví dụ \`@username\`)** ngay tại ô chat của phòng voice này. Bot sẽ tự nhận diện và mở quyền cho bạn ấy vào ngay!`, 
+                        flags: [MessageFlags.Ephemeral] 
+                    });
                 }
                 else if (action === 'kick') {
                     const modal = new ModalBuilder().setCustomId(`vip_modal_kick_${channelId}`).setTitle('Ngắt Kết Nối Thành Viên');
@@ -572,9 +605,26 @@ async function handleBoostTicketInteraction(interaction) {
                     modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
                     return await interaction.showModal(modal);
                 }
-                else if (action === 'limit5') {
-                    await channel.setUserLimit(5);
-                    return await interaction.reply({ content: '👥 Đã đặt Limit 5 người.', flags: [MessageFlags.Ephemeral] });
+                else if (action === 'customlimit') {
+                    const modal = new ModalBuilder().setCustomId(`vip_modal_limit_${channelId}`).setTitle('👥 Đổi Giới Hạn Người Vào');
+                    const limitInput = new TextInputBuilder()
+                        .setCustomId('vip_limit_input')
+                        .setLabel("Nhập số lượng giới hạn (0 = Vô Hạn):")
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder("Nhập một số từ 0 đến 99...")
+                        .setMinLength(1)
+                        .setMaxLength(2)
+                        .setRequired(true);
+                    modal.addComponents(new ActionRowBuilder().addComponents(limitInput));
+                    return await interaction.showModal(modal);
+                }
+                else if (action === 'unlimit') {
+                    await channel.setUserLimit(0);
+                    return await interaction.reply({ content: '🔄 Đã đưa phòng về trạng thái **Vô Hạn người (0)**.', flags: [MessageFlags.Ephemeral] });
+                }
+                else if (action === 'delete') {
+                    await channel.delete();
+                    return;
                 }
             } catch (e) { return await interaction.reply({ content: '❌ Lỗi hệ thống!', flags: [MessageFlags.Ephemeral] }); }
         }
@@ -585,5 +635,6 @@ module.exports = {
     handleSpawnVipCommand,
     handleServerBoost,
     handleMenuVipCommand,
+    handleAutoGrantPermission,
     handleBoostTicketInteraction
 };

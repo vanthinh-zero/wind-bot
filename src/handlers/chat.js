@@ -82,6 +82,72 @@ async function handleChatInteraction(message) {
         return true;
     }
 
+    // 💡 LỆNH TRA THÔNG TIN NGƯỜI DÙNG -> GỬI TẤT CẢ VÀO DM
+    if (contentLower.startsWith("tra thông tin")) {
+        const match = content.match(/tra thông tin\s+(?:<@!?(\d+)>|(\d+))/i);
+        
+        if (match) {
+            const targetId = match[1] || match[2]; // Lấy ID người dùng được tra cứu
+
+            // Phản hồi tại kênh theo đúng yêu cầu
+            await message.reply("tôi sẽ gửi thông tin qua hộp thư sau ít phút");
+
+            // Xử lý lấy tất cả thông tin và gửi vào Inbox (DM)
+            (async () => {
+                try {
+                    // Lấy dữ liệu thành viên từ server & user từ client
+                    const member = await message.guild?.members.fetch(targetId).catch(() => null);
+                    const user = member ? member.user : await message.client.users.fetch(targetId).catch(() => null);
+
+                    if (!user) {
+                        return await message.author.send(`❌ Không tìm thấy thông tin của ID: \`${targetId}\`.`);
+                    }
+
+                    // Lấy dữ liệu thống kê lưu trong bot
+                    const stats = CodeDocStats();
+                    const tagCount = stats[targetId] || 0;
+
+                    // Tổng hợp toàn bộ thông tin
+                    let fullInfo = `📂 **HỒ SƠ THÔNG TIN CHI TIẾT NGƯỜI DÙNG**\n`;
+                    fullInfo += `===================================\n`;
+                    fullInfo += `👤 **Tên tài khoản (Tag):** ${user.tag}\n`;
+                    fullInfo += `📛 **Tên hiển thị:** ${user.globalName || user.username}\n`;
+                    fullInfo += `🆔 **ID Người dùng:** \`${user.id}\`\n`;
+                    fullInfo += `🤖 **Tài khoản Bot:** ${user.bot ? 'Có' : 'Không'}\n`;
+                    fullInfo += `🗓️ **Ngày tạo tài khoản:** <t:${Math.floor(user.createdTimestamp / 1000)}:F> (<t:${Math.floor(user.createdTimestamp / 1000)}:R>)\n`;
+
+                    if (member) {
+                        fullInfo += `📥 **Ngày tham gia Server:** <t:${Math.floor(member.joinedTimestamp / 1000)}:F> (<t:${Math.floor(member.joinedTimestamp / 1000)}:R>)\n`;
+                        
+                        const rolesList = member.roles.cache
+                            .filter(r => r.name !== '@everyone')
+                            .map(r => r.name)
+                            .join(', ') || 'Không có vai trò riêng';
+                            
+                        fullInfo += `🏷️ **Chức vụ trong Server:** ${rolesList}\n`;
+                        fullInfo += `👑 **Biệt danh Server:** ${member.nickname || 'Không đặt'}\n`;
+                    } else {
+                        fullInfo += `⚠️ **Trạng thái Server:** Người dùng này không còn ở trong Server.\n`;
+                    }
+
+                    fullInfo += `-----------------------------------\n`;
+                    fullInfo += `📊 **Dữ liệu thống kê Bot ghi nhận:** ${tagCount} lần gọi/tag bot\n`;
+                    fullInfo += `🖼️ **Ảnh đại diện:** ${user.displayAvatarURL({ dynamic: true, size: 1024 })}\n`;
+                    fullInfo += `===================================`;
+
+                    // Gửi trực tiếp vào hộp thư riêng (DM) của người tra cứu
+                    await message.author.send(fullInfo);
+
+                } catch (err) {
+                    console.error("Lỗi gửi tin nhắn riêng:", err);
+                    await message.channel.send(`⚠️ <@${message.author.id}>, bot không thể gửi tin nhắn riêng cho bạn. Hãy mở tính năng nhận tin nhắn riêng (Allow Direct Messages) trong cài đặt Server nhé!`).catch(() => null);
+                }
+            })();
+
+            return true; // Dừng không cho AI nhảy vào phản hồi tiếp
+        }
+    }
+
     // Lệnh thống kê tag (Cả Admin và Staff đều xem được)
     if (contentLower === "!thongketag") {
         const stats = CodeDocStats();

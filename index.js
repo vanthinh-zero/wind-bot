@@ -6,7 +6,6 @@ const { Client, GatewayIntentBits, Events } = require('discord.js');
 const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js'); 
-// 🔴 ĐÃ CẬP NHẬT ĐỂ NHẬN THÊM HÀM SENDTICKETSETUP
 const { handleTicketInteraction, sendTicketSetup } = require('./src/handlers/ticket.js');
 const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/tutien.js');
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
@@ -19,15 +18,21 @@ const { handleAvatarCheck } = require('./src/handlers/avatar.js');
 const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js'); 
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
-
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
+
+// 👤 MODULE PROFILE & BIO
+const { handleProfileCommand } = require('./src/handlers/profile.js');
+
+// 🎵 IMPORT MODULE KIỂM TRA BOT NHẠC
+const { handleMusicCheckCommand } = require('./src/handlers/musicChecker.js');
 
 // 🚀 HỆ THỐNG BOOSTER
 const { 
     handleServerBoost, 
     handleBoostTicketInteraction, 
     handleMenuVipCommand, 
-    handleSpawnVipCommand 
+    handleSpawnVipCommand,
+    handleAutoGrantPermission
 } = require('./src/handlers/boostHandler.js');
 
 // Bổ sung logic quét phòng trống an toàn trực tiếp
@@ -77,7 +82,7 @@ const handlePostToFacebook = require('./src/handlers/marketing.js').handlePostTo
 // 📚 MODULE TỪ VỰNG TIẾNG ANH ĐỊNH KỲ
 const vocabularySystem = require('./src/handlers/vocabulary.js');
 
-// --- KHỞI TẠO WEB SERVER ĐỂ TREO BOT ---
+// --- KHỞI TẠO WEB SERVER ĐỂ TREO BOT CẢ NĂM TRÊN RENDER ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -91,7 +96,7 @@ app.listen(PORT, () => {
     console.log(`==================================================`);
 });
 
-// --- KHỞI TẠO DISCORD CLIENT ---
+// --- KHỞI TẠO DISCORD CLIENT VỚI ĐẦY ĐỦ INTENTS ---
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -99,7 +104,8 @@ const client = new Client({
         GatewayIntentBits.MessageContent, 
         GatewayIntentBits.GuildMembers, 
         GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.GuildMessageReactions
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildPresences
     ]
 });
 
@@ -207,11 +213,20 @@ client.on('messageCreate', async (message) => {
     addMessageCount(message.author.id, message.author.username);
 
     try {
+        // TỰ ĐỘNG CẤP QUYỀN TRUY CẬP PHÒNG VIP KHI CHỦ PHÒNG TAG NGƯỜI DÙNG
+        await handleAutoGrantPermission(message);
+
+        // 🎵 KIỂM TRA LỆNH BOT NHẠC (!music / !musicbot / !music bot)
+        if (await handleMusicCheckCommand(message)) return;
+
         if (await handleRuleCommand(message)) return;
+
+        // 👤 XỬ LÝ LỆNH PROFILE VÀ BIO (!profile / !bio)
+        if (await handleProfileCommand(message)) return;
 
         const msgContent = message.content.trim().toLowerCase();
 
-        // 🔴 ĐOẠN XỬ LÝ LỆNH SPAWN TICKET MỚI
+        // XỬ LÝ LỆNH SPAWN TICKET MỚI
         if (msgContent === '!set ticket') {
             if (!message.member.permissions.has('Administrator')) {
                 return message.reply('❌ Bạn cần có quyền \`Administrator\` để sử dụng lệnh này.');
@@ -329,8 +344,6 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.isButton()) {
             if (customId.startsWith('tarot_')) { await handleTarotInteraction(interaction); return; }
             if (customId.startsWith('tt_')) { await handleTuTienInteraction(interaction); return; }
-            
-            // 🔴 XỬ LÝ NÚT BẤM TICKET (Hỗ trợ định dạng customId mới chứa chữ 'ticket')
             if (customId.includes('ticket')) { await handleTicketInteraction(interaction); return; }
         }
 
