@@ -1,6 +1,8 @@
 const { PermissionsBitField, AttachmentBuilder } = require('discord.js');
 // 🚀 Tích hợp thư viện Google Gen AI SDK mới nhất để định nghĩa biến 'ai'
 const { GoogleGenAI } = require('@google/genai');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // Khởi tạo thực thể AI an toàn từ file môi trường .env
@@ -11,6 +13,34 @@ const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey }) : null;
 let CO_AUTO_CHAT = true;
 let BOT_MOOD = 'macdinh'; 
 let KENH_CONTENT_ID = process.env.KENH_CONTENT_ID || null;
+
+// --- 📂 BỔ SUNG: LƯU TRỮ VÀ QUẢN LÝ TỪ KHÓA TỰ ĐỘNG ---
+const tukhoaFilePath = path.join(__dirname, 'tukhoa.json');
+
+// Hàm đọc danh sách từ khóa từ file JSON
+function CodeDocTuKhoa() {
+    try {
+        if (!fs.existsSync(tukhoaFilePath)) {
+            fs.writeFileSync(tukhoaFilePath, JSON.stringify({}, null, 4));
+            return {};
+        }
+        const data = fs.readFileSync(tukhoaFilePath, 'utf8');
+        return JSON.parse(data || '{}');
+    } catch (e) {
+        console.error("❌ Lỗi đọc file tukhoa.json:", e);
+        return {};
+    }
+}
+
+// Hàm ghi danh sách từ khóa vào file JSON
+function CodeGhiTuKhoa(data) {
+    try {
+        fs.writeFileSync(tukhoaFilePath, JSON.stringify(data, null, 4));
+    } catch (e) {
+        console.error("❌ Lỗi ghi file tukhoa.json:", e);
+    }
+}
+// -----------------------------------------------------
 
 // Giả lập hoặc bọc các hàm hệ thống lưu trữ thống kê tránh lỗi crash
 function CodeDocStats() {
@@ -53,9 +83,126 @@ async function handleChatInteraction(message) {
     const contentLower = content.toLowerCase();
     const clientUser = message.client.user;
 
-    // 1. KIỂM TRA QUYỀN TRUY CẬP (Chỉ Admin hoặc Staff mới được đi tiếp)
+    // 1. KIỂM TRA QUYỀN TRUY CẬP 
     const isAdmin = message.author.id === process.env.ADMIN_ID || message.member?.permissions.has(PermissionsBitField.Flags.Administrator);
-    const isStaff = message.member?.roles.cache.some(role => role.name.toLowerCase() === 'bò quản trị');
+    
+    // 💡 Danh sách Role được phép gọi lệnh Staff / Lễ tân: "Bò quản trị" và "Bò thân thiện"
+    const danhSachRoleHopLe = ['bò quản trị', 'bò thân thiện', 'bo than thien'];
+    const isStaff = message.member?.roles.cache.some(role => 
+        danhSachRoleHopLe.includes(role.name.toLowerCase())
+    );
+
+    // --- ⚙️ HỆ THỐNG QUẢN LÝ TỪ KHÓA (!tukhoa) - HỖ TRỢ XUỐNG DÒNG MULTI-LINE ---
+    if (contentLower.startsWith("!tukhoa")) {
+        if (!isAdmin && !isStaff) {
+            await message.reply("❌ Bạn không có quyền sử dụng lệnh quản lý từ khóa!");
+            return true;
+        }
+
+        let danhSachTuKhoa = CodeDocTuKhoa();
+
+        // Cắt bỏ phần "!tukhoa" ở đầu
+        const restContent = content.slice(7).trim();
+        
+        // Xác định hành động (list, add, del/delete)
+        const firstSpaceIndex = restContent.search(/\s/);
+        const action = (firstSpaceIndex === -1 ? restContent : restContent.slice(0, firstSpaceIndex)).toLowerCase();
+
+        // 1. Xem danh sách từ khóa: !tukhoa list
+        if (action === "list") {
+            const keys = Object.keys(danhSachTuKhoa);
+            if (keys.length === 0) {
+                await message.reply("📝 Chưa có từ khóa nào được thiết lập.");
+                return true;
+            }
+            let listMsg = "📋 **DANH SÁCH TỪ KHÓA TỰ ĐỘNG PHẢN HỒI:**\n";
+            keys.forEach((key, index) => {
+                listMsg += `**${index + 1}.** \`${key}\` ➡️\n${danhSachTuKhoa[key]}\n-------------------\n`;
+            });
+            await message.reply(listMsg);
+            return true;
+        }
+
+        // 2. Thêm từ khóa: !tukhoa add <từ khóa> <nội dung phản hồi (có thể xuống dòng)>
+        if (action === "add") {
+            let tuKhoaNew = "";
+            let phanHoiNew = "";
+
+            // Trường hợp 1: Dùng định dạng phân tách bằng dấu '|'
+            if (restContent.includes("|")) {
+                const parts = restContent.split("|").map(item => item.trim());
+                tuKhoaNew = parts[1]?.toLowerCase();
+                phanHoiNew = parts.slice(2).join("|").trim();
+            } else {
+                // Trường hợp 2: Dùng khoảng trắng/xuống dòng thông thường
+                const afterAdd = restContent.slice(3).trim(); // Bỏ chữ "add"
+                const matchKey = afterAdd.match(/^([^\s]+)\s+([\s\S]+)/); // Bắt từ khóa là từ đầu tiên, phần còn lại là nội dung phản hồi (kể cả xuống dòng)
+                
+                if (matchKey) {
+                    tuKhoaNew = matchKey[1].toLowerCase();
+                    phanHoiNew = matchKey[2].trim();
+                }
+            }
+
+            if (!tuKhoaNew || !phanHoiNew) {
+                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa add <từ khóa> <câu phản hồi>`\n*Lưu ý:* Bạn có thể bấm **Shift + Enter** để xuống dòng thoải mái trong câu phản hồi!");
+                return true;
+            }
+
+            // Hỗ trợ tự chuyển đổi chữ '\n' viết tay thành xuống dòng thực tế
+            phanHoiNew = phanHoiNew.replace(/\\n/g, '\n');
+
+            danhSachTuKhoa[tuKhoaNew] = phanHoiNew;
+            CodeGhiTuKhoa(danhSachTuKhoa);
+            await message.reply(`✅ Đã thêm từ khóa \`${tuKhoaNew}\` với câu phản hồi:\n${phanHoiNew}`);
+            return true;
+        }
+
+        // 3. Xóa từ khóa: !tukhoa del <từ khóa>
+        if (action === "del" || action === "delete") {
+            let tuKhoaDel = "";
+            if (restContent.includes("|")) {
+                const parts = restContent.split("|").map(item => item.trim());
+                tuKhoaDel = parts[1]?.toLowerCase();
+            } else {
+                const parts = restContent.split(/\s+/);
+                tuKhoaDel = parts[1]?.toLowerCase();
+            }
+
+            if (!tuKhoaDel) {
+                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa del <từ khóa>`");
+                return true;
+            }
+
+            if (!danhSachTuKhoa[tuKhoaDel]) {
+                await message.reply(`❌ Từ khóa \`${tuKhoaDel}\` không tồn tại trong hệ thống.`);
+                return true;
+            }
+
+            delete danhSachTuKhoa[tuKhoaDel];
+            CodeGhiTuKhoa(danhSachTuKhoa);
+            await message.reply(`🗑️ Đã xóa từ khóa \`${tuKhoaDel}\` thành công!`);
+            return true;
+        }
+
+        // Hướng dẫn cú pháp khi gõ sai
+        await message.reply(
+            "💡 **HƯỚNG DẪN SỬ DỤNG LỆNH !TUKHOA:**\n" +
+            "• **Thêm từ khóa:** `!tukhoa add <từ khóa> <câu trả lời>` (Cho phép xuống dòng nhiều dòng)\n" +
+            "• **Xóa từ khóa:** `!tukhoa del <từ khóa>`\n" +
+            "• **Xem danh sách:** `!tukhoa list`"
+        );
+        return true;
+    }
+
+    // --- 🤖 TỰ ĐỘNG PHẢN HỒI KHI PHÁT HIỆN TỪ KHÓA ---
+    const danhSachTuKhoa = CodeDocTuKhoa();
+    if (danhSachTuKhoa[contentLower]) {
+        const phanHoi = danhSachTuKhoa[contentLower];
+        await message.reply(`${phanHoi}`);
+        return true; // Phản hồi xong dừng luôn, không gửi sang AI
+    }
+    // --------------------------------------------------------
 
     if (!isAdmin && !isStaff) return false; 
 
@@ -82,20 +229,17 @@ async function handleChatInteraction(message) {
         return true;
     }
 
-    // 💡 LỆNH TRA THÔNG TIN NGƯỜI DÙNG -> GỬI TẤT CẢ VÀO DM
+    // 💡 LỆNH TRA THÔNG TIN NGƯỜI DÙNG -> BÒ THÂN THIỆN (LỄ TÂN) & BÒ QUẢN TRỊ & ADMIN DÙNG ĐƯỢC
     if (contentLower.startsWith("tra thông tin")) {
         const match = content.match(/tra thông tin\s+(?:<@!?(\d+)>|(\d+))/i);
         
         if (match) {
-            const targetId = match[1] || match[2]; // Lấy ID người dùng được tra cứu
+            const targetId = match[1] || match[2]; 
 
-            // Phản hồi tại kênh theo đúng yêu cầu
             await message.reply("tôi sẽ gửi thông tin qua hộp thư sau ít phút");
 
-            // Xử lý lấy tất cả thông tin và gửi vào Inbox (DM)
             (async () => {
                 try {
-                    // Lấy dữ liệu thành viên từ server & user từ client
                     const member = await message.guild?.members.fetch(targetId).catch(() => null);
                     const user = member ? member.user : await message.client.users.fetch(targetId).catch(() => null);
 
@@ -103,11 +247,9 @@ async function handleChatInteraction(message) {
                         return await message.author.send(`❌ Không tìm thấy thông tin của ID: \`${targetId}\`.`);
                     }
 
-                    // Lấy dữ liệu thống kê lưu trong bot
                     const stats = CodeDocStats();
                     const tagCount = stats[targetId] || 0;
 
-                    // Tổng hợp toàn bộ thông tin
                     let fullInfo = `📂 **HỒ SƠ THÔNG TIN CHI TIẾT NGƯỜI DÙNG**\n`;
                     fullInfo += `===================================\n`;
                     fullInfo += `👤 **Tên tài khoản (Tag):** ${user.tag}\n`;
@@ -135,7 +277,6 @@ async function handleChatInteraction(message) {
                     fullInfo += `🖼️ **Ảnh đại diện:** ${user.displayAvatarURL({ dynamic: true, size: 1024 })}\n`;
                     fullInfo += `===================================`;
 
-                    // Gửi trực tiếp vào hộp thư riêng (DM) của người tra cứu
                     await message.author.send(fullInfo);
 
                 } catch (err) {
@@ -144,11 +285,11 @@ async function handleChatInteraction(message) {
                 }
             })();
 
-            return true; // Dừng không cho AI nhảy vào phản hồi tiếp
+            return true;
         }
     }
 
-    // Lệnh thống kê tag (Cả Admin và Staff đều xem được)
+    // Lệnh thống kê tag
     if (contentLower === "!thongketag") {
         const stats = CodeDocStats();
         const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
@@ -169,7 +310,6 @@ async function handleChatInteraction(message) {
 
     // 3. XỬ LÝ NHẬN DIỆN ĐỂ GỌI AI
     if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
-        // Kiểm tra thực thể AI đã được tạo thành công chưa
         if (!ai) {
             await message.reply("Hệ thống chưa cấu hình hoặc cấu hình sai biến GEMINI_KEY tại file .env.");
             return true;
@@ -188,7 +328,7 @@ async function handleChatInteraction(message) {
                 userPrompt = userPrompt.slice(4).trim();
             }
 
-            const roleUserText = isAdmin ? "Admin tối cao" : "Staff (Nhân viên cấp dưới)";
+            const roleUserText = isAdmin ? "Admin tối cao" : "Staff / Lễ tân (Bò thân thiện)";
 
             const systemInstruction = BOT_MOOD === 'cold'
                 ? `Bạn là "wind" - trợ lý tổng tài, lạnh lùng, ít nói. Bạn đang trò chuyện với ${message.author.username} (Chức vụ: ${roleUserText}).
@@ -199,11 +339,11 @@ async function handleChatInteraction(message) {
                    - Tạo Kênh: [CMD:CREATE_CHANNEL:Tên Kênh:text hoặc voice]
                    - Xóa kênh: [CMD:DELETE_CHANNEL]
                    - Đổi biệt danh: [CMD:SET_NICK:ID_MEMBER:Biệt danh mới].
-                   Nếu chức vụ của họ là Staff, TUYỆT ĐỐI KHÔNG chèn các mã lệnh trên, chỉ trò chuyện hỗ trợ thông thường.`
+                   Nếu chức vụ của họ là Staff/Lễ tân, TUYỆT ĐỐI KHÔNG chèn các mã lệnh trên, chỉ trò chuyện hỗ trợ thông thường.`
                 : `Bạn là "wind" - trợ lý của server "ĐÀN BÒ BIẾT BAY". Bạn đang trò chuyện với ${message.author.username} (Chức vụ: ${roleUserText}).
                    Hãy trả lời bằng phong cách lém lỉnh, trung thành.
                    *Lưu ý quan trọng*: Chỉ khi chức vụ là "Admin tối cao" bạn mới được chèn mã hệ thống thực thi lệnh: [CMD:CREATE_ROLE...], [CMD:CLEAR_MSG...], [CMD:CREATE_CHANNEL...], [CMD:DELETE_CHANNEL], [CMD:SET_NICK...].
-                   Nếu họ là Staff, tuyệt đối không chèn mã lệnh phá cấu hình server, chỉ trả lời bằng lời nói lém lỉnh bình thường.`;
+                   Nếu họ là Staff/Lễ tân, tuyệt đối không chèn mã lệnh phá cấu hình server, chỉ trả lời bằng lời nói lém lỉnh bình thường.`;
 
             const targetUser = message.mentions.users.first();
             let promptText = `${roleUserText} nói: "${userPrompt}"`;
@@ -223,11 +363,11 @@ async function handleChatInteraction(message) {
 
             let botReply = response.text || (BOT_MOOD === 'cold' ? "Rõ." : "Em nghe đây ạ!");
 
-            // 4. HẠN CHẾ STAFF Ở TẦNG THỰC THI
+            // 4. HẠN CHẾ STAFF/LỄ TÂN Ở TẦNG THỰC THI LỆNH HỆ THỐNG
             const containsCommand = botReply.includes('[CMD:');
             if (containsCommand && !isAdmin) {
                 botReply = botReply.replace(/\[CMD:.*?\]/g, '').trim(); 
-                botReply += BOT_MOOD === 'cold' ? "\n(Yêu cầu thực thi lệnh bị từ chối do thiếu quyền)." : "\n*(Lệnh hệ thống bị hủy vì Staff không có quyền cấu hình server nhé!)*";
+                botReply += BOT_MOOD === 'cold' ? "\n(Yêu cầu thực thi lệnh bị từ chối do thiếu quyền)." : "\n*(Lệnh hệ thống bị hủy vì Nhân viên/Lễ tân không có quyền cấu hình server nhé!)*";
                 await message.reply(botReply);
                 return true;
             }
