@@ -160,7 +160,7 @@ async function handleProfileInteraction(interaction) {
             .setDescription(
                 `### ${profileData.badge || '👑'} **${targetUser.displayName}**\n` +
                 `> *"${profileData.bio || 'Chưa có lời giới thiệu.'}"*\n\n` +
-                `────୨ৎ────────୨ৎ────────୨ৎ────────୨ৎ────`
+                `─────୨ৎ────────୨ৎ────────୨ৎ─────`
             )
             .addFields(
                 { name: '📌 Trạng thái', value: profileData.status || 'Đang hoạt động', inline: false },
