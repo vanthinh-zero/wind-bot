@@ -1,21 +1,21 @@
 {
     "1037019422918983810": {
         "username": "nmdang140209",
-        "totalMessages": 57,
+        "totalMessages": 58,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-21": 7,
-            "2026-07-22": 50
+            "2026-07-22": 51
         },
         "dailyVoice": {}
     },
     "910001518328033301": {
         "username": "vanthinh_11",
-        "totalMessages": 46,
+        "totalMessages": 63,
         "totalVoiceMinutes": 4,
         "dailyMessages": {
             "2026-07-21": 10,
-            "2026-07-22": 36
+            "2026-07-22": 53
         },
         "dailyVoice": {
             "2026-07-22": 4
@@ -54,10 +54,10 @@
     },
     "1497870613652701326": {
         "username": "ngynqtr_0212",
-        "totalMessages": 6,
+        "totalMessages": 8,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-22": 6
+            "2026-07-22": 8
         },
         "dailyVoice": {}
     }

@@ -74,43 +74,69 @@ async function handleWindCommand(message) {
 
     if (command === '!wind') {
         const windEmbed = new EmbedBuilder()
-            .setColor('#2b2d31')
-            .setTitle('📋 BẢNG HƯỚNG DẪN LỆNH & PHÂN QUYỀN HỆ THỐNG')
-            .setDescription('Danh mục tra cứu toàn bộ lệnh và phân cấp thẩm quyền trên máy chủ:')
+            .setColor('#8CC0EB')
+            .setTitle('📋 BẢNG HƯỚNG DẪN MẬT LỆNH & PHÂN QUYỀN')
+            .setDescription('Danh mục lệnh hệ thống được phân cấp minh bạch theo từng thẩm quyền:\n\n───────────────')
             .addFields(
+                // --- NHÓM THÀNH VIÊN ---
                 { 
-                    name: '🟢 THÀNH VIÊN (Tất cả mọi người)', 
-                    value: '• **Hồ sơ & Trang trí:** `/profile`, `/bio`, `/status`, `/setcolor`, `/setbadge`, `/setmedia`, `/setgif`\n' +
-                           '• **Tương tác xã hội & Tình cảm:** `/totinh`, `/kethon`, `/banthan`, `/om`, `/hon`, `/xoadau`, `/veo`\n' +
-                           '• **Giải trí & Games:** `!noitu`, `!pet`, `!poem`, `!tarot`, `!chualanh`, `!rule`\n' +
-                           '• **Học tập & Từ vựng:** `!vocabulary` (Tự động gửi/học từ vựng)\n' +
-                           '• **Tài chính & Cá cược:** `!taixiu` (Chơi tài xỉu)\n' +
-                           '• **Tu Chân RPG:** `!tutien` (Bảng điều khiển tu luyện, săn thú)\n' +
-                           '• **Tương tác AI:** Tag `@Wind` hoặc nhắn `Wind ơi...`'
+                    name: '🟢 [1] DÀNH CHO TOÀN THỂ THÀNH VIÊN', 
+                    value: '• **Trang trí cá nhân:** `/profile`, `/bio`, `/status`, `/setcolor`, `/setbadge`, `/setmedia`, `/setgif`\n' +
+                           '• **Tương tác xã hội:** `/totinh`, `/kethon`, `/banthan`, `/om`, `/hon`, `/xoadau`, `/veo`\n' +
+                           '• **Trò chơi & Giải trí:** `!noitu`, `!pet`, `!poem`, `!tarot`, `!chualanh`, `!rule`\n' +
+                           '• **Học tập & Ôn thi:** `!dethi <môn> <đề_số>` (Lấy đề thi), `!vocabulary` (Tự động gửi từ vựng)\n' +
+                           '• **Tài chính & Cá cược:** `!taixiu` (Đặt cược tài xỉu)\n' +
+                           '• **Hệ thống Tu Chân:** `!tutien` (Bảng điều khiển tu luyện & săn thú)\n' +
+                           '• **Trò chuyện AI:** Tag `@Wind` hoặc gõ `Wind ơi...`'
                 },
                 { 
-                    name: '⭐ VIP & NITRO BOOSTER', 
-                    value: '• `!svip`: Kích hoạt đặc quyền khu vực VIP / Booster\n' +
-                           '• `!menuvip`: Quản lý phòng Voice riêng (Khóa/Mở, Đổi tên, Đặt slot, Kick người)'
+                    name: '⠀', 
+                    value: '───────────────' 
+                },
+
+                // --- NHÓM VIP ---
+                { 
+                    name: '⭐ [2] QUYỀN HẠN VIP & NITRO BOOSTER', 
+                    value: '• **Đặc quyền VIP:** `!svip` (Khởi tạo khu vực VIP)\n' +
+                           '• **Quản lý Voice:** `!menuvip` (Bảng quản lý phòng Voice: Khóa/Mở, Đổi tên, Đặt slot, Kick thành viên)'
                 },
                 { 
-                    name: '🛡️ BỒ QUẢN TRỊ & LỄ TÂN (STAFF)', 
-                    value: '📌 **Thẩm quyền Vận hành & Giám sát Máy chủ:**\n' +
-                           '• **Quản lý Phản hồi tự động:** `!tukhoa add/del/list` (Thiết lập câu trả lời tự động)\n' +
-                           '• **Hỗ trợ & Ticket:** `!ticket` (Quản lý và giải quyết ticket hỗ trợ thành viên)\n' +
-                           '• **Tra cứu bảo mật:** `!trathongtin @User` *(Gửi hồ sơ riêng tư vào DM)*\n' +
-                           '• **Thống kê tương tác:** `!topchatimage` / `!thongketag` *(Xem TOP thành viên tag Bot)*\n' +
-                           '• **Sáng tạo nội dung:** `!taocontent <chủ_đề>` *(Yêu cầu AI lập kịch bản tại kênh Content)*'
+                    name: '⠀', 
+                    value: '───────────────' 
+                },
+
+                // --- NHÓM STAFF & LỄ TÂN ---
+                { 
+                    name: '🛡️ [3] ĐẶC QUYỀN BỒ QUẢN TRỊ & LỄ TÂN (STAFF)', 
+                    value: '📌 **Thẩm quyền Vận hành & Giám sát Máy chủ:**\n\n' +
+                           '• `!tukhoa add <từ_khóa> <câu_trả_lời>` — Thêm phản hồi tự động\n' +
+                           '• `!tukhoa del <từ_khóa>` — Xóa từ khóa phản hồi tự động\n' +
+                           '• `!tukhoa list` — Tra cứu danh sách từ khóa hệ thống\n' +
+                           '• `!trathongtin @User` — Trích xuất hồ sơ cá nhân kín (Gửi trực tiếp vào DM)\n' +
+                           '• `!topchatimage` / `!thongketag` — Kiểm tra thống kê tương tác thành viên\n' +
+                           '• `!taocontent <chủ_đề>` — Yêu cầu AI sáng tạo kịch bản tại kênh Content'
                 },
                 { 
-                    name: '👑 ADMIN TỐI CAO', 
-                    value: '🔑 **Thẩm quyền Điều hành & Cấu hình Hệ thống:**\n' +
-                           '• **Điều hành Server bằng AI:** Ra lệnh trực tiếp cho AI (`Tạo/Xóa kênh`, `Gán/Xóa Role`, `Đổi biệt danh`...)\n' +
-                           '• **Bảng điều khiển Bot:** `!autochat on/off` *(Bật/Tắt chat tự động)* | `!mood cold/macdinh` *(Thay đổi tính cách)*\n' +
-                           '• **Quản trị:** `!clear [số_tin]`, `!thuhoi @User [số_tiền]`, `!ping`'
+                    name: '⠀', 
+                    value: '───────────────' 
+                },
+
+                // --- NHÓM ADMIN ---
+                { 
+                    name: '👑 [4] QUYỀN HẠN TỐI CAO - ADMINISTRATOR', 
+                    value: '🔑 **Thẩm quyền Điều hành & Cấu hình Toàn Hệ Thống:**\n\n' +
+                           '• **Thao tác Server bằng AI:** Trực tiếp ra lệnh AI (`Tạo/Xóa kênh`, `Cấp/Xóa Role`, `Đổi biệt danh`...)\n' +
+                           '• `!autorole wind` — Bảng thiết lập & Spawn Auto Role tự động cho thành viên\n' +
+                           '• `!set ticket` — Khởi tạo / Spawn bảng tạo Ticket hỗ trợ\n' +
+                           '• `!setrule` — Khởi tạo / Cập nhật bảng Nội quy máy chủ\n' +
+                           '• `!autochat on/off` — Chủ động Bật/Tắt chế độ chat tự động của Bot\n' +
+                           '• `!mood cold/macdinh` — Tùy chỉnh phong cách phản hồi của AI\n' +
+                           '• `!clear [số_tin]` — Dọn dẹp tin nhắn hàng loạt\n' +
+                           '• `!thuhoi @User [số_tiền]` — Thao tác điều chỉnh số dư tài chính\n' +
+                           '• `!ping` — Kiểm tra độ trễ hệ thống'
                 }
             )
-            .setFooter({ text: '💡 Lưu ý: Cần có đủ Role tương ứng để thực thi các lệnh thuộc nhóm phân quyền.' })
+            .setFooter({ text: '💡 Lưu ý: Cần có đủ Role tương ứng để kích hoạt được các lệnh phân quyền.' })
             .setTimestamp();
 
         try {

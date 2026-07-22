@@ -51,7 +51,7 @@ async function handleWelcomeMember(member) {
                             inline: true 
                         }
                     )
-                    .setFooter({ text: `${member.guild.name} • Sổ Gia Súc`, iconURL: guildIcon })
+                    .setFooter({ text: 'Nhật kí trang trại', iconURL: guildIcon })
                     .setTimestamp();
 
                 // Kênh 1 bây giờ chỉ thông báo thường, không tag role thông báo nữa
