@@ -1,31 +1,33 @@
 {
     "1037019422918983810": {
         "username": "nmdang140209",
-        "totalMessages": 53,
+        "totalMessages": 57,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-21": 7,
-            "2026-07-22": 46
+            "2026-07-22": 50
         },
         "dailyVoice": {}
     },
     "910001518328033301": {
         "username": "vanthinh_11",
-        "totalMessages": 26,
-        "totalVoiceMinutes": 0,
+        "totalMessages": 46,
+        "totalVoiceMinutes": 4,
         "dailyMessages": {
             "2026-07-21": 10,
-            "2026-07-22": 16
+            "2026-07-22": 36
         },
-        "dailyVoice": {}
+        "dailyVoice": {
+            "2026-07-22": 4
+        }
     },
     "986537662066327583": {
         "username": "bongchuadauthai",
-        "totalMessages": 44,
+        "totalMessages": 49,
         "totalVoiceMinutes": 3,
         "dailyMessages": {
             "2026-07-21": 10,
-            "2026-07-22": 34
+            "2026-07-22": 39
         },
         "dailyVoice": {
             "2026-07-22": 3
@@ -47,6 +49,15 @@
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-22": 59
+        },
+        "dailyVoice": {}
+    },
+    "1497870613652701326": {
+        "username": "ngynqtr_0212",
+        "totalMessages": 6,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-22": 6
         },
         "dailyVoice": {}
     }

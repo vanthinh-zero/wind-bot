@@ -2,10 +2,8 @@ const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js'
 const fs = require('fs');
 const path = require('path');
 
-// Trỏ thẳng ra file profiles.json ở thư mục gốc (wind-bot/profiles.json)
 const dbPath = path.join(process.cwd(), 'profiles.json');
 
-// GIF mặc định
 const DEFAULT_GIF = 'https://media.discordapp.net/attachments/1528282202222235718/1528878087683706880/MOO_MOO_9.gif?ex=6a608eed&is=6a5f3d6d&hm=1ed4637eb577a1624a0d6d336fa3069836c6a77285de6fc4c6df4d91af18f581&=';
 
 const DEFAULT_PROFILE = {
@@ -15,7 +13,8 @@ const DEFAULT_PROFILE = {
     color: '#2B2D31',
     media: DEFAULT_GIF,
     badge: '👑',
-    footerText: 'Dùng các lệnh /set... để trang trí hồ sơ'
+    footerText: 'Dùng các lệnh /set... để trang trí hồ sơ',
+    relationships: { totinh: null, kethon: null, banthan: null }
 };
 
 function readDatabase() {
@@ -35,7 +34,6 @@ function readDatabase() {
 function writeDatabase(data) {
     try {
         fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
-        console.log('💾 [Profiles DB] Đã ghi dữ liệu thành công!');
     } catch (error) {
         console.error('Lỗi ghi vào profiles.json:', error);
     }
@@ -47,7 +45,11 @@ function getUserProfile(userId) {
         db[userId] = { ...DEFAULT_PROFILE };
         writeDatabase(db);
     }
-    return { ...DEFAULT_PROFILE, ...db[userId] };
+    const profile = { ...DEFAULT_PROFILE, ...db[userId] };
+    if (!profile.relationships) {
+        profile.relationships = { totinh: null, kethon: null, banthan: null };
+    }
+    return profile;
 }
 
 function updateUserProfile(userId, key, value) {
@@ -64,65 +66,49 @@ const commandsData = [
         .setName('profile')
         .setDescription('Xem trang hồ sơ cá nhân')
         .addUserOption(option => 
-            option.setName('user')
-                  .setDescription('Chọn người muốn xem (để trống để xem bản thân)')
-                  .setRequired(false)
+            option.setName('user').setDescription('Chọn người muốn xem (để trống để xem bản thân)').setRequired(false)
         ),
     new SlashCommandBuilder()
         .setName('bio')
         .setDescription('Cập nhật câu giới thiệu cá nhân')
         .addStringOption(option => 
-            option.setName('text')
-                  .setDescription('Nội dung giới thiệu ngắn (tối đa 120 ký tự)')
-                  .setRequired(true)
+            option.setName('text').setDescription('Nội dung giới thiệu ngắn (tối đa 120 ký tự)').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('status')
         .setDescription('Cập nhật dòng trạng thái')
         .addStringOption(option => 
-            option.setName('text')
-                  .setDescription('Ví dụ: Đang học bài, Đang tryhard...')
-                  .setRequired(true)
+            option.setName('text').setDescription('Ví dụ: Đang học bài, Đang tryhard...').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('settitle')
         .setDescription('Cập nhật tiêu đề góc trên cùng')
         .addStringOption(option => 
-            option.setName('text')
-                  .setDescription('Ví dụ: THÔNG TIN CÁ NHÂN, HỒ SƠ PRO... (Gõ "reset" để đặt lại)')
-                  .setRequired(true)
+            option.setName('text').setDescription('Ví dụ: THÔNG TIN CÁ NHÂN... (Gõ "reset" để đặt lại)').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('setmedia')
         .setDescription('🎬 Cài link GIF hoặc Ảnh hiển thị bên dưới')
         .addStringOption(option => 
-            option.setName('url')
-                  .setDescription('Dán link GIF / Ảnh (Gõ "reset" để đặt lại)')
-                  .setRequired(true)
+            option.setName('url').setDescription('Dán link GIF / Ảnh (Gõ "reset" để đặt lại)').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('setcolor')
         .setDescription('Thay đổi màu viền Profile (Mã Hex)')
         .addStringOption(option => 
-            option.setName('hex')
-                  .setDescription('Ví dụ: #FF69B4, #4A90E2, #2B2D31 (Gõ "reset" để đặt lại)')
-                  .setRequired(true)
+            option.setName('hex').setDescription('Ví dụ: #FF69B4, #4A90E2, #2B2D31 (Gõ "reset" để đặt lại)').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('setbadge')
         .setDescription('Thay đổi biểu tượng huy hiệu cá nhân')
         .addStringOption(option => 
-            option.setName('badge')
-                  .setDescription('Nhập Emoji tùy chọn (Gõ "reset" để đặt lại)')
-                  .setRequired(true)
+            option.setName('badge').setDescription('Nhập Emoji tùy chọn (Gõ "reset" để đặt lại)').setRequired(true)
         ),
     new SlashCommandBuilder()
         .setName('setfooter')
         .setDescription('Thay đổi dòng ghi chú chân trang')
         .addStringOption(option => 
-            option.setName('text')
-                  .setDescription('Gõ chữ tùy chọn (Gõ "reset" để đặt lại)')
-                  .setRequired(true)
+            option.setName('text').setDescription('Gõ chữ tùy chọn (Gõ "reset" để đặt lại)').setRequired(true)
         )
 ].map(cmd => cmd.toJSON());
 
@@ -150,6 +136,11 @@ async function handleProfileInteraction(interaction) {
         const mediaUrl = profileData.media || DEFAULT_GIF;
         const avatarUrl = targetUser.displayAvatarURL({ dynamic: true, size: 512 });
 
+        const rels = profileData.relationships || {};
+        const loverText = rels.totinh ? `<@${rels.totinh}>` : 'Độc thân';
+        const spouseText = rels.kethon ? `<@${rels.kethon}>` : 'Chưa kết hôn';
+        const bffText = rels.banthan ? `<@${rels.banthan}>` : 'Chưa có';
+
         const embed = new EmbedBuilder()
             .setColor(profileData.color || '#2B2D31')
             .setAuthor({ 
@@ -160,13 +151,21 @@ async function handleProfileInteraction(interaction) {
             .setDescription(
                 `### ${profileData.badge || '👑'} **${targetUser.displayName}**\n` +
                 `> *"${profileData.bio || 'Chưa có lời giới thiệu.'}"*\n\n` +
-                `─────୨ৎ────────୨ৎ────────୨ৎ─────`
+                `────୨ৎ────────୨ৎ────────୨ৎ────────୨ৎ────`
             )
             .addFields(
                 { name: '📌 Trạng thái', value: profileData.status || 'Đang hoạt động', inline: false },
                 { name: '🏷️ Vai trò chính', value: topRole, inline: false },
                 { name: '🗓️ Ngày tạo tài khoản', value: createdAccount, inline: true },
-                { name: '🏠 Tham gia Server', value: joinedServer, inline: true }
+                { name: '🏠 Tham gia Server', value: joinedServer, inline: true },
+                { 
+                    name: '\u200B', 
+                    value: `────୨ৎ────────୨ৎ────────୨ৎ────\n` +
+                           `💍 **KẾT HÔN:** ${spouseText}\n` +
+                           `💖 **TỎ TÌNH:** ${loverText}\n` +
+                           `🤝 **BẠN THÂN:** ${bffText}`, 
+                    inline: false 
+                }
             )
             .setImage(mediaUrl)
             .setFooter({ 

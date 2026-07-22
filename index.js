@@ -20,8 +20,9 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
 
-// 👤 MODULE PROFILE & BIO (DÙNG SLASH COMMANDS ĐỂ TẠO TIN NHẮN ẨN)
-const { commandsData: profileCommands, handleInteraction: handleProfileInteraction } = require('./src/handlers/profile.js');
+// 👤 MODULE PROFILE & MỐI QUAN HỆ CỬ CHỈ (Đã tách rời 2 handler)
+const profileHandler = require('./src/handlers/profile.js');
+const relationshipHandler = require('./src/handlers/relationship.js');
 
 // 🎵 IMPORT MODULE KIỂM TRA BOT NHẠC
 const { handleMusicCheckCommand } = require('./src/handlers/musicChecker.js');
@@ -115,16 +116,21 @@ client.once(Events.ClientReady, async (readyClient) => {
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
     console.log('==================================================');
     
-    // Đăng ký Slash Commands trực tiếp theo Server Guilds (Hiện lên NGAY LẬP TỨC)
+    // Đăng ký Slash Commands cho Profile & Relationship trực tiếp theo Server
     try {
-        if (profileCommands && Array.isArray(profileCommands)) {
+        const allSlashCommands = [
+            ...(profileHandler.commandsData || []),
+            ...(relationshipHandler.commandsData || [])
+        ];
+
+        if (allSlashCommands.length > 0) {
             for (const [guildId, guild] of readyClient.guilds.cache) {
-                await guild.commands.set(profileCommands);
+                await guild.commands.set(allSlashCommands);
                 console.log(`✅ [Slash Commands] Đã đăng ký tức thì cho Server: ${guild.name} (${guildId})`);
             }
         }
     } catch (e) {
-        console.error('❌ Lỗi khi đăng ký Slash Commands Profile:', e);
+        console.error('❌ Lỗi khi đăng ký Slash Commands Profile / Relationship:', e);
     }
 
     if (typeof startAutoPoem === 'function') startAutoPoem(readyClient);
@@ -233,10 +239,10 @@ client.on('messageCreate', async (message) => {
 
         if (await handleRuleCommand(message)) return;
 
-        // 💡 NHẮC BỎ TẬP QUÁN DÙNG LỆNH PREFIX CỦA PROFILE
+        // 💡 NHẮC BỎ TẬP QUÁN DÙNG LỆNH PREFIX CỦA PROFILE & MỐI QUAN HỆ
         const textCmd = message.content.toLowerCase();
-        if (textCmd.startsWith('!profile') || textCmd.startsWith('!bio') || textCmd.startsWith('!setcolor') || textCmd.startsWith('!setbadge') || textCmd.startsWith('!setgif')) {
-            const replyMsg = await message.reply('✨ **Mẹo:** Hệ thống đã chuyển sang dùng lệnh ẩn Slash `/profile`, `/bio`, `/setcolor`, `/setbadge`, `/setgif` rồi sếp ơi!');
+        if (textCmd.startsWith('!profile') || textCmd.startsWith('!bio') || textCmd.startsWith('!setcolor') || textCmd.startsWith('!setbadge') || textCmd.startsWith('!setgif') || textCmd.startsWith('!totinh') || textCmd.startsWith('!kethon')) {
+            const replyMsg = await message.reply('✨ **Mẹo:** Hệ thống đã chuyển toàn bộ sang lệnh ẩn Slash `/profile`, `/totinh`, `/kethon`, `/om`, `/hon`... rồi sếp ơi!');
             setTimeout(() => replyMsg.delete().catch(() => {}), 6000);
             return;
         }
@@ -321,15 +327,19 @@ client.on('messageCreate', async (message) => {
 
 // --- SỰ KIỆN XỬ LÝ TƯƠNG TÁC (SLASH COMMANDS & BUTTONS) ---
 client.on('interactionCreate', async (interaction) => {
-    // 1. Xử lý Slash Commands cho Profile
-    if (interaction.isChatInputCommand()) {
-        try {
-            await handleProfileInteraction(interaction);
-        } catch (e) {
-            console.error('❌ Lỗi xử lý Slash Command Profile:', e);
+    // 1. Xử lý Slash Commands & Buttons cho Profile & Relationship
+    try {
+        if (typeof profileHandler.handleInteraction === 'function') {
+            await profileHandler.handleInteraction(interaction);
         }
-        return;
+        if (typeof relationshipHandler.handleInteraction === 'function') {
+            await relationshipHandler.handleInteraction(interaction);
+        }
+    } catch (e) {
+        console.error('❌ Lỗi xử lý tương tác Profile / Relationship:', e);
     }
+
+    if (interaction.replied || interaction.deferred) return;
 
     const customId = interaction.customId || '';
 
@@ -338,6 +348,7 @@ client.on('interactionCreate', async (interaction) => {
             await handleVoiceMenuInteraction(interaction);
             return;
         }
+
         if (interaction.isModalSubmit() && customId.startsWith('vmm_')) {
             await handleVoiceModalSubmit(interaction);
             return;

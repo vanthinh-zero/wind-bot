@@ -28,6 +28,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.5.0",
+    "quick.db": "^9.1.7",
     "word-exists": "^1.0.0"
   }
 }
