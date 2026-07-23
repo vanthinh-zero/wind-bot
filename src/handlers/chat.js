@@ -99,6 +99,35 @@ async function handleChatInteraction(message) {
         danhSachRoleNameHopLe.includes(role.name.toLowerCase())
     );
 
+    // --- 🛑 KIỂM TRA TRẠNG THÁI CHAT (!chat off / !chat on) ---
+    // Nếu chế độ chat đang TẮT và tin nhắn KHÔNG PHẢI là lệnh mở lại thì Bỏ qua toàn bộ.
+    if (!CO_AUTO_CHAT && !['!chat on', '!autochat on'].includes(contentLower)) {
+        return false;
+    }
+
+    // --- ⚙️ HỆ THỐNG CẤU HÌNH BẬT / TẮT CHAT & MOOD ---
+    if (['!chat on', '!chat off', '!autochat on', '!autochat off', '!mood cold', '!mood macdinh'].includes(contentLower)) {
+        if (!isAdmin && !isStaff) {
+            await message.reply("❌ Bạn không có quyền cấu hình hệ thống chat!");
+            return true;
+        }
+        
+        if (contentLower === "!chat on" || contentLower === "!autochat on") {
+            CO_AUTO_CHAT = true;
+            await message.reply(BOT_MOOD === 'cold' ? "Chat status: ON." : "🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ phản hồi tin nhắn!");
+        } else if (contentLower === "!chat off" || contentLower === "!autochat off") {
+            CO_AUTO_CHAT = false;
+            await message.reply(BOT_MOOD === 'cold' ? "Chat status: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng phản hồi tin nhắn (!chat off).");
+        } else if (contentLower === "!mood cold") {
+            BOT_MOOD = 'cold';
+            await message.reply("Đã chuyển đổi cấu hình hệ thống: tôi ở đây.");
+        } else if (contentLower === "!mood macdinh") {
+            BOT_MOOD = 'macdinh';
+            await message.reply("Đã quay về phong cách mặc định, lém lỉnh vâng lệnh sếp!");
+        }
+        return true;
+    }
+
     // --- ⚙️ HỆ THỐNG QUẢN LÝ TỪ KHÓA (!tukhoa) ---
     if (contentLower.startsWith("!tukhoa")) {
         if (!isAdmin && !isStaff) {
@@ -120,7 +149,10 @@ async function handleChatInteraction(message) {
             }
             let listMsg = "📋 **DANH SÁCH TỪ KHÓA TỰ ĐỘNG PHẢN HỒI:**\n";
             keys.forEach((key, index) => {
-                listMsg += `**${index + 1}.** \`${key}\` ➡️\n${danhSachTuKhoa[key]}\n-------------------\n`;
+                const item = danhSachTuKhoa[key];
+                const textVal = typeof item === 'object' ? (item.text || '[Chỉ chứa ảnh]') : item;
+                const imgVal = typeof item === 'object' && item.image ? ` 🖼️ *[Ảnh]*` : '';
+                listMsg += `**${index + 1}.** \`${key}\` ➡️ ${textVal}${imgVal}\n-------------------\n`;
             });
             await message.reply(listMsg);
             return true;
@@ -130,6 +162,13 @@ async function handleChatInteraction(message) {
         if (action === "add") {
             let tuKhoaNew = "";
             let phanHoiNew = "";
+            let imageNew = null;
+
+            // Kiểm tra file ảnh đính kèm trực tiếp trong tin nhắn Discord
+            const attachedImage = message.attachments.find(att => att.contentType?.startsWith('image/'));
+            if (attachedImage) {
+                imageNew = attachedImage.url;
+            }
 
             if (restContent.includes("|")) {
                 const parts = restContent.split("|").map(item => item.trim());
@@ -137,23 +176,45 @@ async function handleChatInteraction(message) {
                 phanHoiNew = parts.slice(2).join("|").trim();
             } else {
                 const afterAdd = restContent.slice(3).trim(); 
-                const matchKey = afterAdd.match(/^([^\s]+)\s+([\s\S]+)/); 
+                const matchKey = afterAdd.match(/^([^\s]+)(?:\s+([\s\S]+))?/); 
                 
                 if (matchKey) {
                     tuKhoaNew = matchKey[1].toLowerCase();
-                    phanHoiNew = matchKey[2].trim();
+                    phanHoiNew = matchKey[2] ? matchKey[2].trim() : "";
                 }
             }
 
-            if (!tuKhoaNew || !phanHoiNew) {
-                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa add <từ khóa> <câu phản hồi>`");
+            // Nếu câu trả lời chứa link ảnh HTTP
+            if (phanHoiNew) {
+                const partsText = phanHoiNew.split(/\s+/);
+                const lastPart = partsText[partsText.length - 1];
+                if (lastPart.match(/^https?:\/\/.*\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i)) {
+                    imageNew = lastPart;
+                    // Bỏ link ra khỏi chữ nếu người dùng chỉ nhập link ảnh
+                    if (partsText.length === 1) phanHoiNew = ""; 
+                }
+            }
+
+            if (!tuKhoaNew || (!phanHoiNew && !imageNew)) {
+                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa add <từ khóa> <nội dung>` (Đính kèm ảnh nếu muốn)");
                 return true;
             }
 
-            phanHoiNew = phanHoiNew.replace(/\\n/g, '\n');
-            danhSachTuKhoa[tuKhoaNew] = phanHoiNew;
+            if (phanHoiNew) phanHoiNew = phanHoiNew.replace(/\\n/g, '\n');
+            
+            // Lưu dữ liệu dạng Object
+            danhSachTuKhoa[tuKhoaNew] = {
+                text: phanHoiNew || "",
+                image: imageNew || null
+            };
+
             CodeGhiTuKhoa(danhSachTuKhoa);
-            await message.reply(`✅ Đã thêm từ khóa \`${tuKhoaNew}\` với câu phản hồi:\n${phanHoiNew}`);
+
+            let msgReply = `✅ Đã thêm từ khóa \`${tuKhoaNew}\``;
+            if (phanHoiNew) msgReply += ` với nội dung: "${phanHoiNew}"`;
+            if (imageNew) msgReply += ` 🖼️ *(kèm ảnh)*`;
+
+            await message.reply({ content: msgReply, files: imageNew ? [imageNew] : [] });
             return true;
         }
 
@@ -186,7 +247,8 @@ async function handleChatInteraction(message) {
 
         await message.reply(
             "💡 **HƯỚNG DẪN SỬ DỤNG LỆNH !TUKHOA:**\n" +
-            "• **Thêm:** `!tukhoa add <từ khóa> <câu trả lời>`\n" +
+            "• **Thêm câu chữ:** `!tukhoa add <từ khóa> <nội dung>`\n" +
+            "• **Thêm ảnh:** Gửi file ảnh kèm nội dung `!tukhoa add <từ khóa>`\n" +
             "• **Xóa:** `!tukhoa del <từ khóa>`\n" +
             "• **Xem danh sách:** `!tukhoa list`"
         );
@@ -196,29 +258,29 @@ async function handleChatInteraction(message) {
     // --- 🤖 TỰ ĐỘNG PHẢN HỒI TỪ KHÓA ---
     const danhSachTuKhoa = CodeDocTuKhoa();
     if (danhSachTuKhoa[contentLower]) {
-        await message.reply(`${danhSachTuKhoa[contentLower]}`);
-        return true;
-    }
+        const itemData = danhSachTuKhoa[contentLower];
 
-    // 2. CÁC LỆNH CẤU HÌNH HỆ THỐNG (Chỉ DUY NHẤT Admin)
-    if (['!autochat on', '!autochat off', '!mood cold', '!mood macdinh'].includes(contentLower)) {
-        if (!isAdmin) {
-            await message.reply("❌ Quyền lực của bạn không đủ để cấu hình hệ thống!");
+        // 1. Từ khóa dữ liệu cũ dạng chuỗi
+        if (typeof itemData === 'string') {
+            await message.channel.send(itemData);
             return true;
-        }
-        
-        if (contentLower === "!autochat on") {
-            CO_AUTO_CHAT = true;
-            await message.reply(BOT_MOOD === 'cold' ? "AutoChat: ON." : "🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ AutoChat!");
-        } else if (contentLower === "!autochat off") {
-            CO_AUTO_CHAT = false;
-            await message.reply(BOT_MOOD === 'cold' ? "AutoChat: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng hoạt động AutoChat.");
-        } else if (contentLower === "!mood cold") {
-            BOT_MOOD = 'cold';
-            await message.reply("Đã chuyển đổi cấu hình hệ thống: tôi ở đây.");
-        } else if (contentLower === "!mood macdinh") {
-            BOT_MOOD = 'macdinh';
-            await message.reply("Đã quay về phong cách mặc định, lém lỉnh vâng lệnh sếp!");
+        } 
+
+        // 2. Từ khóa dữ liệu mới dạng Object
+        if (typeof itemData === 'object') {
+            const sendPayload = {};
+            
+            if (itemData.text && itemData.text.trim().length > 0) {
+                sendPayload.content = itemData.text;
+            }
+            if (itemData.image) {
+                sendPayload.files = [itemData.image];
+            }
+
+            // Gửi thẳng vào channel (không dùng .reply() để hiện ảnh sạch đẹp)
+            if (sendPayload.content || sendPayload.files) {
+                await message.channel.send(sendPayload);
+            }
         }
         return true;
     }

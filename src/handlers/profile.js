@@ -5,6 +5,7 @@ const path = require('path');
 const dbPath = path.join(process.cwd(), 'profiles.json');
 
 const DEFAULT_GIF = 'https://media.discordapp.net/attachments/1528282202222235718/1528878087683706880/MOO_MOO_9.gif?ex=6a608eed&is=6a5f3d6d&hm=1ed4637eb577a1624a0d6d336fa3069836c6a77285de6fc4c6df4d91af18f581&=';
+const DEFAULT_DIVIDER = '────୨ৎ────────୨ৎ────────୨ৎ────';
 
 const DEFAULT_PROFILE = {
     title: 'HỒ SƠ THÀNH VIÊN',
@@ -13,6 +14,7 @@ const DEFAULT_PROFILE = {
     color: '#2B2D31',
     media: DEFAULT_GIF,
     badge: '👑',
+    divider: DEFAULT_DIVIDER,
     footerText: 'Dùng các lệnh /set... để trang trí hồ sơ',
     relationships: { totinh: null, kethon: null, banthan: null }
 };
@@ -105,6 +107,12 @@ const commandsData = [
             option.setName('badge').setDescription('Nhập Emoji tùy chọn (Gõ "reset" để đặt lại)').setRequired(true)
         ),
     new SlashCommandBuilder()
+        .setName('setdivider')
+        .setDescription('Thay đổi dòng phân cách khung trang trí')
+        .addStringOption(option => 
+            option.setName('text').setDescription('Nhập ký tự phân cách tùy thích (Gõ "reset" để đặt lại)').setRequired(true)
+        ),
+    new SlashCommandBuilder()
         .setName('setfooter')
         .setDescription('Thay đổi dòng ghi chú chân trang')
         .addStringOption(option => 
@@ -135,6 +143,7 @@ async function handleProfileInteraction(interaction) {
 
         const mediaUrl = profileData.media || DEFAULT_GIF;
         const avatarUrl = targetUser.displayAvatarURL({ dynamic: true, size: 512 });
+        const divider = profileData.divider || DEFAULT_DIVIDER;
 
         const rels = profileData.relationships || {};
         const loverText = rels.totinh ? `<@${rels.totinh}>` : 'Độc thân';
@@ -151,7 +160,7 @@ async function handleProfileInteraction(interaction) {
             .setDescription(
                 `### ${profileData.badge || '👑'} **${targetUser.displayName}**\n` +
                 `> *"${profileData.bio || 'Chưa có lời giới thiệu.'}"*\n\n` +
-                `────୨ৎ────────୨ৎ────────୨ৎ────────୨ৎ────`
+                `${divider}`
             )
             .addFields(
                 { name: '📌 Trạng thái', value: profileData.status || 'Đang hoạt động', inline: false },
@@ -160,7 +169,7 @@ async function handleProfileInteraction(interaction) {
                 { name: '🏠 Tham gia Server', value: joinedServer, inline: true },
                 { 
                     name: '\u200B', 
-                    value: `────୨ৎ────────୨ৎ────────୨ৎ────\n` +
+                    value: `${divider}\n` +
                            `💍 **KẾT HÔN:** ${spouseText}\n` +
                            `💖 **TỎ TÌNH:** ${loverText}\n` +
                            `🤝 **BẠN THÂN:** ${bffText}`, 
@@ -200,6 +209,16 @@ async function handleProfileInteraction(interaction) {
         }
         updateUserProfile(userId, 'title', text);
         return await interaction.reply({ content: `✨ **Tiêu đề đã đổi thành:** \`${text}\``, flags: MessageFlags.Ephemeral });
+    }
+
+    if (commandName === 'setdivider') {
+        const text = options.getString('text') || '';
+        if (text.toLowerCase() === 'reset') {
+            updateUserProfile(userId, 'divider', DEFAULT_DIVIDER);
+            return await interaction.reply({ content: '🔄 **Đã đặt lại dòng phân cách mặc định.**', flags: MessageFlags.Ephemeral });
+        }
+        updateUserProfile(userId, 'divider', text);
+        return await interaction.reply({ content: `✨ **Dòng phân cách đã đổi thành:**\n${text}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setfooter') {

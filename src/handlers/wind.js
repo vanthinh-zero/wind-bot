@@ -81,7 +81,7 @@ async function handleWindCommand(message) {
                 // --- NHÓM THÀNH VIÊN ---
                 { 
                     name: '🟢 [1] DÀNH CHO TOÀN THỂ THÀNH VIÊN', 
-                    value: '• **Trang trí cá nhân:** `/profile`, `/bio`, `/status`, `/setcolor`, `/setbadge`, `/setmedia`, `/setgif`\n' +
+                    value: '• **Trang trí cá nhân:** `/profile`, `/bio`, `/status`, `/settitle`, `/setcolor`, `/setbadge`, `/setdivided`, `/setfooter`, `/setmedia`, `/setgif`, `/setbanner`, `/setavatar`\n' +
                            '• **Tương tác xã hội:** `/totinh`, `/kethon`, `/banthan`, `/om`, `/hon`, `/xoadau`, `/veo`\n' +
                            '• **Trò chơi & Giải trí:** `!noitu`, `!pet`, `!poem`, `!tarot`, `!chualanh`, `!rule`\n' +
                            '• **Học tập & Ôn thi:** `!dethi <môn> <đề_số>` (Lấy đề thi), `!vocabulary` (Tự động gửi từ vựng)\n' +

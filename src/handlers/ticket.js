@@ -55,36 +55,44 @@ async function handleTicketInteraction(interaction) {
             { id: interaction.guild.ownerId, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
         ];
 
+        // Kiểm tra an toàn xem Role ID có thực sự tồn tại trong server không
+        const hasStaffRole = ROLE_STAFF_ID && interaction.guild.roles.cache.has(ROLE_STAFF_ID);
+        const hasCanThongBaoRole = ROLE_CAN_THONG_BAO_ID && interaction.guild.roles.cache.has(ROLE_CAN_THONG_BAO_ID);
+
         // Phân quyền chi tiết theo từng nút
         if (interaction.customId === 'ticket_giveaway') {
             prefix = 'giveaway';
-            if (ROLE_STAFF_ID) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
         } 
         else if (interaction.customId === 'ticket_gopy') {
             prefix = 'khieu-nai-gopy';
-            if (ROLE_CAN_THONG_BAO_ID) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
         } 
         else if (interaction.customId === 'ticket_chuyenrieng') {
             prefix = 'chuyen-rieng';
-            if (ROLE_STAFF_ID) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-            if (ROLE_CAN_THONG_BAO_ID) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
         } 
         else if (interaction.customId === 'ticket_khac') {
             prefix = 'support';
-            if (ROLE_STAFF_ID) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-            if (ROLE_CAN_THONG_BAO_ID) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
         }
 
         const channelName = `${prefix}-${interaction.user.username}`.toLowerCase().replace(/[^a-z0-9-]/g, '');
         
+        // Kiểm tra Category có thực sự tồn tại không (Phòng trường hợp ID hỏng/bị xóa)
+        const categoryChannel = CATEGORY_ID ? interaction.guild.channels.cache.get(CATEGORY_ID) : null;
+        const validParentId = (categoryChannel && categoryChannel.type === ChannelType.GuildCategory) ? CATEGORY_ID : null;
+
         const ticketChannel = await interaction.guild.channels.create({
             name: channelName,
             type: ChannelType.GuildText,
-            parent: CATEGORY_ID || null,
+            parent: validParentId,
             permissionOverwrites: permissions,
         }).catch(async (err) => {
-            console.error('Lỗi khi tạo kênh ticket:', err.message);
-            await interaction.editReply({ content: '❌ Tạo phòng thất bại! Vui lòng kiểm tra lại quyền của Bot.' }).catch(() => {});
+            console.error('Lỗi khi tạo kênh ticket:', err);
+            await interaction.editReply({ content: '❌ Tạo phòng thất bại! Vui lòng kiểm tra lại quyền tạo kênh của Bot.' }).catch(() => {});
         });
 
         if (!ticketChannel) return;
@@ -163,7 +171,7 @@ async function handleTicketInteraction(interaction) {
         return;
     }
 
-    // 4. XỬ LÝ ĐÓNG TICKET (SẠCH SẼ, KHÔNG IN DẢI URL THỪA)
+    // 4. XỬ LÝ ĐÓNG TICKET
     if (interaction.isButton() && interaction.customId === 'close_ticket') {
         await interaction.reply('Hệ thống sẽ dọn dẹp và xóa kênh này sau 5 giây...').catch(() => {});
         

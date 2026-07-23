@@ -1,10 +1,29 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { 
+    SlashCommandBuilder, 
+    EmbedBuilder, 
+    MessageFlags, 
+    ActionRowBuilder, 
+    ButtonBuilder, 
+    ButtonStyle,
+    StringSelectMenuBuilder
+} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
+// Đường dẫn tới các tệp cơ sở dữ liệu JSON
 const dbPath = path.join(process.cwd(), 'profiles.json');
+const moneyDbPath = path.join(process.cwd(), 'money.json');
 
-// 🎯 KHO DATA GIF ANIME MẶC ĐỊNH
+// 💍 DANH SÁCH NHẪN TRONG CỬA HÀNG (SHOP NHẪN)
+const RING_SHOP = [
+    { id: 'co_4_la', name: 'Cỏ 4 Lá', emoji: '🍀', price: 50000, buff: 1.1, desc: 'May mắn & Thuần khiết' },
+    { id: 'thach_anh_hong', name: 'Thạch Anh Hồng', emoji: '🌸', price: 200000, buff: 1.25, desc: 'Gắn kết trái tim ngọt ngào' },
+    { id: 'nhan_bac', name: 'Nhẫn Bạc Đính Kim', emoji: '💍', price: 500000, buff: 1.5, desc: 'Lấp lánh tình yêu đôi lứa' },
+    { id: 'orchid', name: 'Orchid', emoji: '🪷', price: 1000000, buff: 2.0, desc: 'Quyến rũ & Tinh tế (Cao cấp)' },
+    { id: 'vuong_mien', name: 'Vương Miện Vĩnh Cửu', emoji: '👑', price: 5000000, buff: 3.5, desc: 'Tình yêu trường tồn bất diệt' }
+];
+
+// 🎯 KHO DATA GIF ANIME MẶC ĐỊNH DÀNH CHO CÁC CỬ CHỈ
 const ACTION_DATA = {
     om: {
         title: '🤗 CÁI ÔM ẤM ÁP',
@@ -83,12 +102,14 @@ const ACTION_DATA = {
 
 const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+// 📄 HÀM ĐỌC / GHI CƠ SỞ DỮ LIỆU PROFILES.JSON
 function readDatabase() {
     try {
         if (!fs.existsSync(dbPath)) return {};
         const raw = fs.readFileSync(dbPath, 'utf8');
         return JSON.parse(raw || '{}');
     } catch (error) {
+        console.error('Lỗi đọc profiles.json:', error);
         return {};
     }
 }
@@ -101,12 +122,93 @@ function writeDatabase(data) {
     }
 }
 
-// 📌 QUẢN LÝ TÙY CHỈNH GIF CÁ NHÂN
+// 💵 HÀM ĐỌC / GHI VÀ THAO TÁC TRÊN MONEY.JSON
+function readMoneyDatabase() {
+    try {
+        if (!fs.existsSync(moneyDbPath)) return {};
+        const raw = fs.readFileSync(moneyDbPath, 'utf8');
+        return JSON.parse(raw || '{}');
+    } catch (error) {
+        console.error('Lỗi đọc money.json:', error);
+        return {};
+    }
+}
+
+function writeMoneyDatabase(data) {
+    try {
+        fs.writeFileSync(moneyDbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error('Lỗi ghi money.json:', error);
+    }
+}
+
+// Lấy số dư ví tiền từ money.json (Hỗ trợ dạng số trực tiếp hoặc Object { money / coins / cash })
+function getUserMoney(userId) {
+    const moneyDb = readMoneyDatabase();
+    const userData = moneyDb[userId];
+    if (typeof userData === 'number') return userData;
+    if (typeof userData === 'object' && userData !== null) {
+        return userData.money ?? userData.coins ?? userData.cash ?? 0;
+    }
+    return 0;
+}
+
+// Trừ tiền mua nhẫn trực tiếp trong money.json
+function deductUserMoney(userId, amount) {
+    const moneyDb = readMoneyDatabase();
+    if (!moneyDb[userId]) moneyDb[userId] = { money: 0 };
+
+    if (typeof moneyDb[userId] === 'number') {
+        moneyDb[userId] -= amount;
+    } else if (typeof moneyDb[userId] === 'object' && moneyDb[userId] !== null) {
+        if ('money' in moneyDb[userId]) {
+            moneyDb[userId].money -= amount;
+        } else if ('coins' in moneyDb[userId]) {
+            moneyDb[userId].coins -= amount;
+        } else if ('cash' in moneyDb[userId]) {
+            moneyDb[userId].cash -= amount;
+        } else {
+            moneyDb[userId].money = -amount;
+        }
+    }
+    writeMoneyDatabase(moneyDb);
+}
+
+// Khởi tạo thông tin mặc định cho user nếu chưa tồn tại trong profiles.json
+function ensureUserExists(db, userId) {
+    if (!db[userId]) {
+        db[userId] = {
+            customGifs: {},
+            relationships: { totinh: null, kethon: null, banthan: null },
+            inventory: [
+                { ringId: 'co_4_la', name: 'Cỏ 4 Lá', emoji: '🍀' } // Nhẫn mặc định khi bắt đầu
+            ],
+            marriageData: null
+        };
+    }
+    if (!db[userId].inventory) db[userId].inventory = [{ ringId: 'co_4_la', name: 'Cỏ 4 Lá', emoji: '🍀' }];
+    if (!db[userId].relationships) db[userId].relationships = { totinh: null, kethon: null, banthan: null };
+    return db[userId];
+}
+
+function formatNumber(num) {
+    return (num || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function getMarriedDays(marriedAt) {
+    const diffTime = Math.abs(new Date() - new Date(marriedAt));
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function getMarriedDateFormatted(marriedAt) {
+    const date = new Date(marriedAt);
+    const months = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6', 'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'];
+    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+}
+
 function setUserCustomGif(userId, actionType, gifUrl) {
     const db = readDatabase();
-    if (!db[userId]) db[userId] = {};
-    if (!db[userId].customGifs) db[userId].customGifs = {};
-
+    ensureUserExists(db, userId);
     db[userId].customGifs[actionType] = gifUrl;
     writeDatabase(db);
 }
@@ -114,7 +216,6 @@ function setUserCustomGif(userId, actionType, gifUrl) {
 function unsetUserCustomGif(userId, actionType) {
     const db = readDatabase();
     if (!db[userId] || !db[userId].customGifs || !db[userId].customGifs[actionType]) return false;
-
     delete db[userId].customGifs[actionType];
     writeDatabase(db);
     return true;
@@ -127,14 +228,26 @@ function getUserCustomGif(userId, actionType) {
 
 function setRelationship(user1Id, user2Id, type) {
     const db = readDatabase();
-    if (!db[user1Id]) db[user1Id] = {};
-    if (!db[user2Id]) db[user2Id] = {};
-
-    if (!db[user1Id].relationships) db[user1Id].relationships = { totinh: null, kethon: null, banthan: null };
-    if (!db[user2Id].relationships) db[user2Id].relationships = { totinh: null, kethon: null, banthan: null };
+    ensureUserExists(db, user1Id);
+    ensureUserExists(db, user2Id);
 
     db[user1Id].relationships[type] = user2Id;
     db[user2Id].relationships[type] = user1Id;
+
+    // Nếu mối quan hệ là Kết Hôn, tạo thêm dữ liệu hôn nhân
+    if (type === 'kethon') {
+        const defaultMarriageData = {
+            marriedAt: new Date().toISOString(),
+            ring: { ringId: 'co_4_la', name: 'Cỏ 4 Lá', emoji: '🍀' },
+            lovePoints: 100,
+            streakDays: 1,
+            lastInteractedAt: new Date().toISOString(),
+            quote: '𝒩𝑜𝓌 𝓀𝒾𝓈𝓈! (´・ω・`) ♡',
+            wallpaper: null
+        };
+        db[user1Id].marriageData = { ...defaultMarriageData };
+        db[user2Id].marriageData = { ...defaultMarriageData };
+    }
 
     writeDatabase(db);
 }
@@ -150,8 +263,55 @@ function removeRelationship(userId, type) {
         db[partnerId].relationships[type] = null;
     }
 
+    if (type === 'kethon') {
+        db[userId].marriageData = null;
+        if (db[partnerId]) db[partnerId].marriageData = null;
+    }
+
     writeDatabase(db);
     return partnerId;
+}
+
+async function createMarriageCardEmbed(client, user, partnerUser, marriageData) {
+    const marriedDays = getMarriedDays(marriageData.marriedAt);
+    const marriedDateStr = getMarriedDateFormatted(marriageData.marriedAt);
+    const ringInfo = marriageData.ring || { name: 'Cỏ 4 Lá', emoji: '🍀' };
+
+    const embed = new EmbedBuilder()
+        .setColor('#381b2a')
+        .setAuthor({
+            name: `💖 ${user.username} đang hạnh phúc với ${partnerUser ? partnerUser.username : 'Người ấy'}`,
+            iconURL: user.displayAvatarURL({ dynamic: true })
+        })
+        .setDescription(
+            `📅 **Ngày kết hôn :** ${marriedDateStr} (${marriedDays} ngày)\n` +
+            `💒 **Nhẫn đính hôn :** ${ringInfo.emoji} **${ringInfo.name}**\n` +
+            `💒 **Điểm yêu thương :** **${formatNumber(marriageData.lovePoints)}** 🍬\n` +
+            `🔥 **Chuỗi Thân mật :** **${marriageData.streakDays} ngày**\n\n` +
+            `│ *${marriageData.quote || '𝒩𝑜𝓌 𝓀𝒾𝓈𝓈! (´・ω・`) ♡'}*`
+        )
+        .setThumbnail(partnerUser ? partnerUser.displayAvatarURL({ dynamic: true, size: 256 }) : null);
+
+    if (marriageData.wallpaper) {
+        embed.setImage(marriageData.wallpaper);
+    } else if (partnerUser) {
+        embed.setImage(partnerUser.displayAvatarURL({ dynamic: true, size: 512 }));
+    }
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`rel_card_gift_${user.id}_${partnerUser ? partnerUser.id : ''}`)
+            .setLabel('Tặng Quà')
+            .setEmoji('✨')
+            .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+            .setCustomId(`rel_card_changering_${user.id}_${partnerUser ? partnerUser.id : ''}`)
+            .setLabel('Đổi nhẫn')
+            .setEmoji('💍')
+            .setStyle(ButtonStyle.Secondary)
+    );
+
+    return { embeds: [embed], components: [row] };
 }
 
 const buildActionCommand = (name, description) => {
@@ -163,7 +323,7 @@ const buildActionCommand = (name, description) => {
 };
 
 const commandsData = [
-    // --- LỆNH TÙY CHỈNH GIF CÁ NHÂN ---
+    // --- ⚙️ LỆNH CÀI ĐẶT GIF CÁ NHÂN ---
     new SlashCommandBuilder()
         .setName('setgif')
         .setDescription('⚙️ Lưu link GIF mặc định cá nhân cho các cử chỉ')
@@ -189,24 +349,41 @@ const commandsData = [
                 { name: '🤝 Nắm tay (/namtay)', value: 'namtay' }
             )),
 
-    // --- LỆNH MỐI QUAN HỆ ---
+    // --- 💍 LỆNH MỐI QUAN HỆ & HỒ SƠ ---
     new SlashCommandBuilder()
         .setName('totinh')
         .setDescription('Gửi lời tỏ tình ngọt ngào 💖')
         .addUserOption(opt => opt.setName('user').setDescription('Người bạn muốn tỏ tình').setRequired(true))
         .addStringOption(opt => opt.setName('loinhan').setDescription('Lời nhắn tình cảm').setRequired(false)),
+    
     new SlashCommandBuilder()
         .setName('kethon')
-        .setDescription('Cầu hôn người ấy 💍')
+        .setDescription('Cầu hôn người ấy với nhẫn ước hẹn 💍')
         .addUserOption(opt => opt.setName('user').setDescription('Người bạn muốn cầu hôn').setRequired(true))
         .addStringOption(opt => opt.setName('loinhan').setDescription('Lời thề nguyện').setRequired(false)),
+
     new SlashCommandBuilder()
         .setName('banthan')
         .setDescription('Mời kết bạn thân / tri kỷ 🤝')
         .addUserOption(opt => opt.setName('user').setDescription('Người bạn muốn kết làm bạn thân').setRequired(true)),
+
+    new SlashCommandBuilder()
+        .setName('ket-hon')
+        .setDescription('💒 Xem thẻ hồ sơ kết hôn / tình yêu lãng mạn giống mẫu')
+        .addUserOption(opt => opt.setName('user').setDescription('Xem hồ sơ của ai (Mặc định là bản thân)').setRequired(false)),
+
+    new SlashCommandBuilder()
+        .setName('shop-nhan')
+        .setDescription('🛍️ Cửa hàng nhẫn đính hôn cao cấp cho cặp đôi'),
+
+    new SlashCommandBuilder()
+        .setName('setquote')
+        .setDescription('✍️ Thay đổi câu châm ngôn/lời chúc ngọt ngào trên thẻ kết hôn')
+        .addStringOption(opt => opt.setName('text').setDescription('Lời chúc mới của hai bạn').setRequired(true)),
+
     new SlashCommandBuilder()
         .setName('huymoquanhe')
-        .setDescription('Hủy bỏ một mối quan hệ hiện tại')
+        .setDescription('💔 Hủy bỏ một mối quan hệ hiện tại (Ly hôn/Trở về độc thân)')
         .addStringOption(opt => opt.setName('loai').setDescription('Chọn mối quan hệ muốn hủy').setRequired(true)
             .addChoices(
                 { name: '💖 Tỏ tình / Người yêu', value: 'totinh' },
@@ -214,7 +391,7 @@ const commandsData = [
                 { name: '🤝 Bạn thân / Tri kỷ', value: 'banthan' }
             )),
 
-    // --- LỆNH CỬ CHỈ ---
+    // --- 🎭 LỆNH CỬ CHỈ THÂN MẬT ---
     buildActionCommand('om', 'Trao một cái ôm ấm áp 🤗'),
     buildActionCommand('hon', 'Trao một nụ hôn ngọt ngào 💋'),
     buildActionCommand('xoadau', 'Xoa đầu cưng nựng 🫳'),
@@ -224,9 +401,11 @@ const commandsData = [
 
 async function handleRelationshipInteraction(interaction) {
     if (interaction.isChatInputCommand()) {
-        const { commandName, user, options } = interaction;
+        const { commandName, user, options, client } = interaction;
+        const db = readDatabase();
+        ensureUserExists(db, user.id);
 
-        // --- XỬ LÝ LỆNH /SETGIF ---
+        // --- ⚙️ /SETGIF ---
         if (commandName === 'setgif') {
             const actionType = options.getString('loai');
             const gifUrl = options.getString('link_gif');
@@ -242,7 +421,7 @@ async function handleRelationshipInteraction(interaction) {
             });
         }
 
-        // --- XỬ LÝ LỆNH /UNSETGIF ---
+        // --- ⚙️ /UNSETGIF ---
         if (commandName === 'unsetgif') {
             const actionType = options.getString('loai');
             const success = unsetUserCustomGif(user.id, actionType);
@@ -257,7 +436,7 @@ async function handleRelationshipInteraction(interaction) {
             });
         }
 
-        // --- LỆNH TỎ TÌNH ---
+        // --- 💖 /TOTINH ---
         if (commandName === 'totinh') {
             const targetUser = options.getUser('user');
             const loinhan = options.getString('loinhan') || 'Cậu có đồng ý trở thành một nửa ngọt ngào của tớ không? 🌸';
@@ -287,13 +466,19 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply({ content: `${targetUser}, bạn có lời mời mới!`, embeds: [embed], components: [row] });
         }
 
-        // --- LỆNH KẾT HÔN ---
+        // --- 💍 /KETHON ---
         if (commandName === 'kethon') {
             const targetUser = options.getUser('user');
             const loinhan = options.getString('loinhan') || 'Cùng nắm tay nhau đi hết quãng đường còn lại nhé! 💍';
 
             if (targetUser.id === user.id) return interaction.reply({ content: '❌ Bạn không thể tự kết hôn với chính mình!', flags: MessageFlags.Ephemeral });
             if (targetUser.bot) return interaction.reply({ content: '❌ Bot không thể kết hôn!', flags: MessageFlags.Ephemeral });
+
+            const userRel = db[user.id]?.relationships?.kethon;
+            const targetRel = db[targetUser.id]?.relationships?.kethon;
+            if (userRel || targetRel) {
+                return interaction.reply({ content: '❌ Một trong hai người đã có người chung chăn gối rồi!', flags: MessageFlags.Ephemeral });
+            }
 
             const expireTime = Math.floor((Date.now() + 60000) / 1000);
 
@@ -317,7 +502,7 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply({ content: `${targetUser}, lời cầu hôn dành cho bạn!`, embeds: [embed], components: [row] });
         }
 
-        // --- LỆNH BẠN THÂN ---
+        // --- 🤝 /BANTHAN ---
         if (commandName === 'banthan') {
             const targetUser = options.getUser('user');
 
@@ -343,7 +528,75 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply({ content: `${targetUser}, bạn có lời mời kết bạn thân!`, embeds: [embed], components: [row] });
         }
 
-        // --- LỆNH HỦY MỐI QUAN HỆ ---
+        // --- 💒 /KET-HON (XEM HỒ SƠ) ---
+        if (commandName === 'ket-hon') {
+            const targetUser = options.getUser('user') || user;
+            ensureUserExists(db, targetUser.id);
+
+            const marriageData = db[targetUser.id]?.marriageData;
+            const partnerId = db[targetUser.id]?.relationships?.kethon;
+
+            if (!marriageData || !partnerId) {
+                return interaction.reply({
+                    content: targetUser.id === user.id 
+                        ? '💔 Bạn chưa kết hôn với ai cả. Hãy dùng lệnh `/kethon @nguoi_ay` để cầu hôn nhé!' 
+                        : `💔 **${targetUser.username}** hiện vẫn đang độc thân.`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+
+            const partnerUser = await client.users.fetch(partnerId).catch(() => null);
+            const cardData = await createMarriageCardEmbed(client, targetUser, partnerUser, marriageData);
+            return interaction.reply(cardData);
+        }
+
+        // --- 🛍️ /SHOP-NHAN ---
+        if (commandName === 'shop-nhan') {
+            ensureUserExists(db, user.id);
+            const currentBalance = getUserMoney(user.id);
+
+            const embed = new EmbedBuilder()
+                .setColor('#FFD700')
+                .setTitle('💍 CỬA HÀNG NHẪN ĐÍNH HÔN CAO CẤP')
+                .setDescription(`💰 Số dư trong ví: **${formatNumber(currentBalance)} Xu** *(Đồng bộ từ money.json)*\nChọn một chiếc nhẫn bên dưới để mua và lưu vào kho đồ của bạn!`)
+                .setThumbnail('https://cdn-icons-png.flaticon.com/512/3028/3028308.png');
+
+            const selectOptions = RING_SHOP.map(r => ({
+                label: r.name,
+                description: `${formatNumber(r.price)} Xu • Buff: x${r.buff} điểm (${r.desc})`,
+                value: r.id,
+                emoji: r.emoji
+            }));
+
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId(`shop_buy_ring_${user.id}`)
+                .setPlaceholder('--- Chọn nhẫn bạn muốn mua ---')
+                .addOptions(selectOptions);
+
+            const row = new ActionRowBuilder().addComponents(selectMenu);
+            return interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
+        }
+
+        // --- ✍️ /SETQUOTE ---
+        if (commandName === 'setquote') {
+            const quoteText = options.getString('text');
+            const marriageData = db[user.id]?.marriageData;
+            const partnerId = db[user.id]?.relationships?.kethon;
+
+            if (!marriageData || !partnerId) {
+                return interaction.reply({ content: '❌ Bạn chưa kết hôn nên không thể chỉnh sửa lời chúc!', flags: MessageFlags.Ephemeral });
+            }
+
+            marriageData.quote = quoteText;
+            if (db[partnerId] && db[partnerId].marriageData) {
+                db[partnerId].marriageData.quote = quoteText;
+            }
+            writeDatabase(db);
+
+            return interaction.reply({ content: `✅ Đã cập nhật lời chúc trên thẻ kết hôn thành:\n*"${quoteText}"*`, flags: MessageFlags.Ephemeral });
+        }
+
+        // --- 💔 /HUYMOQUANHE ---
         if (commandName === 'huymoquanhe') {
             const type = options.getString('loai');
             const partnerId = removeRelationship(user.id, type);
@@ -356,11 +609,11 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply({ content: `💔 Đã hủy mối quan hệ **${typeNames[type]}** với <@${partnerId}> thành công.` });
         }
 
-        // --- 🎭 XỬ LÝ CÁC LỆNH CỬ CHỈ THÂN MẬT ---
+        // --- 🎭 XỬ LÝ LỆNH CỬ CHỈ ---
         if (ACTION_DATA[commandName]) {
             const targetUser = options.getUser('user');
-            const inputGif = options.getString('link_gif'); // Link nhập đè tạm thời
-            const savedGif = getUserCustomGif(user.id, commandName); // Link đã lưu trong DB
+            const inputGif = options.getString('link_gif');
+            const savedGif = getUserCustomGif(user.id, commandName);
 
             if (targetUser.id === user.id) {
                 return interaction.reply({ 
@@ -369,16 +622,13 @@ async function handleRelationshipInteraction(interaction) {
                 });
             }
 
-            // 🎲 10% TỈ LỆ BOT GIẬN DỖI (EASTER EGG)
-            if (Math.random() < 0.1) {
+            if (Math.random() < 0.05) {
                 return interaction.reply({
                     content: 't chán làm việc này rồi >:(, tydc cái éo gì'
                 });
             }
 
             const action = ACTION_DATA[commandName];
-
-            // 🔥 ƯU TIÊN: Link nhập đè > Link đã set trong database > GIF mặc định của Bot
             const selectedGif = inputGif || savedGif || getRandom(action.gifs);
             const selectedMsg = getRandom(action.messages);
 
@@ -403,10 +653,12 @@ async function handleRelationshipInteraction(interaction) {
         }
     }
 
-    // Xử lý nút bấm tương tác (Đồng ý / Từ chối)
+    // --- 🔘 XỬ LÝ TƯƠNG TÁC NÚT BẤM ---
     if (interaction.isButton()) {
         const customId = interaction.customId;
+        const db = readDatabase();
 
+        // 1. Đồng ý / Từ chối lời mời
         if (customId.startsWith('rel_accept_') || customId.startsWith('rel_refuse_')) {
             const parts = customId.split('_');
             const action = parts[1];
@@ -441,7 +693,7 @@ async function handleRelationshipInteraction(interaction) {
                     color = '#FF1493';
                 } else if (type === 'kethon') {
                     title = '💒 LỄ ĐƯỜNG CHÚC MỪNG HÔN LỄ! 💒';
-                    desc = `💍 <@${senderId}> và ${interaction.user} đã chính thức kết duyên vợ chồng!`;
+                    desc = `💍 <@${senderId}> và ${interaction.user} đã chính thức kết duyên vợ chồng! Hãy dùng lệnh \`/ket-hon\` để mở thẻ thiệp cưới.`;
                     color = '#FFD700';
                 } else if (type === 'banthan') {
                     title = '🤝 CHÚC MỪNG BẠN THÂN MỚI! 🤝';
@@ -458,6 +710,148 @@ async function handleRelationshipInteraction(interaction) {
                 await interaction.update({ embeds: [embedSuccess], components: [] });
                 return;
             }
+        }
+
+        // 2. Nút "Tặng Quà" trên Card Kết hôn
+        if (customId.startsWith('rel_card_gift_')) {
+            const parts = customId.split('_');
+            const user1Id = parts[3];
+            const user2Id = parts[4];
+
+            if (interaction.user.id !== user1Id && interaction.user.id !== user2Id) {
+                return interaction.reply({ content: '❌ Bạn không phải là người trong cuộc hôn nhân này!', flags: MessageFlags.Ephemeral });
+            }
+
+            const marriageData = db[user1Id]?.marriageData;
+            if (!marriageData) return interaction.reply({ content: '❌ Mối quan hệ này không còn tồn tại.', flags: MessageFlags.Ephemeral });
+
+            // Lấy hệ số nhẫn
+            const ringShopItem = RING_SHOP.find(r => r.id === marriageData.ring?.ringId) || { buff: 1.0 };
+            const addedPoints = Math.floor(1000 * ringShopItem.buff);
+
+            marriageData.lovePoints = (marriageData.lovePoints || 0) + addedPoints;
+
+            // Cập nhật streak ngày
+            const now = new Date();
+            const lastDate = new Date(marriageData.lastInteractedAt || now);
+            const isNextDay = now.getDate() !== lastDate.getDate() || now.getMonth() !== lastDate.getMonth();
+
+            if (isNextDay) {
+                marriageData.streakDays = (marriageData.streakDays || 1) + 1;
+            }
+            marriageData.lastInteractedAt = now.toISOString();
+
+            // Đồng bộ dữ liệu cho đối phương
+            if (db[user2Id] && db[user2Id].marriageData) {
+                db[user2Id].marriageData = { ...marriageData };
+            }
+            writeDatabase(db);
+
+            const partnerId = interaction.user.id === user1Id ? user2Id : user1Id;
+            const partnerUser = await interaction.client.users.fetch(partnerId).catch(() => null);
+            const updatedCard = await createMarriageCardEmbed(interaction.client, interaction.user, partnerUser, marriageData);
+
+            await interaction.update(updatedCard);
+            return interaction.followUp({
+                content: `✨ Bạn đã tặng quà cho người ấy! Cộng **+${formatNumber(addedPoints)}** Điểm yêu thương (Buff x${ringShopItem.buff} từ chiếc nhẫn **${marriageData.ring.name}**)!`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        // 3. Nút "Đổi Nhẫn" trên Card Kết hôn
+        if (customId.startsWith('rel_card_changering_')) {
+            const parts = customId.split('_');
+            const user1Id = parts[3];
+            const user2Id = parts[4];
+
+            if (interaction.user.id !== user1Id && interaction.user.id !== user2Id) {
+                return interaction.reply({ content: '❌ Bạn không phải là người trong cuộc hôn nhân này!', flags: MessageFlags.Ephemeral });
+            }
+
+            const userData = ensureUserExists(db, interaction.user.id);
+            if (!userData.inventory || userData.inventory.length === 0) {
+                return interaction.reply({ content: '💼 Bạn chưa sở hữu nhẫn nào trong kho! Dùng lệnh `/shop-nhan` để mua nhé.', flags: MessageFlags.Ephemeral });
+            }
+
+            const options = userData.inventory.map((item, idx) => ({
+                label: item.name,
+                value: `${item.ringId}_${idx}`,
+                emoji: item.emoji
+            }));
+
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId(`equip_ring_select_${user1Id}_${user2Id}`)
+                .setPlaceholder('Chọn chiếc nhẫn trong kho để đeo...')
+                .addOptions(options);
+
+            const row = new ActionRowBuilder().addComponents(selectMenu);
+            return interaction.reply({
+                content: '💍 Chọn chiếc nhẫn bạn muốn trang bị cho thiệp kết hôn:',
+                components: [row],
+                flags: MessageFlags.Ephemeral
+            });
+        }
+    }
+
+    // --- 📋 XỬ LÝ CHỌN SHOP NHẪN VÀ ĐEO NHẪN ---
+    if (interaction.isStringSelectMenu()) {
+        const customId = interaction.customId;
+        const db = readDatabase();
+
+        // 1. Chọn Mua Nhẫn từ Shop
+        if (customId.startsWith('shop_buy_ring_')) {
+            const selectedRingId = interaction.values[0];
+            const ringItem = RING_SHOP.find(r => r.id === selectedRingId);
+            const userData = ensureUserExists(db, interaction.user.id);
+            const currentBalance = getUserMoney(interaction.user.id);
+
+            if (currentBalance < ringItem.price) {
+                return interaction.reply({
+                    content: `❌ Bạn không đủ Xu trong ví! Cần **${formatNumber(ringItem.price)} Xu** nhưng bạn chỉ có **${formatNumber(currentBalance)} Xu** trong \`money.json\`.`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+
+            // Trừ tiền trực tiếp vào money.json
+            deductUserMoney(interaction.user.id, ringItem.price);
+
+            // Thêm nhẫn vào kho đồ trong profiles.json
+            userData.inventory.push({
+                ringId: ringItem.id,
+                name: ringItem.name,
+                emoji: ringItem.emoji
+            });
+            writeDatabase(db);
+
+            const newBalance = getUserMoney(interaction.user.id);
+
+            return interaction.reply({
+                content: `🎉 Chúc mừng bạn đã mua thành công **${ringItem.emoji} ${ringItem.name}** với giá **${formatNumber(ringItem.price)} Xu**!\n💰 Số dư ví hiện tại: **${formatNumber(newBalance)} Xu** (Đã thanh toán qua \`money.json\`).`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        // 2. Trang bị Nhẫn từ Kho đồ
+        if (customId.startsWith('equip_ring_select_')) {
+            const parts = customId.split('_');
+            const user1Id = parts[3];
+            const user2Id = parts[4];
+
+            const selectedValue = interaction.values[0].split('_')[0];
+            const ringShopItem = RING_SHOP.find(r => r.id === selectedValue) || { name: 'Cỏ 4 Lá', emoji: '🍀', id: 'co_4_la' };
+
+            const mData1 = db[user1Id]?.marriageData;
+            const mData2 = db[user2Id]?.marriageData;
+
+            if (mData1) mData1.ring = { ringId: ringShopItem.id, name: ringShopItem.name, emoji: ringShopItem.emoji };
+            if (mData2) mData2.ring = { ringId: ringShopItem.id, name: ringShopItem.name, emoji: ringShopItem.emoji };
+
+            writeDatabase(db);
+
+            return interaction.update({
+                content: `✅ Đã đổi nhẫn đính hôn thành **${ringShopItem.emoji} ${ringShopItem.name}** thành công! Mở lại \`/ket-hon\` để xem thay đổi.`,
+                components: []
+            });
         }
     }
 }

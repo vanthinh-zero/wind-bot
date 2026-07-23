@@ -51,6 +51,7 @@ async function handleWelcomeMember(member) {
                             inline: true 
                         }
                     )
+                    .setImage('https://media.discordapp.net/attachments/1528282202222235718/1529055907504459926/MOO_MOO_11.gif?ex=6a628608&is=6a613488&hm=55b6fbae127f8fb63ffe6ed283a834816c4ad64478dc491e8f35afa626cbb61d&=')
                     .setFooter({ text: 'Nhật kí trang trại', iconURL: guildIcon })
                     .setTimestamp();
 

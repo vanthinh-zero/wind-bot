@@ -10,6 +10,24 @@
     "customGifs": {
       "hon": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHZ1MXU1ZHU0ZWlxendnajQ5N3lsNTQwYzFsOWh2dWk0bXpvNG9tayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/W1hd3uXRIbddu/200.webp",
       "om": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWJkdDBzd2J1Nmxjd29xOGg5ZzJnaXByazJ0dDBxcHF5Y2EzNDBheCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/gl8ymnpv4Sqha/200.webp"
+    },
+    "coins": 0,
+    "inventory": [
+      {
+        "ringId": "co_4_la",
+        "name": "Cỏ 4 Lá",
+        "emoji": "🍀"
+      },
+      {
+        "ringId": "orchid",
+        "name": "Orchid",
+        "emoji": "🪷"
+      }
+    ],
+    "relationships": {
+      "totinh": null,
+      "kethon": null,
+      "banthan": null
     }
   },
   "986537662066327583": {
@@ -60,5 +78,43 @@
       "kethon": null,
       "banthan": "1037019422918983810"
     }
+  },
+  "1376818843162378331": {
+    "title": "HỒ SƠ THÀNH VIÊN",
+    "bio": "Xin chào! Rất vui được làm quen với mọi người.",
+    "status": "Đang hoạt động",
+    "color": "#2B2D31",
+    "media": "https://media.discordapp.net/attachments/1528282202222235718/1528878087683706880/MOO_MOO_9.gif?ex=6a608eed&is=6a5f3d6d&hm=1ed4637eb577a1624a0d6d336fa3069836c6a77285de6fc4c6df4d91af18f581&=",
+    "badge": "",
+    "divider": "────୨ৎ────────୨ৎ────────୨ৎ────",
+    "footerText": "Dùng các lệnh /set... để trang trí hồ sơ",
+    "relationships": {
+      "totinh": "1518642778463272980",
+      "kethon": null,
+      "banthan": null
+    },
+    "inventory": [
+      {
+        "ringId": "co_4_la",
+        "name": "Cỏ 4 Lá",
+        "emoji": "🍀"
+      }
+    ]
+  },
+  "1518642778463272980": {
+    "customGifs": {},
+    "relationships": {
+      "totinh": "1376818843162378331",
+      "kethon": null,
+      "banthan": null
+    },
+    "inventory": [
+      {
+        "ringId": "co_4_la",
+        "name": "Cỏ 4 Lá",
+        "emoji": "🍀"
+      }
+    ],
+    "marriageData": null
   }
 }
