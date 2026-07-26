@@ -1,24 +1,29 @@
-const { PermissionsBitField, AttachmentBuilder } = require('discord.js');
-// 🚀 Tích hợp thư viện Google Gen AI SDK mới nhất
+const { PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-// Khởi tạo thực thể AI an toàn từ file môi trường .env
+// =========================================================================
+// 1. CẤU HÌNH ADMIN ROLE & GEMINI AI
+// =========================================================================
 const apiKey = process.env.GEMINI_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey }) : null;
 
-// Định nghĩa các biến cấu hình hệ thống dự phòng
+// Lấy danh sách ID Role Admin từ file .env (Hỗ trợ 1 hoặc nhiều Role ID phân cách bằng dấu phẩy)
+const ADMIN_ROLE_IDS = process.env.ADMIN_ROLE_ID 
+    ? process.env.ADMIN_ROLE_ID.split(',').map(id => id.trim()).filter(Boolean)
+    : [];
+
 let CO_AUTO_CHAT = true;
 let BOT_MOOD = 'macdinh'; 
-let KENH_CONTENT_ID = process.env.KENH_CONTENT_ID || null;
 
-// --- 📂 BỔ SUNG: LƯU TRỮ VÀ QUẢN LÝ TỪ KHÓA TỰ ĐỘNG ---
+// =========================================================================
+// 2. ĐỌC / GHI FILE TỪ KHÓA (tukhoa.json)
+// =========================================================================
 const tukhoaFilePath = path.join(__dirname, 'tukhoa.json');
 
-// Hàm đọc danh sách từ khóa từ file JSON
-function CodeDocTuKhoa() {
+function docTuKhoa() {
     try {
         if (!fs.existsSync(tukhoaFilePath)) {
             fs.writeFileSync(tukhoaFilePath, JSON.stringify({}, null, 4));
@@ -32,33 +37,21 @@ function CodeDocTuKhoa() {
     }
 }
 
-// Hàm ghi danh sách từ khóa vào file JSON
-function CodeGhiTuKhoa(data) {
+function ghiTuKhoa(data) {
     try {
         fs.writeFileSync(tukhoaFilePath, JSON.stringify(data, null, 4));
     } catch (e) {
         console.error("❌ Lỗi ghi file tukhoa.json:", e);
     }
 }
-// -----------------------------------------------------
 
-// Giả lập hoặc bọc các hàm hệ thống lưu trữ thống kê tránh lỗi crash
+// =========================================================================
+// 3. HÀM TRỢ GIÚP HỆ THỐNG
+// =========================================================================
 function CodeDocStats() {
     if (global.CodeDocStats && typeof global.CodeDocStats === 'function') return global.CodeDocStats();
     if (!global.statsMemory) global.statsMemory = {};
     return global.statsMemory;
-}
-
-function CodeGhiStats(newStats) {
-    if (global.CodeGhiStats && typeof global.CodeGhiStats === 'function') return global.CodeGhiStats(newStats);
-    global.statsMemory = newStats;
-}
-
-async function executeServerAction(message, botReply) {
-    if (global.executeServerAction && typeof global.executeServerAction === 'function') {
-        return await global.executeServerAction(message, botReply);
-    }
-    return botReply;
 }
 
 async function sfetch(url, options) {
@@ -69,417 +62,382 @@ async function sfetch(url, options) {
 }
 
 function initAutoSpam(client) {
-    try {
-        console.log('💬 [System Check]: Module Auto Spam rộn ràng đã khởi chạy thành công!');
-    } catch (error) {
-        console.error('❌ Lỗi trong hàm initAutoSpam:', error);
-    }
+    console.log('💬 [System]: Bot Wind đã sẵn sàng!');
 }
 
+// =========================================================================
+// 4. XỬ LÝ LỆNH THAO TÁC SERVER TỪ GEMINI AI
+// =========================================================================
+async function executeServerAction(message, botReply) {
+    if (!botReply || typeof botReply !== 'string') return botReply;
+    const guild = message.guild;
+    if (!guild) return botReply;
+
+    // [CMD:CREATE_ROLE:Tên:Màu]
+    const createRoleMatch = botReply.match(/\[CMD:CREATE_ROLE[:\s]+([^:\]]+)(?::([^\]]+))?\]/i);
+    if (createRoleMatch) {
+        const roleName = createRoleMatch[1].trim();
+        const roleColor = createRoleMatch[2] ? createRoleMatch[2].trim() : '#99aab5';
+        try {
+            const createdRole = await guild.roles.create({ name: roleName, color: roleColor, reason: 'Tạo bởi Wind AI' });
+            botReply = botReply.replace(createRoleMatch[0], `\n✅ **[Hệ thống]**: Đã tạo Role \`${createdRole.name}\`!`);
+        } catch (err) {
+            botReply = botReply.replace(createRoleMatch[0], `\n❌ **[Lỗi]**: Bot thiếu quyền tạo Role.`);
+        }
+    }
+
+    // [CMD:DELETE_ROLE:Tên]
+    const deleteRoleMatch = botReply.match(/\[CMD:DELETE_ROLE[:\s]+([^\]]+)\]/i);
+    if (deleteRoleMatch) {
+        const target = deleteRoleMatch[1].trim().toLowerCase();
+        try {
+            const role = guild.roles.cache.find(r => r.id === target || r.name.toLowerCase() === target);
+            if (role) {
+                await role.delete('Xóa bởi Wind AI');
+                botReply = botReply.replace(deleteRoleMatch[0], `\n🗑️ **[Hệ thống]**: Đã xóa Role \`${role.name}\`!`);
+            } else {
+                botReply = botReply.replace(deleteRoleMatch[0], `\n⚠️ **[Hệ thống]**: Không tìm thấy Role \`${target}\`.`);
+            }
+        } catch (err) {
+            botReply = botReply.replace(deleteRoleMatch[0], `\n❌ **[Lỗi]**: Không thể xóa Role này.`);
+        }
+    }
+
+    // [CMD:ADD_ROLE:ID_User:Tên_Role]
+    const addRoleMatch = botReply.match(/\[CMD:ADD_ROLE[:\s]+([^:]+):([^\]]+)\]/i);
+    if (addRoleMatch) {
+        const targetId = addRoleMatch[1].trim();
+        const roleTarget = addRoleMatch[2].trim().toLowerCase();
+        try {
+            const member = await guild.members.fetch(targetId);
+            const role = guild.roles.cache.find(r => r.id === roleTarget || r.name.toLowerCase() === roleTarget);
+            if (member && role) {
+                await member.roles.add(role);
+                botReply = botReply.replace(addRoleMatch[0], `\n✅ **[Hệ thống]**: Đã gắn Role \`${role.name}\` cho <@${member.id}>!`);
+            }
+        } catch (err) {
+            botReply = botReply.replace(addRoleMatch[0], `\n❌ **[Lỗi]**: Gắn Role thất bại.`);
+        }
+    }
+
+    // [CMD:REMOVE_ROLE:ID_User:Tên_Role]
+    const removeRoleMatch = botReply.match(/\[CMD:REMOVE_ROLE[:\s]+([^:]+):([^\]]+)\]/i);
+    if (removeRoleMatch) {
+        const targetId = removeRoleMatch[1].trim();
+        const roleTarget = removeRoleMatch[2].trim().toLowerCase();
+        try {
+            const member = await guild.members.fetch(targetId);
+            const role = guild.roles.cache.find(r => r.id === roleTarget || r.name.toLowerCase() === roleTarget);
+            if (member && role) {
+                await member.roles.remove(role);
+                botReply = botReply.replace(removeRoleMatch[0], `\n🗑️ **[Hệ thống]**: Đã gỡ Role \`${role.name}\` khỏi <@${member.id}>!`);
+            }
+        } catch (err) {
+            botReply = botReply.replace(removeRoleMatch[0], `\n❌ **[Lỗi]**: Gỡ Role thất bại.`);
+        }
+    }
+
+    // [CMD:CREATE_CHANNEL:Tên:type]
+    const createChannelMatch = botReply.match(/\[CMD:CREATE_CHANNEL[:\s]+([^:\]]+)(?::([^\]]+))?\]/i);
+    if (createChannelMatch) {
+        const channelName = createChannelMatch[1].trim();
+        const channelType = (createChannelMatch[2] || '').trim().toLowerCase() === 'voice' ? ChannelType.GuildVoice : ChannelType.GuildText;
+        try {
+            const newChannel = await guild.channels.create({ name: channelName, type: channelType });
+            botReply = botReply.replace(createChannelMatch[0], `\n✅ **[Hệ thống]**: Đã tạo kênh <#${newChannel.id}>!`);
+        } catch (err) {
+            botReply = botReply.replace(createChannelMatch[0], `\n❌ **[Lỗi]**: Tạo kênh thất bại.`);
+        }
+    }
+
+    // [CMD:DELETE_CHANNEL]
+    const deleteChannelMatch = botReply.match(/\[CMD:DELETE_CHANNEL(?::|[\s]+)?([^\]]+)?\]/i);
+    if (deleteChannelMatch) {
+        const channelId = deleteChannelMatch[1] ? deleteChannelMatch[1].trim() : message.channel.id;
+        try {
+            const ch = guild.channels.cache.get(channelId);
+            if (ch) {
+                botReply = botReply.replace(deleteChannelMatch[0], `\n🔥 **[Hệ thống]**: Đã xóa kênh \`${ch.name}\`!`);
+                await message.reply(botReply);
+                await ch.delete('Xóa bởi Wind AI');
+                return null;
+            }
+        } catch (err) {
+            botReply = botReply.replace(deleteChannelMatch[0], `\n❌ **[Lỗi]**: Không thể xóa kênh.`);
+        }
+    }
+
+    // [CMD:CLEAR_MSG:Số_Lượng]
+    const clearMsgMatch = botReply.match(/\[CMD:CLEAR_MSG[:\s]+(\d+)\]/i);
+    if (clearMsgMatch) {
+        const amount = parseInt(clearMsgMatch[1]);
+        try {
+            if (amount > 0 && amount <= 100) {
+                await message.channel.bulkDelete(amount + 1, true);
+                botReply = botReply.replace(clearMsgMatch[0], `\n🧹 **[Hệ thống]**: Đã dọn dẹp ${amount} tin nhắn!`);
+            }
+        } catch (err) {
+            botReply = botReply.replace(clearMsgMatch[0], `\n❌ **[Lỗi]**: Không thể xóa tin nhắn cũ quá 14 ngày.`);
+        }
+    }
+
+    return botReply;
+}
+
+// =========================================================================
+// 5. HÀM XỬ LÝ CHÍNH (MAIN INTERACTION)
+// =========================================================================
 async function handleChatInteraction(message) {
     if (message.author.bot) return false;
+
+    // 🛑 XÁC THỰC QUYỀN HẠN BẰNG ADMIN_ROLE_ID TỪ FILE .ENV
+    const memberRoles = message.member?.roles.cache;
+    const hasAdminRole = memberRoles && ADMIN_ROLE_IDS.some(roleId => memberRoles.has(roleId));
+
+    if (!hasAdminRole) return false;
 
     const content = message.content.trim();
     const contentLower = content.toLowerCase();
     const clientUser = message.client.user;
 
-    // 1. KIỂM TRA QUYỀN TRUY CẬP (TÍCH HỢP ID ROLE TỪ .ENV)
-    const isAdmin = message.author.id === process.env.ADMIN_ID || message.member?.permissions.has(PermissionsBitField.Flags.Administrator);
-    
-    // 💡 Tích hợp ID Role từ .env
-    const roleStaffId = process.env.ROLE_STAFF;
-    const roleLeTanId = process.env.ROLE_CAN_THONG_BAO;
-
-    // Dự phòng kiểm tra theo Tên Role cũ (nếu .env chưa cấu hình ID)
-    const danhSachRoleNameHopLe = ['bò quản trị', 'bò thân thiện', 'bo than thien'];
-
-    const isStaff = message.member?.roles.cache.some(role => 
-        (roleStaffId && role.id === roleStaffId) || 
-        (roleLeTanId && role.id === roleLeTanId) || 
-        danhSachRoleNameHopLe.includes(role.name.toLowerCase())
-    );
-
-    // --- 🛑 KIỂM TRA TRẠNG THÁI CHAT (!chat off / !chat on) ---
-    // Nếu chế độ chat đang TẮT và tin nhắn KHÔNG PHẢI là lệnh mở lại thì Bỏ qua toàn bộ.
-    if (!CO_AUTO_CHAT && !['!chat on', '!autochat on'].includes(contentLower)) {
-        return false;
-    }
-
-    // --- ⚙️ HỆ THỐNG CẤU HÌNH BẬT / TẮT CHAT & MOOD ---
+    // -------------------------------------------------------------------------
+    // A. LỆNH CẤU HÌNH HỆ THỐNG (!chat, !mood)
+    // -------------------------------------------------------------------------
     if (['!chat on', '!chat off', '!autochat on', '!autochat off', '!mood cold', '!mood macdinh'].includes(contentLower)) {
-        if (!isAdmin && !isStaff) {
-            await message.reply("❌ Bạn không có quyền cấu hình hệ thống chat!");
-            return true;
-        }
-        
-        if (contentLower === "!chat on" || contentLower === "!autochat on") {
+        if (contentLower.includes('on')) {
             CO_AUTO_CHAT = true;
-            await message.reply(BOT_MOOD === 'cold' ? "Chat status: ON." : "🚀 **[Hệ thống]**: Đã kích hoạt lại chế độ phản hồi tin nhắn!");
-        } else if (contentLower === "!chat off" || contentLower === "!autochat off") {
+            await message.reply(BOT_MOOD === 'cold' ? "Chat: ON." : "🚀 **[Hệ thống]**: Đã bật phản hồi tự động!");
+        } else if (contentLower.includes('off')) {
             CO_AUTO_CHAT = false;
-            await message.reply(BOT_MOOD === 'cold' ? "Chat status: OFF." : "🤫 **[Hệ thống]**: Đã tạm dừng phản hồi tin nhắn (!chat off).");
+            await message.reply(BOT_MOOD === 'cold' ? "Chat: OFF." : "🤫 **[Hệ thống]**: Đã tắt phản hồi tự động!");
         } else if (contentLower === "!mood cold") {
             BOT_MOOD = 'cold';
-            await message.reply("Đã chuyển đổi cấu hình hệ thống: tôi ở đây.");
+            await message.reply("Đã chuyển đổi sang phong cách lạnh lùng.");
         } else if (contentLower === "!mood macdinh") {
             BOT_MOOD = 'macdinh';
-            await message.reply("Đã quay về phong cách mặc định, lém lỉnh vâng lệnh sếp!");
+            await message.reply("Đã quay về phong cách mặc định.");
         }
         return true;
     }
 
-    // --- ⚙️ HỆ THỐNG QUẢN LÝ TỪ KHÓA (!tukhoa) ---
+    // -------------------------------------------------------------------------
+    // B. LỆNH QUẢN LÝ TỪ KHÓA (!tukhoa)
+    // -------------------------------------------------------------------------
     if (contentLower.startsWith("!tukhoa")) {
-        if (!isAdmin && !isStaff) {
-            await message.reply("❌ Bạn không có quyền sử dụng lệnh quản lý từ khóa!");
-            return true;
-        }
+        try {
+            let danhSach = docTuKhoa();
+            const args = content.split(/\s+/);
+            const action = args[1] ? args[1].toLowerCase() : "list";
 
-        let danhSachTuKhoa = CodeDocTuKhoa();
-        const restContent = content.slice(7).trim();
-        const firstSpaceIndex = restContent.search(/\s/);
-        const action = (firstSpaceIndex === -1 ? restContent : restContent.slice(0, firstSpaceIndex)).toLowerCase();
-
-        // 1. Xem danh sách từ khóa: !tukhoa list
-        if (action === "list") {
-            const keys = Object.keys(danhSachTuKhoa);
-            if (keys.length === 0) {
-                await message.reply("📝 Chưa có từ khóa nào được thiết lập.");
-                return true;
-            }
-            let listMsg = "📋 **DANH SÁCH TỪ KHÓA TỰ ĐỘNG PHẢN HỒI:**\n";
-            keys.forEach((key, index) => {
-                const item = danhSachTuKhoa[key];
-                const textVal = typeof item === 'object' ? (item.text || '[Chỉ chứa ảnh]') : item;
-                const imgVal = typeof item === 'object' && item.image ? ` 🖼️ *[Ảnh]*` : '';
-                listMsg += `**${index + 1}.** \`${key}\` ➡️ ${textVal}${imgVal}\n-------------------\n`;
-            });
-            await message.reply(listMsg);
-            return true;
-        }
-
-        // 2. Thêm từ khóa: !tukhoa add
-        if (action === "add") {
-            let tuKhoaNew = "";
-            let phanHoiNew = "";
-            let imageNew = null;
-
-            // Kiểm tra file ảnh đính kèm trực tiếp trong tin nhắn Discord
-            const attachedImage = message.attachments.find(att => att.contentType?.startsWith('image/'));
-            if (attachedImage) {
-                imageNew = attachedImage.url;
-            }
-
-            if (restContent.includes("|")) {
-                const parts = restContent.split("|").map(item => item.trim());
-                tuKhoaNew = parts[1]?.toLowerCase();
-                phanHoiNew = parts.slice(2).join("|").trim();
-            } else {
-                const afterAdd = restContent.slice(3).trim(); 
-                const matchKey = afterAdd.match(/^([^\s]+)(?:\s+([\s\S]+))?/); 
-                
-                if (matchKey) {
-                    tuKhoaNew = matchKey[1].toLowerCase();
-                    phanHoiNew = matchKey[2] ? matchKey[2].trim() : "";
+            // 1. Xem danh sách (!tukhoa hoặc !tukhoa list)
+            if (action === "list" || args.length === 1) {
+                const keys = Object.keys(danhSach);
+                if (keys.length === 0) {
+                    await message.reply("📝 Chưa có từ khóa nào được thiết lập.");
+                    return true;
                 }
+                let listMsg = "📋 **DANH SÁCH TỪ KHÓA PHẢN HỒI TỰ ĐỘNG:**\n";
+                keys.forEach((key, index) => {
+                    const item = danhSach[key];
+                    let textVal = "[Chưa có nội dung]";
+                    let imgVal = "";
+
+                    if (item && typeof item === 'object') {
+                        textVal = item.text || '[Chỉ chứa ảnh]';
+                        imgVal = (item.image && typeof item.image === 'string' && item.image.trim() !== '') ? ` 🖼️ *[Ảnh]*` : '';
+                    } else if (typeof item === 'string') {
+                        textVal = item;
+                    }
+
+                    listMsg += `**${index + 1}.** \`${key}\` ➡️ ${textVal}${imgVal}\n`;
+                });
+                await message.reply(listMsg);
+                return true;
             }
 
-            // Nếu câu trả lời chứa link ảnh HTTP
-            if (phanHoiNew) {
-                const partsText = phanHoiNew.split(/\s+/);
-                const lastPart = partsText[partsText.length - 1];
-                if (lastPart.match(/^https?:\/\/.*\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i)) {
-                    imageNew = lastPart;
-                    // Bỏ link ra khỏi chữ nếu người dùng chỉ nhập link ảnh
-                    if (partsText.length === 1) phanHoiNew = ""; 
+            // 2. Thêm từ khóa (!tukhoa add <từ_khóa> <nội_dung>)
+            if (action === "add") {
+                const keyWord = args[2]?.toLowerCase();
+                const responseText = args.slice(3).join(" ").trim();
+                const attachedImage = message.attachments.find(att => att.contentType?.startsWith('image/'))?.url || null;
+
+                if (!keyWord || (!responseText && !attachedImage)) {
+                    await message.reply("⚠️ **Cú pháp:** `!tukhoa add <từ_khóa> <nội_dung>` (Có thể kèm ảnh đính kèm)");
+                    return true;
                 }
-            }
 
-            if (!tuKhoaNew || (!phanHoiNew && !imageNew)) {
-                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa add <từ khóa> <nội dung>` (Đính kèm ảnh nếu muốn)");
+                danhSach[keyWord] = { text: responseText, image: attachedImage };
+                ghiTuKhoa(danhSach);
+                await message.reply(`✅ Đã thêm thành công từ khóa \`${keyWord}\`!`);
                 return true;
             }
 
-            if (phanHoiNew) phanHoiNew = phanHoiNew.replace(/\\n/g, '\n');
-            
-            // Lưu dữ liệu dạng Object
-            danhSachTuKhoa[tuKhoaNew] = {
-                text: phanHoiNew || "",
-                image: imageNew || null
-            };
-
-            CodeGhiTuKhoa(danhSachTuKhoa);
-
-            let msgReply = `✅ Đã thêm từ khóa \`${tuKhoaNew}\``;
-            if (phanHoiNew) msgReply += ` với nội dung: "${phanHoiNew}"`;
-            if (imageNew) msgReply += ` 🖼️ *(kèm ảnh)*`;
-
-            await message.reply({ content: msgReply, files: imageNew ? [imageNew] : [] });
+            // 3. Xóa từ khóa (!tukhoa del <từ_khóa>)
+            if (action === "del" || action === "delete") {
+                const keyWord = args[2]?.toLowerCase();
+                if (!keyWord || !danhSach[keyWord]) {
+                    await message.reply(`❌ Từ khóa \`${keyWord || ''}\` không tồn tại trong danh sách.`);
+                    return true;
+                }
+                delete danhSach[keyWord];
+                ghiTuKhoa(danhSach);
+                await message.reply(`🗑️ Đã xóa từ khóa \`${keyWord}\`!`);
+                return true;
+            }
+        } catch (err) {
+            console.error("❌ Lỗi xử lý !tukhoa:", err);
+            await message.reply("❌ Đã xảy ra lỗi khi xử lý danh sách từ khóa!");
             return true;
         }
-
-        // 3. Xóa từ khóa: !tukhoa del
-        if (action === "del" || action === "delete") {
-            let tuKhoaDel = "";
-            if (restContent.includes("|")) {
-                const parts = restContent.split("|").map(item => item.trim());
-                tuKhoaDel = parts[1]?.toLowerCase();
-            } else {
-                const parts = restContent.split(/\s+/);
-                tuKhoaDel = parts[1]?.toLowerCase();
-            }
-
-            if (!tuKhoaDel) {
-                await message.reply("⚠️ **Cú pháp sai!** Dùng: `!tukhoa del <từ khóa>`");
-                return true;
-            }
-
-            if (!danhSachTuKhoa[tuKhoaDel]) {
-                await message.reply(`❌ Từ khóa \`${tuKhoaDel}\` không tồn tại.`);
-                return true;
-            }
-
-            delete danhSachTuKhoa[tuKhoaDel];
-            CodeGhiTuKhoa(danhSachTuKhoa);
-            await message.reply(`🗑️ Đã xóa từ khóa \`${tuKhoaDel}\` thành công!`);
-            return true;
-        }
-
-        await message.reply(
-            "💡 **HƯỚNG DẪN SỬ DỤNG LỆNH !TUKHOA:**\n" +
-            "• **Thêm câu chữ:** `!tukhoa add <từ khóa> <nội dung>`\n" +
-            "• **Thêm ảnh:** Gửi file ảnh kèm nội dung `!tukhoa add <từ khóa>`\n" +
-            "• **Xóa:** `!tukhoa del <từ khóa>`\n" +
-            "• **Xem danh sách:** `!tukhoa list`"
-        );
-        return true;
     }
 
-    // --- 🤖 TỰ ĐỘNG PHẢN HỒI TỪ KHÓA ---
-    const danhSachTuKhoa = CodeDocTuKhoa();
-    if (danhSachTuKhoa[contentLower]) {
-        const itemData = danhSachTuKhoa[contentLower];
-
-        // 1. Từ khóa dữ liệu cũ dạng chuỗi
-        if (typeof itemData === 'string') {
-            await message.channel.send(itemData);
-            return true;
-        } 
-
-        // 2. Từ khóa dữ liệu mới dạng Object
-        if (typeof itemData === 'object') {
-            const sendPayload = {};
-            
-            if (itemData.text && itemData.text.trim().length > 0) {
-                sendPayload.content = itemData.text;
-            }
-            if (itemData.image) {
-                sendPayload.files = [itemData.image];
-            }
-
-            // Gửi thẳng vào channel (không dùng .reply() để hiện ảnh sạch đẹp)
-            if (sendPayload.content || sendPayload.files) {
-                await message.channel.send(sendPayload);
-            }
-        }
-        return true;
-    }
-
-    // 💡 LỆNH TRA THÔNG TIN NGƯỜI DÙNG (!trathongtin @User hoặc ID)
+    // -------------------------------------------------------------------------
+    // C. CÁC LỆNH HỆ THỐNG KHÁC (!trathongtin, !thongketag, !taocontent)
+    // -------------------------------------------------------------------------
     if (contentLower.startsWith("!trathongtin")) {
-        if (!isAdmin && !isStaff) {
-            await message.reply("❌ Bạn không có quyền sử dụng lệnh tra cứu thông tin!");
-            return true;
-        }
-
         const match = content.match(/!trathongtin\s+(?:<@!?(\d+)>|(\d+))/i);
-        
         if (!match) {
-            await message.reply("⚠️ **Cú pháp sai!** Dùng: `!trathongtin @user` hoặc `!trathongtin <ID>`");
+            await message.reply("⚠️ **Cú pháp:** `!trathongtin @user` hoặc `!trathongtin <ID>`");
             return true;
         }
-
         const targetId = match[1] || match[2];
+        try {
+            const user = await message.client.users.fetch(targetId);
+            const stats = CodeDocStats();
+            const tagCount = stats[targetId] || 0;
 
-        await message.reply("tôi sẽ gửi thông tin qua hộp thư sau ít phút");
-
-        (async () => {
-            try {
-                const member = await message.guild?.members.fetch(targetId).catch(() => null);
-                const user = member ? member.user : await message.client.users.fetch(targetId).catch(() => null);
-
-                if (!user) {
-                    return await message.author.send(`❌ Không tìm thấy thông tin của ID/User: \`${targetId}\`.`);
-                }
-
-                const stats = CodeDocStats();
-                const tagCount = stats[targetId] || 0;
-
-                let fullInfo = `📂 **HỒ SƠ THÔNG TIN CHI TIẾT NGƯỜI DÙNG**\n`;
-                fullInfo += `===================================\n`;
-                fullInfo += `👤 **Tên tài khoản (Tag):** ${user.tag}\n`;
-                fullInfo += `📛 **Tên hiển thị:** ${user.globalName || user.username}\n`;
-                fullInfo += `🆔 **ID Người dùng:** \`${user.id}\`\n`;
-                fullInfo += `🤖 **Tài khoản Bot:** ${user.bot ? 'Có' : 'Không'}\n`;
-                fullInfo += `🗓️ **Ngày tạo tài khoản:** <t:${Math.floor(user.createdTimestamp / 1000)}:F> (<t:${Math.floor(user.createdTimestamp / 1000)}:R>)\n`;
-
-                if (member) {
-                    fullInfo += `📥 **Ngày tham gia Server:** <t:${Math.floor(member.joinedTimestamp / 1000)}:F> (<t:${Math.floor(member.joinedTimestamp / 1000)}:R>)\n`;
-                    
-                    const rolesList = member.roles.cache
-                        .filter(r => r.name !== '@everyone')
-                        .map(r => r.name)
-                        .join(', ') || 'Không có vai trò riêng';
-                        
-                    fullInfo += `🏷️ **Chức vụ trong Server:** ${rolesList}\n`;
-                    fullInfo += `👑 **Biệt danh Server:** ${member.nickname || 'Không đặt'}\n`;
-                } else {
-                    fullInfo += `⚠️ **Trạng thái Server:** Người dùng này không còn ở trong Server.\n`;
-                }
-
-                fullInfo += `-----------------------------------\n`;
-                fullInfo += `📊 **Dữ liệu thống kê Bot ghi nhận:** ${tagCount} lần gọi/tag bot\n`;
-                fullInfo += `🖼️ **Ảnh đại diện:** ${user.displayAvatarURL({ dynamic: true, size: 1024 })}\n`;
-                fullInfo += `===================================`;
-
-                await message.author.send(fullInfo);
-
-            } catch (err) {
-                console.error("Lỗi gửi tin nhắn riêng:", err);
-                await message.channel.send(`⚠️ <@${message.author.id}>, bot không thể gửi tin nhắn riêng cho bạn. Hãy mở tính năng nhận tin nhắn riêng (Allow Direct Messages) trong cài đặt Server nhé!`).catch(() => null);
-            }
-        })();
-
+            const info = `📂 **THÔNG TIN DỮ LIỆU**\n` +
+                         `👤 Tag: ${user.tag}\n` +
+                         `🆔 ID: \`${user.id}\`\n` +
+                         `🗓️ Ngày tạo: <t:${Math.floor(user.createdTimestamp / 1000)}:R>\n` +
+                         `📊 Số lần tương tác: ${tagCount} lần`;
+            await message.author.send(info);
+            await message.reply("📬 Đã gửi thông tin qua tin nhắn riêng!");
+        } catch {
+            await message.reply("❌ Không tìm thấy thông tin ID người dùng này.");
+        }
         return true;
     }
 
-    // Chặn người dùng thường tương tác với các tính năng bên dưới nếu không có quyền
-    if (!isAdmin && !isStaff) return false;
-
-    // Lệnh thống kê tag
     if (contentLower === "!thongketag") {
         const stats = CodeDocStats();
         const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-        if (sorted.length === 0) return await message.reply("Chưa ghi nhận dữ liệu tag.");
-        
-        let bieuDo = BOT_MOOD === 'cold' ? "📊 **Thống kê lượt tag:**\n" : "📊 **BẢNG XẾP HẠNG GHI PHẠM:**\n---------------------------------------\n";
-        for (let i = 0; i < Math.min(sorted.length, 10); i++) {
-            bieuDo += `${i + 1}. <@${sorted[i][0]}>: ${sorted[i][1]} lần\n`;
-        }
+        if (sorted.length === 0) return await message.reply("📊 Chưa có dữ liệu thống kê.");
+
+        let bieuDo = "📊 **BẢNG THỐNG KÊ TƯƠNG TÁC:**\n";
+        sorted.slice(0, 10).forEach(([id, count], index) => {
+            bieuDo += `**${index + 1}.** <@${id}>: ${count} lần\n`;
+        });
         await message.reply(bieuDo);
         return true;
     }
 
-    // 3. XỬ LÝ TƯƠNG TÁC VỚI BOT AI (GEMINI)
-    const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
-    const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
-    const tuKhoaQuyenLuc = ["anh", "sếp", "wind", "giúp", "tạo", "xóa", "đổi"];
-    const adminKichHoatTuKhoa = tuKhoaQuyenLuc.some(tu => contentLower.includes(tu));
-
-    if ((isMentioned || isCalledName || adminKichHoatTuKhoa) && !contentLower.startsWith("!taocontent")) {
-        if (!ai) {
-            await message.reply("Hệ thống chưa cấu hình hoặc cấu hình sai biến GEMINI_KEY tại file .env.");
-            return true;
-        }
-
-        let stats = CodeDocStats();
-        const mId = message.author.id;
-        stats[mId] = (stats[mId] || 0) + 1;
-        CodeGhiStats(stats);
-
-        try {
-            await message.channel.sendTyping();
-            
-            let userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
-            if (userPrompt.toLowerCase().startsWith("wind")) {
-                userPrompt = userPrompt.slice(4).trim();
-            }
-
-            const roleUserText = isAdmin ? "Admin tối cao" : "Staff / Lễ tân";
-
-            const systemInstruction = BOT_MOOD === 'cold'
-                ? `Bạn là "wind" - trợ lý tổng tài, lạnh lùng, ít nói. Bạn đang trò chuyện với ${message.author.username} (Chức vụ: ${roleUserText}).
-                   Trả lời cực kỳ ngắn gọn, súc tích, nghiêm túc. Không dùng icon.
-                   *Lưu ý quan trọng*: Chỉ khi người chat là "Admin tối cao", bạn mới được phép chèn các mã lệnh hệ thống sau:
-                   - Tạo Role: [CMD:CREATE_ROLE:Tên Role:Màu]
-                   - Dọn tin nhắn: [CMD:CLEAR_MSG:Số lượng]
-                   - Tạo Kênh: [CMD:CREATE_CHANNEL:Tên Kênh:text hoặc voice]
-                   - Xóa kênh: [CMD:DELETE_CHANNEL]
-                   - Đổi biệt danh: [CMD:SET_NICK:ID_MEMBER:Biệt danh mới].
-                   Nếu chức vụ của họ là Staff/Lễ tân, TUYỆT ĐỐI KHÔNG chèn các mã lệnh trên.`
-                : `Bạn là "wind" - trợ lý của server "ĐÀN BÒ BIẾT BAY". Bạn đang trò chuyện với ${message.author.username} (Chức vụ: ${roleUserText}).
-                   Hãy trả lời bằng phong cách lém lỉnh, trung thành.
-                   *Lưu ý quan trọng*: Chỉ khi chức vụ là "Admin tối cao" bạn mới được chèn mã hệ thống thực thi lệnh: [CMD:CREATE_ROLE...], [CMD:CLEAR_MSG...], [CMD:CREATE_CHANNEL...], [CMD:DELETE_CHANNEL], [CMD:SET_NICK...].
-                   Nếu họ là Staff/Lễ tân, tuyệt đối không chèn mã lệnh phá cấu hình server.`;
-
-            const targetUser = message.mentions.users.first();
-            let promptText = `${roleUserText} nói: "${userPrompt}"`;
-            if (targetUser) promptText += `\n(ID đối tượng: ${targetUser.id})`;
-
-            let response;
-            try {
-                response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: `${systemInstruction}\n\n${promptText}`,
-                });
-            } catch (apiErr) {
-                console.error("Lỗi kết nối Google Gemini:", apiErr.message);
-                await message.reply(BOT_MOOD === 'cold' ? "Hệ thống nghẽn." : "📡 Máy chủ quá tải hoặc API Key hết hạn sếp ơi!");
-                return true;
-            }
-
-            let botReply = response.text || (BOT_MOOD === 'cold' ? "Rõ." : "Em nghe đây ạ!");
-
-            const containsCommand = botReply.includes('[CMD:');
-            if (containsCommand && !isAdmin) {
-                botReply = botReply.replace(/\[CMD:.*?\]/g, '').trim(); 
-                botReply += BOT_MOOD === 'cold' ? "\n(Yêu cầu thực thi lệnh bị từ chối do thiếu quyền)." : "\n*(Lệnh hệ thống bị hủy vì Nhân viên/Lễ tân không có quyền cấu hình server nhé!)*";
-                await message.reply(botReply);
-                return true;
-            }
-
-            const processedReply = await executeServerAction(message, botReply);
-            if (processedReply) await message.reply(processedReply);
-            return true;
-        } catch (error) { console.error(error); return true; }
-    }
-
-    // Lệnh tạo content
     if (contentLower.startsWith("!taocontent")) {
-        if (KENH_CONTENT_ID && message.channel.id !== KENH_CONTENT_ID) {
-            await message.reply(BOT_MOOD === 'cold' ? `Sai kênh.` : `Sếp/Staff ơi, lệnh này chỉ dùng ở kênh <#${KENH_CONTENT_ID}> thôi nhé!`); 
-            return true;
-        }
         const topic = content.slice(11).trim();
-        if (!topic) { await message.reply(BOT_MOOD === 'cold' ? "Thiếu chủ đề." : "Thiếu chủ đề rồi kìa!"); return true; }
+        if (!topic) return await message.reply("⚠️ Vui lòng nhập chủ đề!");
+        if (!ai) return await message.reply("❌ Chưa cài đặt API Key Gemini.");
         try {
-            if (!ai) return await message.reply("Hệ thống chưa nạp API Key.");
             await message.channel.sendTyping();
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: `Lên kịch bản TikTok chi tiết cho chủ đề: ${topic}`,
+                contents: `Viết kịch bản video TikTok chi tiết về chủ đề: ${topic}`,
             });
-            await message.channel.send(response.text || "No data."); return true;
-        } catch (e) { 
-            await message.reply("API Error.");
-            return true; 
+            await message.reply(response.text || "Không tạo được kịch bản.");
+        } catch {
+            await message.reply("❌ Lỗi khi kết nối với Gemini AI.");
+        }
+        return true;
+    }
+
+    if (!CO_AUTO_CHAT) return false;
+
+    // -------------------------------------------------------------------------
+    // D. PHẢN HỒI TỪ KHÓA TỰ ĐỘNG KHÔNG CÓ PREFIX
+    // -------------------------------------------------------------------------
+    const danhSach = docTuKhoa();
+    if (danhSach[contentLower]) {
+        const item = danhSach[contentLower];
+        if (typeof item === 'string') {
+            await message.channel.send(item);
+            return true;
+        } else if (item && typeof item === 'object') {
+            const payload = {};
+            if (item.text && item.text.trim() !== '') {
+                payload.content = item.text;
+            }
+            if (item.image && typeof item.image === 'string' && item.image.trim().startsWith('http')) {
+                payload.files = [item.image];
+            }
+            
+            if (payload.content || payload.files) {
+                await message.channel.send(payload);
+                return true;
+            }
         }
     }
 
-    // Auto lấy video TikTok
+    // -------------------------------------------------------------------------
+    // E. AUTO TẢI VIDEO TIKTOK
+    // -------------------------------------------------------------------------
     if (contentLower.includes("tiktok.com")) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g; const tiktokUrl = content.match(urlRegex)?.[0];
+        const tiktokUrl = content.match(/(https?:\/\/[^\s]+)/g)?.[0];
         if (tiktokUrl) {
             try {
-                const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(tiktokUrl)}`;
-                const responseData = await sfetch(apiUrl, { method: 'GET' });
-                const videoUrl = responseData?.data?.play;
-                if (videoUrl) {
-                    const videoAttachment = new AttachmentBuilder(videoUrl, { name: 'tiktok-video.mp4' });
-                    await message.channel.send({ content: BOT_MOOD === 'cold' ? `Video từ **${message.author.username}**:` : `🎬 Video TikTok từ **${message.author.username}**:`, files: [videoAttachment] });
+                const resData = await sfetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(tiktokUrl)}`);
+                if (resData?.data?.play) {
+                    const video = new AttachmentBuilder(resData.data.play, { name: 'tiktok.mp4' });
+                    await message.channel.send({ content: `🎬 Video TikTok từ **${message.author.username}**:`, files: [video] });
                     if (message.deletable) await message.delete().catch(() => null);
+                    return true;
                 }
-            } catch (error) { const embedLink = tiktokUrl.replace(/tiktok\.com/g, "tnktok.com"); await message.reply(`Link thay thế:\n${embedLink}`); }
+            } catch {
+                await message.reply(`Link xem thay thế: ${tiktokUrl.replace(/tiktok\.com/g, "tnktok.com")}`);
+                return true;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // F. TRÒ CHUYỆN VÀ RA LỆNH CHO GEMINI AI
+    // -------------------------------------------------------------------------
+    const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
+    const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
+    const tuKhoaKichHoat = ["tạo", "xóa", "đổi", "clear", "dọn", "role", "kênh", "gắn", "phòng", "sếp"];
+    const coTuKhoaServer = tuKhoaKichHoat.some(k => contentLower.includes(k));
+
+    if ((isMentioned || isCalledName || coTuKhoaServer) && !content.startsWith("!")) {
+        if (!ai) return true;
+
+        try {
+            await message.channel.sendTyping();
+            const userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
+            const targetUser = message.mentions.users.first();
+
+            const systemInstruction = `Bạn là Trợ lý AI tên Wind. Khi Admin ra lệnh quản trị Server, BẮT BUỘC chèn ĐÚNG các cú pháp sau:
+1. Tạo Role: [CMD:CREATE_ROLE:Tên Role:Màu]
+2. Xóa Role: [CMD:DELETE_ROLE:Tên Role]
+3. Gắn Role: [CMD:ADD_ROLE:ID_User:Tên_Role]
+4. Gỡ Role: [CMD:REMOVE_ROLE:ID_User:Tên_Role]
+5. Tạo Kênh: [CMD:CREATE_CHANNEL:Tên Kênh:text/voice]
+6. Xóa Kênh: [CMD:DELETE_CHANNEL]
+7. Dọn tin nhắn: [CMD:CLEAR_MSG:Số_Lượng]`;
+
+            let promptText = `Admin yêu cầu: "${userPrompt}"`;
+            if (targetUser) promptText += `\n(ID User được nhắc tới: ${targetUser.id})`;
+
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: `${systemInstruction}\n\n${promptText}`,
+            });
+
+            let botReply = response.text || "Em nghe đây sếp!";
+            const finalReply = await executeServerAction(message, botReply);
+            if (finalReply) await message.reply(finalReply);
+
+            return true;
+        } catch (error) {
+            console.error("Lỗi AI:", error);
+            return true;
         }
     }
 

@@ -1,13 +1,14 @@
 {
     "1037019422918983810": {
         "username": "nmdang140209",
-        "totalMessages": 241,
+        "totalMessages": 245,
         "totalVoiceMinutes": 381,
         "dailyMessages": {
             "2026-07-21": 7,
             "2026-07-22": 51,
             "2026-07-23": 153,
-            "2026-07-24": 30
+            "2026-07-24": 30,
+            "2026-07-27": 4
         },
         "dailyVoice": {
             "2026-07-23": 337,
@@ -16,13 +17,14 @@
     },
     "910001518328033301": {
         "username": "vanthinh_11",
-        "totalMessages": 184,
+        "totalMessages": 185,
         "totalVoiceMinutes": 5,
         "dailyMessages": {
             "2026-07-21": 10,
             "2026-07-22": 53,
             "2026-07-23": 113,
-            "2026-07-24": 8
+            "2026-07-24": 8,
+            "2026-07-27": 1
         },
         "dailyVoice": {
             "2026-07-22": 4,
@@ -46,13 +48,14 @@
     },
     "1314257018294501488": {
         "username": "_3012212_",
-        "totalMessages": 354,
+        "totalMessages": 361,
         "totalVoiceMinutes": 207,
         "dailyMessages": {
             "2026-07-21": 8,
             "2026-07-22": 60,
             "2026-07-23": 224,
-            "2026-07-24": 62
+            "2026-07-24": 62,
+            "2026-07-27": 7
         },
         "dailyVoice": {
             "2026-07-23": 207
@@ -238,11 +241,12 @@
     },
     "692216879388819487": {
         "username": "dz0noilan2.",
-        "totalMessages": 179,
+        "totalMessages": 180,
         "totalVoiceMinutes": 178,
         "dailyMessages": {
             "2026-07-23": 157,
-            "2026-07-24": 22
+            "2026-07-24": 22,
+            "2026-07-27": 1
         },
         "dailyVoice": {
             "2026-07-23": 104,
@@ -411,10 +415,11 @@
     },
     "1246078285138497569": {
         "username": "riyeuoi",
-        "totalMessages": 5,
+        "totalMessages": 9,
         "totalVoiceMinutes": 7,
         "dailyMessages": {
-            "2026-07-23": 5
+            "2026-07-23": 5,
+            "2026-07-27": 4
         },
         "dailyVoice": {
             "2026-07-23": 7
@@ -435,6 +440,303 @@
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-23": 1
+        },
+        "dailyVoice": {}
+    },
+    "cgai": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "su": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 2
+        },
+        "dailyVoice": {}
+    },
+    "su top 1 này": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_76:1525704683312775268>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 2
+        },
+        "dailyVoice": {}
+    },
+    "=)))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "e co y kien": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "ý kiến gì suu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "suu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "qrbong": {
+        "totalMessages": 9,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 9
+        },
+        "dailyVoice": {}
+    },
+    "em ý kien voi anh dang chi bong": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "chu y kien voi anh dau": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!wind": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 2
+        },
+        "dailyVoice": {}
+    },
+    "!mood cold": {
+        "totalMessages": 4,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 4
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> tạo role bò béo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> m ghét t à bot": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> m ghét t à wind ơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "rep t thôi đko <@1509143798305919056>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "tạo role Bò béo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "tạo role bò béo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "xóa role bò béo": {
+        "totalMessages": 3,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 3
+        },
+        "dailyVoice": {}
+    },
+    "tạo role bò béo và gắn cho <@1037019422918983810>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 2
+        },
+        "dailyVoice": {}
+    },
+    "1464181315636170797": {
+        "username": "meooz0022",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 8,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-07-27": 8
+        }
+    },
+    "!svip": {
+        "totalMessages": 7,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 7
+        },
+        "dailyVoice": {}
+    },
+    "!spawnvip": {
+        "totalMessages": 3,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 3
+        },
+        "dailyVoice": {}
+    },
+    "<a:flu_khocuu:1528290902013906984>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!vip": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!autorole": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!tukhoa": {
+        "totalMessages": 7,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 7
+        },
+        "dailyVoice": {}
+    },
+    "tukhoa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!tukhoa del qrbong": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!tukhoa add windbeo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "windbeo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!tukhoa del windbeo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!autochat off": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!chat off": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!chat on": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
+        },
+        "dailyVoice": {}
+    },
+    "!trathongtin <@986537662066327583>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-07-27": 1
         },
         "dailyVoice": {}
     }
