@@ -3,10 +3,10 @@
     "name": "vanthinh_11",
     "canhGioiId": 3,
     "exp": 257,
-    "linhThach": 557,
+    "linhThach": 522,
     "lastTuLuyen": 1780925042909,
     "bag": {
-      "quy_nguyen": 0,
+      "quy_nguyen": 1,
       "truc_co": 0,
       "ngoc_thanh": 0,
       "tam_ma": 0
@@ -16,12 +16,12 @@
     "lastLichLuyen": 1780929637158,
     "isTrucCoActive": false,
     "isPhaMaActive": false,
-    "vanKhiId": 2,
-    "lastVanKhiTime": 1781019470712,
+    "vanKhiId": 0,
+    "lastVanKhiTime": 1785235612804,
     "lastBossAttack": 1780911999971,
     "lastCuopTime": 1780925227411,
     "phai": "chinh",
-    "lastLichLuyenTime": 1780930195446,
+    "lastLichLuyenTime": 1785235612804,
     "lastSongTuTime": 1780976990054,
     "lastBossTime": 1781019470712
   },

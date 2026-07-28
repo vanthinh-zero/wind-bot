@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 
+// 🎬 IMPORT MODULE XỬ LÝ VIDEO ĐA NỀN TẢNG (MỚI)
+const { handleVideoLink } = require('./src/handlers/video.js');
+
 // --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG SẴN CÓ ---
 const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
@@ -19,6 +22,12 @@ const { handleChuaLanhCommand } = require('./src/handlers/chualanh.js');
 const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
+
+// --- IMPORT MODULE SPAM CHAT ---
+const { handleSpamCommand } = require('./src/handlers/spamchat.js');
+
+// --- IMPORT MODULE BROADCAST (!say) ---
+const { handleBroadcastCommand } = require('./src/handlers/broadcastHandler.js');
 
 // 👤 MODULE PROFILE, RELATIONSHIP & SHOP CỬA HÀNG
 const profileHandler = require('./src/handlers/profile.js');
@@ -182,6 +191,12 @@ client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
 
     try {
+        // 🌟 LẮP ĐẶT VIDEO HANDLER NGAY TẠI ĐÂY NÀY SẾP!
+        if (typeof handleVideoLink === 'function') {
+            const isVideo = await handleVideoLink(message);
+            if (isVideo) return; // Đã xử lý link video xong thì dừng
+        }
+
         // 1. Kiểm tra Anti-Spam / Anti-Raid trước
         if (typeof handleAntiSpam === 'function') {
             const isSpam = await handleAntiSpam(message);
@@ -201,7 +216,20 @@ client.on(Events.MessageCreate, async (message) => {
         const content = message.content.trim().toLowerCase();
 
         // 4. ĐIỀU HƯỚNG LỆNH CHÍNH XÁC (Sử dụng return để ngắt luồng chuẩn xác)
+
+        // ✦ Lệnh !say <channel_id> <nội dung> -> Nhắn tin sang server/channel bất kỳ
+        if (content.startsWith('!say')) {
+            if (typeof handleBroadcastCommand === 'function') {
+                const handled = await handleBroadcastCommand(message);
+                if (handled) return;
+            }
+        }
         
+        // ✦ Lệnh !spawntinnhan <nội dung> <số_tin> -> Spam tin nhắn theo nội dung truyền vào (Admin)
+        if (content.startsWith('!spawntinnhan')) {
+            if (typeof handleSpamCommand === 'function') return await handleSpamCommand(message);
+        }
+
         // ✦ Lệnh !svip / !spawnvip -> Gửi Bảng Hub Trung Tâm Đặc Quyền Booster (Admin)
         if (content.startsWith('!svip') || content.startsWith('!spawnvip')) {
             if (typeof handleSpawnVipCommand === 'function') return await handleSpawnVipCommand(message);

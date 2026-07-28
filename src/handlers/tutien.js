@@ -1,7 +1,7 @@
 // Thêm MessageFlags vào require để sửa dứt điểm cảnh báo trong terminal
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { CANH_GIOI_LIST, LINH_CAN_TYPES, DAN_DUOC_SHOP } = require('../config/tutien_config');
-const { getTuSi, saveTuTienData } = require('../utils/database');
+const { getTuSi, saveTuTienData, getLinhThach, addLinhThach, getAllTuSi } = require('../utils/database');
 
 const TUTIEN_CHANNEL_ID = process.env.TUTIEN_CHANNEL_ID?.trim() || '';
 const processingUsers = new Set();
