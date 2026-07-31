@@ -1,8 +1,8 @@
 {
     "1037019422918983810": {
-        "balance": 868,
+        "balance": 0,
         "lastDaily": 1781756515098,
-        "money": 868,
+        "money": 2022,
         "job": "daotach"
     },
     "910001518328033301": {
@@ -41,13 +41,23 @@
         "lastDaily": 1781805570279
     },
     "986537662066327583": {
-        "balance": 282,
-        "money": 282,
+        "balance": 2202,
+        "money": 2202,
         "job": "daotach"
     },
     "1214249074879111208": {
-        "balance": 482,
-        "money": 482,
+        "balance": 483,
+        "money": 248,
         "job": "daotach"
+    },
+    "1048550265759993876": {
+        "balance": 0,
+        "lastDaily": 1785491849522
+    },
+    "1276179325351100492": {
+        "balance": 319,
+        "money": 0,
+        "job": "daotach",
+        "lastDaily": 1785509340334
     }
 }

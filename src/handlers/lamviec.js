@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Import các linh kiện Nút Bấm từ Discord.js để chống AHK
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+
 // Đường dẫn tới file money.json của bạn
 const moneyPath = path.join(__dirname, '../../money.json'); 
 
@@ -27,7 +30,6 @@ function getMoneyData() {
 
         return db;
     } catch (e) {
-        // Nếu file bị hỏng cấu pháp hoàn toàn do sửa tay trước đó, tự reset về {} để tránh crash bot
         console.error("[Cảnh báo] File money.json bị lỗi cấu trúc nghiêm trọng. Đang tự khôi phục file sạch.");
         fs.writeFileSync(moneyPath, JSON.stringify({}), 'utf8');
         return {};
@@ -40,22 +42,18 @@ function saveMoneyData(data) {
 
 // Hàm lấy tiền và kiểm tra an toàn từng biến bên trong Object
 function getSafeBalance(moneyData, userId) {
-    // Nếu user chưa tồn tại hoặc bị lỗi kiểu dữ liệu cũ
     if (!moneyData[userId] || typeof moneyData[userId] !== 'object') {
         moneyData[userId] = { balance: 0, money: 0, job: null };
     }
     
-    // Nếu dữ liệu đang nằm ở biến .money cũ, đồng bộ sang .balance của hệ thống Pet
     if (moneyData[userId].money !== undefined && moneyData[userId].balance === undefined) {
         moneyData[userId].balance = parseInt(moneyData[userId].money) || 0;
     }
 
-    // Bảo vệ tuyệt đối biến balance không bao giờ được phép là NaN
     if (typeof moneyData[userId].balance !== 'number' || isNaN(moneyData[userId].balance)) {
         moneyData[userId].balance = 0;
     }
     
-    // Đồng bộ ngược lại để các file game khác đọc không bị lỗi
     moneyData[userId].money = moneyData[userId].balance; 
     return moneyData[userId].balance;
 }
@@ -99,7 +97,7 @@ const jobsConfig = {
         name: "Đạo Tặc (Ngầm) 🥷",
         salaryMin: 200, salaryMax: 600, 
         actions: [
-            "Bạn lẻn vào phủ gia giàu có trộm được một túi bạc giá trị",
+            "Bạn lẻn vào phủ gia giàu có trộm được một túi tiền giá trị",
             "Bạn móc túi một tên lính say rượu bên đường, vớ được",
             "Bạn đột nhập vào mật thất và lấy đi hòm báu nhỏ chứa"
         ]
@@ -125,18 +123,15 @@ const jobsConfig = {
 };
 
 async function handleLamViecGame(message) {
-    const KENH_LAM_VIEC = process.env.KENH_LAM_VIEC;
-
-    if (KENH_LAM_VIEC && message.channel.id !== KENH_LAM_VIEC) return false;
-
-    const args = message.content.trim().split(/ +/);
+    const args = message.content.trim().split(/\s+/);
     const command = args[0].toLowerCase();
     const userId = message.author.id;
 
-    // Đọc dữ liệu (Đã tích hợp hàm tự sửa lỗi tự động bên trên)
+    // Bộ lọc lệnh làm việc
+    const validCommands = ['!jobs', '!profile', '!xinviec', '!boviec', '!lamviec'];
+    if (!validCommands.includes(command)) return false;
+
     let moneyData = getMoneyData();
-    
-    // Lấy số dư ví an toàn, loại bỏ triệt để chuỗi [object Object]
     let currentBalance = getSafeBalance(moneyData, userId);
 
     // =========================================================
@@ -147,7 +142,7 @@ async function handleLamViecGame(message) {
         msg += "Muốn làm việc, trước tiên bạn phải nộp đơn xin việc!\n\n";
         
         for (const [key, value] of Object.entries(jobsConfig)) {
-            msg += `• **${value.name}** (Mã: \`${key}\`) | Thu nhập: \`${value.salaryMin}$ - ${value.salaryMax}$\`\n`;
+            msg += `• **${value.name}** (Mã: \`${key}\`) | Thu nhập: \`${value.salaryMin} Cowcoin - ${value.salaryMax} Cowcoin\`\n`;
         }
 
         msg += `\n📝 **Lệnh tương tác:**\n`;
@@ -156,7 +151,7 @@ async function handleLamViecGame(message) {
         msg += `👉 \`!lamviec\` : Bắt đầu làm công việc đã nhận.\n`;
         msg += `👉 \`!profile\` : Xem công việc và số dư hiện tại.`;
 
-        await message.reply(msg);
+        await message.reply(msg).catch(() => null);
         return true;
     }
 
@@ -167,7 +162,7 @@ async function handleLamViecGame(message) {
         const currentJobKey = moneyData[userId].job;
         const jobName = currentJobKey ? jobsConfig[currentJobKey].name : "Thất nghiệp 🛌";
         
-        await message.reply(`👤 **HỒ SƠ CỦA ${message.author.username}**\n💰 Số dư: **${currentBalance}$**\n💼 Nghề nghiệp: **${jobName}**`);
+        await message.reply(`👤 **HỒ SƠ CỦA ${message.author.username}**\n💰 Số dư: **${currentBalance.toLocaleString()} Cowcoin**\n💼 Nghề nghiệp: **${jobName}**`).catch(() => null);
         return true;
     }
 
@@ -179,19 +174,19 @@ async function handleLamViecGame(message) {
 
         if (moneyData[userId].job) {
             const currentJobName = jobsConfig[moneyData[userId].job].name;
-            await message.reply(`❌ Bạn đang làm việc tại **${currentJobName}**. Bạn phải gõ lệnh \`!boviec\` trước khi xin việc mới!`);
+            await message.reply(`❌ Bạn đang làm việc tại **${currentJobName}**. Bạn phải gõ lệnh \`!boviec\` trước khi xin việc mới!`).catch(() => null);
             return true;
         }
 
         if (!targetJob || !jobsConfig[targetJob]) {
-            await message.reply(`❌ Mã công việc không hợp lệ! Hãy gõ \`!jobs\` để xem chính xác các mã nghề.`);
+            await message.reply(`❌ Mã công việc không hợp lệ! Hãy gõ \`!jobs\` để xem chính xác các mã nghề.`).catch(() => null);
             return true;
         }
 
         moneyData[userId].job = targetJob;
         saveMoneyData(moneyData);
 
-        await message.reply(`🎉 **Chúc mừng!** Đơn xin việc vào **${jobsConfig[targetJob].name}** của bạn đã được phê duyệt. Hãy gõ \`!lamviec\` để bắt đầu ca làm đầu tiên.`);
+        await message.reply(`🎉 **Chúc mừng!** Đơn xin việc vào **${jobsConfig[targetJob].name}** của bạn đã được phê duyệt. Hãy gõ \`!lamviec\` để bắt đầu ca làm đầu tiên.`).catch(() => null);
         return true;
     }
 
@@ -202,7 +197,7 @@ async function handleLamViecGame(message) {
         const currentJobKey = moneyData[userId].job;
 
         if (!currentJobKey) {
-            await message.reply(`❌ Bạn đang thất nghiệp mà, có việc đâu mà bỏ! Hãy gõ \`!jobs\` để đi tìm việc nhé.`);
+            await message.reply(`❌ Bạn đang thất nghiệp mà, có việc đâu mà bỏ! Hãy gõ \`!jobs\` để đi tìm việc nhé.`).catch(() => null);
             return true;
         }
 
@@ -214,13 +209,13 @@ async function handleLamViecGame(message) {
             moneyData[userId].money = moneyData[userId].balance; 
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
-            await message.reply(`💔 Bạn đã nộp đơn xin nghỉ việc tại **${oldJobName}**. Bạn bị trừ **${phạtTiền}$** tiền bồi thường hợp đồng. Hiện tại bạn đã tự do!`);
+            await message.reply(`💔 Bạn đã nộp đơn xin nghỉ việc tại **${oldJobName}**. Bạn bị trừ **${phạtTiền} Cowcoin** tiền bồi thường hợp đồng. Hiện tại bạn đã tự do!`).catch(() => null);
         } else {
             moneyData[userId].balance = 0;
             moneyData[userId].money = 0; 
             moneyData[userId].job = null;
             saveMoneyData(moneyData);
-            await message.reply(`💔 Bạn đã trốn việc bỏ ngang tại **${oldJobName}**. Toàn bộ số tiền lương ít ỏi còn lại đã bị chủ tiệm siết nợ!`);
+            await message.reply(`💔 Bạn đã trốn việc bỏ ngang tại **${oldJobName}**. Toàn bộ số tiền lương ít ỏi còn lại đã bị chủ tiệm siết nợ!`).catch(() => null);
         }
         return true;
     }
@@ -232,37 +227,159 @@ async function handleLamViecGame(message) {
         const currentJobKey = moneyData[userId].job;
 
         if (!currentJobKey || !jobsConfig[currentJobKey]) {
-            await message.reply(`❌ Bạn chưa có việc làm! Vui lòng gõ \`!jobs\` và chọn một công việc bằng lệnh \`!xinviec [mã_nghề]\`.`);
+            await message.reply(`❌ Bạn chưa có việc làm! Vui lòng gõ \`!jobs\` và chọn một công việc bằng lệnh \`!xinviec [mã_nghề]\`.`).catch(() => null);
             return true;
         }
 
+        // Kiểm tra Cooldown
         if (cooldowns.has(userId)) {
             const expirationTime = cooldowns.get(userId) + COOLDOWN_TIME;
             const now = Date.now();
             if (now < expirationTime) {
                 const timeLeft = Math.ceil((expirationTime - now) / 1000);
-                await message.reply(`⏰ **Chầm chậm thôi!** Bạn đang làm việc quá sức rồi. Hãy nghỉ ngơi thêm **${timeLeft} giây** nữa nhé.`);
+                await message.reply(`⏰ **Chầm chậm thôi!** Bạn đang làm việc quá sức rồi. Hãy nghỉ ngơi thêm **${timeLeft} giây** nữa nhé.`).catch(() => null);
                 return true;
             }
         }
 
-        const job = jobsConfig[currentJobKey];
-        const randomAction = job.actions[Math.floor(Math.random() * job.actions.length)];
-        const moneyEarned = parseInt(Math.floor(Math.random() * (job.salaryMax - job.salaryMin + 1)) + job.salaryMin);
+        // Tỷ lệ 20% yêu cầu Verify Captcha Nút bấm (Chống AHK)
+        const needsVerification = Math.random() < 0.20;
+        if (needsVerification) {
+            return await triggerAntiBotCheck(message, userId, currentJobKey);
+        }
 
-        // Cộng dồn vào ví tiền số an toàn
-        moneyData[userId].balance = currentBalance + moneyEarned;
-        moneyData[userId].money = moneyData[userId].balance; 
-        saveMoneyData(moneyData);
-
-        cooldowns.set(userId, Date.now());
-        setTimeout(() => cooldowns.delete(userId), COOLDOWN_TIME);
-
-        await message.reply(`💼 **[${job.name}]** ${randomAction} **+${moneyEarned}$**. Số dư mới: **${moneyData[userId].balance}$**`);
+        // Xử lý công việc (Cộng tiền hoặc Phạt vi phạm)
+        await executeWorkProcess(message, userId, currentJobKey);
         return true;
     }
 
     return false;
+}
+
+// =========================================================
+// 🛡️ HÀM BỔ SUNG: TẠO NÚT BẤM VERIFY CHỐNG AHK / MACRO
+// =========================================================
+async function triggerAntiBotCheck(message, userId, currentJobKey) {
+    const colors = [
+        { id: 'red', label: '🔴 Nút Đỏ' },
+        { id: 'green', label: '🟢 Nút Xanh' },
+        { id: 'yellow', label: '🟡 Nút Vàng' }
+    ];
+
+    const targetColor = colors[Math.floor(Math.random() * colors.length)];
+    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+
+    const row = new ActionRowBuilder().addComponents(
+        shuffledColors.map(c =>
+            new ButtonBuilder()
+                .setCustomId(`verify_${c.id}`)
+                .setLabel(c.label)
+                .setStyle(ButtonStyle.Secondary)
+        )
+    );
+
+    const responseMessage = await message.reply({
+        content: `🛡️ **XÁC THỰC CHỐNG AUTOMATION (AHK/MACRO)**\nHãy bấm đúng **${targetColor.label}** trong **15 giây** để nhận lương!`,
+        components: [row]
+    }).catch(() => null);
+
+    if (!responseMessage) return true;
+
+    const collector = responseMessage.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+        time: 15000
+    });
+
+    collector.on('collect', async (interaction) => {
+        if (interaction.user.id !== userId) {
+            return interaction.reply({ content: '⚠️ Bảng xác minh này không phải của bạn!', ephemeral: true }).catch(() => null);
+        }
+
+        // Dừng collector ngay khi tương tác
+        collector.stop('handled');
+
+        if (interaction.customId === `verify_${targetColor.id}`) {
+            // CÓ BẮT LỖI 10062 TẠI ĐÂY NÊN SẼ KHÔNG BAO GIỜ CRASH BOT
+            await interaction.deferUpdate().catch(() => null);
+            await executeWorkProcess(message, userId, currentJobKey, responseMessage);
+        } else {
+            cooldowns.set(userId, Date.now());
+
+            await interaction.update({
+                content: `❌ **Xác thực thất bại!** Bạn đã bấm sai nút. Bạn bị phạt tạm dừng làm việc **1 phút**!`,
+                components: []
+            }).catch(async () => {
+                await responseMessage.edit({
+                    content: `❌ **Xác thực thất bại!** Bạn đã bấm sai nút. Bạn bị phạt tạm dừng làm việc **1 phút**!`,
+                    components: []
+                }).catch(() => null);
+            });
+        }
+    });
+
+    collector.on('end', async (collected, reason) => {
+        if (reason === 'time') {
+            cooldowns.set(userId, Date.now());
+
+            await responseMessage.edit({
+                content: `⏰ **Hết thời gian xác thực!** Bạn chưa vượt qua kiểm tra chống Auto.`,
+                components: []
+            }).catch(() => null);
+        }
+    });
+
+    return true;
+}
+
+// =========================================================
+// ⚖️ HÀM BỔ SUNG: XỬ LÝ LƯƠNG HOẶC PHẠT TRỪ VÀO MONEY.JSON
+// =========================================================
+async function executeWorkProcess(message, userId, currentJobKey, editMsg = null) {
+    let moneyData = getMoneyData();
+    let currentBalance = getSafeBalance(moneyData, userId);
+    const job = jobsConfig[currentJobKey];
+
+    // Cập nhật Cooldown
+    cooldowns.set(userId, Date.now());
+
+    // Tỷ lệ 5% bị vi phạm và phạt trừ tiền
+    const isPenalized = Math.random() < 0.05;
+    let replyMsg = '';
+
+    if (isPenalized) {
+        const fine = Math.floor(Math.random() * 71) + 30; 
+        const penaltyReasons = [
+            `đi làm muộn 30 phút và bị trừ **-${fine} Cowcoin**`,
+            `lỡ tay làm vỡ đồ đạc của cửa hàng, phải đền **-${fine} Cowcoin**`,
+            `ngủ gật trong ca làm việc, bị khấu trừ **-${fine} Cowcoin**`,
+            `bị khách hàng phản ánh thái độ phục vụ kém, phạt **-${fine} Cowcoin**`
+        ];
+
+        const randomReason = penaltyReasons[Math.floor(Math.random() * penaltyReasons.length)];
+
+        // Trừ tiền thực tế vào money.json
+        moneyData[userId].balance = Math.max(0, currentBalance - fine);
+        moneyData[userId].money = moneyData[userId].balance;
+        saveMoneyData(moneyData);
+
+        replyMsg = `💥 **[${job.name}] VI PHẠM QUY ĐỊNH!**\nBạn ${randomReason}. Số dư còn lại: **${moneyData[userId].balance.toLocaleString()} Cowcoin**`;
+    } else {
+        const randomAction = job.actions[Math.floor(Math.random() * job.actions.length)];
+        const moneyEarned = Math.floor(Math.random() * (job.salaryMax - job.salaryMin + 1)) + job.salaryMin;
+
+        // Cộng tiền thực tế vào money.json
+        moneyData[userId].balance = currentBalance + moneyEarned;
+        moneyData[userId].money = moneyData[userId].balance;
+        saveMoneyData(moneyData);
+
+        replyMsg = `💼 **[${job.name}]** ${randomAction} **+${moneyEarned} Cowcoin**. Số dư mới: **${moneyData[userId].balance.toLocaleString()} Cowcoin**`;
+    }
+
+    if (editMsg) {
+        await editMsg.edit({ content: replyMsg, components: [] }).catch(() => null);
+    } else {
+        await message.reply(replyMsg).catch(() => null);
+    }
 }
 
 module.exports = { handleLamViecGame };

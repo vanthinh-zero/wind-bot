@@ -247,10 +247,11 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!noitu')) {
             if (typeof handleNoiTuGame === 'function') return await handleNoiTuGame(message);
         }
-        if (content.startsWith('!taixiu') || content.startsWith('!tx')) {
+        // Bổ sung các lệnh tài chính/ví tiền (!vi, !ccash, !money, !cash, !diemdanh, !chuyentien, !thuhoi)
+        if (content.startsWith('!taixiu') || content.startsWith('!tx') || content.startsWith('!vi') || content.startsWith('!ccash') || content.startsWith('!money') || content.startsWith('!cash') || content.startsWith('!diemdanh') || content.startsWith('!daily') || content.startsWith('!chuyentien') || content.startsWith('!thuhoi')) {
             if (typeof handleTaiXiuGame === 'function') return await handleTaiXiuGame(message);
         }
-        if (content.startsWith('!pet')) {
+        if (content.startsWith('!pet') || content.startsWith('!shop-pet') || content.startsWith('!muapet') || content.startsWith('!choan') || content.startsWith('!nangcap') || content.startsWith('!tromcho') || content.startsWith('!thave') || content.startsWith('!khopet') || content.startsWith('!laypet')) {
             if (typeof handlePetSystem === 'function') return await handlePetSystem(message);
         }
         if (content.startsWith('!poem') || content.startsWith('!tho')) {
@@ -262,9 +263,12 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!chualanh')) {
             if (typeof handleChuaLanhCommand === 'function') return await handleChuaLanhCommand(message);
         }
-        if (content.startsWith('!work') || content.startsWith('!lamviec')) {
+        
+        // 🛠️ BỔ SUNG ĐẦY ĐỦ LỆNH LÀM VIỆC ĐỂ TRÁNH BỊ BỎ SÓT LỆNH
+        if (content.startsWith('!work') || content.startsWith('!lamviec') || content.startsWith('!jobs') || content.startsWith('!xinviec') || content.startsWith('!boviec') || content.startsWith('!profile')) {
             if (typeof handleLamViecGame === 'function') return await handleLamViecGame(message);
         }
+
         if (content.startsWith('!tarot')) {
             if (typeof handleTarotCommand === 'function') return await handleTarotCommand(message);
         }

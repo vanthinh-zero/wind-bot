@@ -159,22 +159,27 @@ async function handleMenuVipCommand(message) {
 // =========================================================================
 // 5. TỰ ĐỘNG CẤP QUYỀN KHI CHỦ PHÒNG TAG TÊN TRONG CHAT VOICE
 // =========================================================================
-async function handleAutoGrantPermission(message) {
-    if (!message.guild || message.author.bot) return;
-    if (message.channel.type !== ChannelType.GuildVoice) return;
-    if (message.channel.parentId !== process.env.BOOSTER_CATEGORY_ID) return;
+async function handleAutoGrantPermission(target) {
+    if (!target) return;
+    const author = target.user || target.author;
+    if (!author || author.bot) return;
 
-    const mentionedMembers = message.mentions.members;
+    if (!target.guild) return;
+    const channel = target.channel;
+    if (!channel || channel.type !== ChannelType.GuildVoice) return;
+    if (channel.parentId !== process.env.BOOSTER_CATEGORY_ID) return;
+
+    const mentionedMembers = target.mentions?.members;
     if (!mentionedMembers || mentionedMembers.size === 0) return;
 
-    const isOwner = message.channel.permissionsFor(message.author).has(PermissionsBitField.Flags.ManageChannels) || message.author.id === process.env.ADMIN_ID;
+    const isOwner = channel.permissionsFor(author).has(PermissionsBitField.Flags.ManageChannels) || author.id === process.env.ADMIN_ID;
     if (!isOwner) return;
 
     try {
         const addedUsers = [];
         for (const [id, member] of mentionedMembers) {
-            if (member.user.bot) continue;
-            await message.channel.permissionOverwrites.edit(member.id, {
+            if (member.user?.bot) continue;
+            await channel.permissionOverwrites.edit(member.id, {
                 ViewChannel: true,
                 Connect: true,
                 Speak: true
@@ -183,7 +188,7 @@ async function handleAutoGrantPermission(message) {
         }
 
         if (addedUsers.length > 0) {
-            await message.channel.send({
+            await channel.send({
                 content: `✅ **Đã thêm quyền truy cập phòng thành công cho:** ${addedUsers.join(', ')}`
             });
         }

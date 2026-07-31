@@ -94,22 +94,22 @@ async function handleTarotCommand(message) {
             '**Hãy thả lỏng cơ thể, nhắm mắt và hít thở sâu 3 nhịp...**\n\n' +
             '*Lắng nghe trực giác và chọn loại quẻ bạn muốn thỉnh từ Vũ Trụ.*\n\n' +
             `🪙 **Năng lượng tiêu hao:**\n` +
-            `• 🃏 Rút 1 Lá (Tổng quan): \`${TAROT_PRICES['1_card']} xu\`\n` +
-            `• ⏳ Trải Bài 3 Lá (Dòng thời gian): \`${TAROT_PRICES['3_cards']} xu\`\n` +
-            `• ☀️ Năng Lượng Ngày Mới: \`${TAROT_PRICES['daily']} xu\`\n` +
-            `• ❤️ Trải Bài Tình Cảm: \`${TAROT_PRICES['love']} xu\``
+            `• 🃏 Rút 1 Lá (Tổng quan): \`${TAROT_PRICES['1_card']} Cowcoin\`\n` +
+            `• ⏳ Trải Bài 3 Lá (Dòng thời gian): \`${TAROT_PRICES['3_cards']} Cowcoin\`\n` +
+            `• ☀️ Năng Lượng Ngày Mới: \`${TAROT_PRICES['daily']} Cowcoin\`\n` +
+            `• ❤️ Trải Bài Tình Cảm: \`${TAROT_PRICES['love']} Cowcoin\``
         )
         .setImage(MAIN_HALL_IMAGE)
         .setFooter({ text: 'Hãy bấm loại quẻ bên dưới để bắt đầu...' });
 
     // Đồng bộ tất cả ID bắt đầu bằng tarot_new_
     const row1 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('tarot_new_init_1_card').setLabel(`🃏 Thỉnh 1 Lá (${TAROT_PRICES['1_card']} xu)`).setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('tarot_new_init_3_cards').setLabel(`⏳ Trải 3 Lá (${TAROT_PRICES['3_cards']} xu)`).setStyle(ButtonStyle.Success)
+        new ButtonBuilder().setCustomId('tarot_new_init_1_card').setLabel(`🃏 Thỉnh 1 Lá (${TAROT_PRICES['1_card']} Cowcoin)`).setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId('tarot_new_init_3_cards').setLabel(`⏳ Trải 3 Lá (${TAROT_PRICES['3_cards']} Cowcoin)`).setStyle(ButtonStyle.Success)
     );
     const row2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('tarot_new_init_daily').setLabel(`☀️ Ngày Mới (${TAROT_PRICES['daily']} xu)`).setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId('tarot_new_init_love').setLabel(`❤️ Tình Cảm (${TAROT_PRICES['love']} xu)`).setStyle(ButtonStyle.Danger)
+        new ButtonBuilder().setCustomId('tarot_new_init_daily').setLabel(`☀️ Ngày Mới (${TAROT_PRICES['daily']} Cowcoin)`).setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId('tarot_new_init_love').setLabel(`❤️ Tình Cảm (${TAROT_PRICES['love']} Cowcoin)`).setStyle(ButtonStyle.Danger)
     );
 
     await message.channel.send({ embeds: [mainEmbed], components: [row1, row2] });
@@ -132,7 +132,7 @@ async function handleTarotInteraction(interaction) {
         
         if (currentBalance < price) {
             await interaction.reply({ 
-                content: `❌ **Không đủ xu!** Bạn cần **${price} xu** để thỉnh quẻ này (Hiện tại bạn có: **${currentBalance} xu**).`,
+                content: `❌ **Không đủ Cowcoin!** Bạn cần **${price} Cowcoin** để thỉnh quẻ này (Hiện tại bạn có: **${currentBalance} Cowcoin**).`,
                 flags: [MessageFlags.Ephemeral]
             }).catch(() => {});
             return true;
@@ -168,7 +168,7 @@ async function handleTarotInteraction(interaction) {
             .setColor('#6C5CE7')
             .setTitle('🃏 BƯỚC CUỐI: KINH BÀI & CHỌN TỤ BÀI')
             .setDescription(`*Bộ bài đã được hòa quyện cùng năng lượng của bạn.*\n\nHãy lắng nghe trực giác và chọn 1 tụ bài may mắn bên dưới để nhận lời giải:`)
-            .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z0ZndpbnY0M2p0cXg0bWszY29wZzVwcmh3OHg2bW9icWZ4YndzdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o72EX5QZ9N9d51dqo/giphy.gif');
+            .setImage('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z0ZndpbnY0M2p0cXg0bWszY29wZzVwcmh3OHg2bW9icWZ4YndzdiZlcD12MV9pbnRlcm5hbF_naWZfYnlfaWQmY3Q9Zw/3o72EX5QZ9N9d51dqo/giphy.gif');
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId(`tarot_new_draw_${type}_1`).setLabel('🔮 Tụ Số 1').setStyle(ButtonStyle.Primary),
@@ -183,8 +183,6 @@ async function handleTarotInteraction(interaction) {
     // LUỒNG 3: RÚT BÀI VÀ TRẢ KẾT QUẢ QUẺ BÓI
     if (customId.startsWith('tarot_new_draw_')) {
         const parts = customId.replace('tarot_new_draw_', '').split('_');
-        // Đối với '1_card' hoặc '3_cards', parts sẽ là ['1', 'card', '1'] hoặc ['3', 'cards', '2']
-        // Đối với 'daily' hoặc 'love', parts sẽ là ['daily', '1']
         
         let type = parts[0];
         let tuNumber = parts[1];
@@ -204,14 +202,14 @@ async function handleTarotInteraction(interaction) {
 
         const moneyData = getMoneyData();
         if (!moneyData[userId] || moneyData[userId].money < price) {
-            await interaction.reply({ content: `❌ Tài khoản của bạn không đủ số dư để thực hiện giao dịch!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            await interaction.reply({ content: `❌ Tài khoản của bạn không đủ số dư Cowcoin để thực hiện giao dịch!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
             return true;
         }
         
         moneyData[userId].money -= price;
         saveMoneyData(moneyData);
 
-        const remainingMsg = `*(Đã khấu trừ ${price} xu, số dư còn lại: ${moneyData[userId].money} xu)*`;
+        const remainingMsg = `*(Đã khấu trừ ${price} Cowcoin, số dư còn lại: ${moneyData[userId].money} Cowcoin)*`;
         tarotSessions.delete(userId);
 
         let resultEmbed;

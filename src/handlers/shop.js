@@ -106,12 +106,12 @@ async function handleShopInteraction(interaction) {
             const embed = new EmbedBuilder()
                 .setColor('#FFD700')
                 .setTitle('🛍️ CỬA HÀNG VẬT PHẨM & NHẪN CẶP ĐÔI')
-                .setDescription(`💰 Số dư của bạn: **${formatNumber(currentBalance)} Xu**\n\nChọn một món đồ dưới menu để tiến hành mua hàng:`)
+                .setDescription(`💰 Số dư của bạn: **${formatNumber(currentBalance)} Cowcoin**\n\nChọn một món đồ dưới menu để tiến hành mua hàng:`)
                 .setThumbnail('https://cdn-icons-png.flaticon.com/512/3028/3028308.png');
 
             const selectOptions = ITEM_SHOP.map(item => ({
                 label: item.name,
-                description: `${formatNumber(item.price)} Xu | Buff: x${item.buff} (${item.desc})`,
+                description: `${formatNumber(item.price)} Cowcoin | Buff: x${item.buff} (${item.desc})`,
                 value: item.id,
                 emoji: item.emoji
             }));
@@ -162,7 +162,7 @@ async function handleShopInteraction(interaction) {
 
             if (currentBalance < item.price) {
                 return interaction.reply({
-                    content: `❌ Bạn không đủ Xu! Cần **${formatNumber(item.price)} Xu** nhưng bạn chỉ có **${formatNumber(currentBalance)} Xu**.`,
+                    content: `❌ Bạn không đủ Cowcoin! Cần **${formatNumber(item.price)} Cowcoin** nhưng bạn chỉ có **${formatNumber(currentBalance)} Cowcoin**.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -177,7 +177,7 @@ async function handleShopInteraction(interaction) {
             writeDatabase(db);
 
             return interaction.reply({
-                content: `🎉 Bạn đã mua thành công **${item.emoji} ${item.name}** với giá **${formatNumber(item.price)} Xu**!\n💰 Số dư còn lại: **${formatNumber(getUserMoney(interaction.user.id))} Xu**.`,
+                content: `🎉 Bạn đã mua thành công **${item.emoji} ${item.name}** với giá **${formatNumber(item.price)} Cowcoin**!\n💰 Số dư còn lại: **${formatNumber(getUserMoney(interaction.user.id))} Cowcoin**.`,
                 flags: MessageFlags.Ephemeral
             });
         }
