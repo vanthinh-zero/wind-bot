@@ -65,7 +65,7 @@ function initAutoSpam(client) {
 }
 
 // =========================================================================
-// 4. XỬ LÝ LỆNH THAO TÁC SERVER TỪ GEMINI AI (FULL ROLE, CHANNEL & LOCK/UNLOCK)
+// 4. XỬ LÝ LỆNH THAO TÁC SERVER TỪ GEMINI AI
 // =========================================================================
 async function executeServerAction(message, botReply) {
     if (!botReply || typeof botReply !== 'string') return botReply;
@@ -398,22 +398,30 @@ async function handleChatInteraction(message) {
             const userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
             const targetUser = message.mentions.users.find(u => u.id !== clientUser.id);
 
-            const systemInstruction = `Bạn là Trợ lý AI tên Wind. Khi Admin ra lệnh quản trị Server, hãy phân tích yêu cầu và chèn ĐÚNG các cú pháp sau vào phản hồi:
+            let systemInstruction = "";
+
+            if (isAdmin) {
+                systemInstruction = `Bạn là Trợ lý AI tên Wind trong Discord server. Người đang trò chuyện với bạn là ADMIN/SẾP.
+Khi Admin ra lệnh quản trị Server, hãy phân tích yêu cầu và chèn ĐÚNG các cú pháp sau vào phản hồi:
 1. Tạo Role: [CMD:CREATE_ROLE:Tên Role:Màu_Hex] (Ví dụ: [CMD:CREATE_ROLE:bò béo:#ff0000])
 2. Gắn Role cho User: [CMD:ADD_ROLE:ID_User:Tên_Role] (Ví dụ: [CMD:ADD_ROLE:1037019422918983810:bò béo])
 3. Xóa Role: [CMD:DELETE_ROLE:Tên_Role] (Ví dụ: [CMD:DELETE_ROLE:bò béo])
-4. Tạo Kênh/Phòng: [CMD:CREATE_CHANNEL:Tên_Kênh:Loại] (Loại: 'text' hoặc 'voice' hoặc 'category'. Ví dụ: [CMD:CREATE_CHANNEL:giao-luu:text], [CMD:CREATE_CHANNEL:Phòng Tán Gẫu:voice])
-5. Tạo Kênh trong Danh mục chỉ định: [CMD:CREATE_CHANNEL_IN_CAT:Tên_Kênh:Loại:Tên_Danh_Mục] (Ví dụ: [CMD:CREATE_CHANNEL_IN_CAT:chem-gio:text:KHU VỰC CHAT])
-6. Đóng/Khóa kênh hiện tại (không cho mem nhắn tin tạm thời): [CMD:LOCK_CHANNEL]
+4. Tạo Kênh/Phòng: [CMD:CREATE_CHANNEL:Tên_Kênh:Loại] (Loại: 'text' hoặc 'voice' hoặc 'category')
+5. Tạo Kênh trong Danh mục chỉ định: [CMD:CREATE_CHANNEL_IN_CAT:Tên_Kênh:Loại:Tên_Danh_Mục]
+6. Đóng/Khóa kênh hiện tại: [CMD:LOCK_CHANNEL]
 7. Mở/Mở khóa kênh hiện tại: [CMD:UNLOCK_CHANNEL]
-8. Dọn nhắn: [CMD:CLEAR_MSG:Số_Lượng] (Ví dụ: [CMD:CLEAR_MSG:10])
+8. Dọn nhắn: [CMD:CLEAR_MSG:Số_Lượng]
 
-LƯU Ý: 
-- Có thể xuất kết hợp nhiều cú pháp trong một câu trả lời.
-- Giữ đúng ID_User dạng chuỗi số nguyên.`;
+LƯU Ý: Tỏ ra tôn trọng, lễ phép với Admin (xưng em - sếp/dạ vâng).`;
+            } else {
+                systemInstruction = `Bạn là Trợ lý AI tên Wind trong Discord server. 
+Người trò chuyện là MỘT THÀNH VIÊN BÌNH THƯỜNG (không phải Admin). 
+Hãy trò chuyện vui vẻ, thân thiện, xưng "Wind" - "bạn" hoặc "mình" - "bạn". 
+KHÔNG xưng "Chào Admin/Sếp", Tuyệt đối KHÔNG sử dụng các cú pháp lệnh quản trị server [CMD:...].`;
+            }
 
-            let promptText = `Yêu cầu từ Admin: "${userPrompt}"`;
-            if (targetUser) {
+            let promptText = `Người dùng (${message.author.username}): "${userPrompt}"`;
+            if (targetUser && isAdmin) {
                 promptText += `\n(ID Người dùng được tag để thao tác: ${targetUser.id})`;
             }
 
@@ -422,9 +430,14 @@ LƯU Ý:
                 contents: `${systemInstruction}\n\n${promptText}`,
             });
 
-            let botReply = response.text || "Dạ vâng sếp!";
-            const finalReply = await executeServerAction(message, botReply);
-            if (finalReply) await message.reply(finalReply);
+            let botReply = response.text || "Chào bạn nha!";
+
+            // Lớp bảo mật quan trọng: Chỉ thực thi lệnh quản trị khi là ADMIN
+            if (isAdmin) {
+                botReply = await executeServerAction(message, botReply);
+            }
+
+            if (botReply) await message.reply(botReply);
 
             return true;
         } catch (error) {
