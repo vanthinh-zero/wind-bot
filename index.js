@@ -14,6 +14,7 @@ const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
 const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
 const { handleWelcomeMember } = require('./src/handlers/welcome.js');
+const { handleGoodbyeMember } = require('./src/handlers/goodbye.js'); // 👈 Bổ sung module Goodbye
 const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
@@ -117,7 +118,7 @@ const client = new Client({
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMembers, 
+        GatewayIntentBits.GuildMembers, // 👈 Intent cần thiết cho cả Welcome lẫn Goodbye
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildPresences
@@ -168,12 +169,23 @@ client.once(Events.ClientReady, async (readyClient) => {
 });
 
 // --- SỰ KIỆN THÀNH VIÊN VÀ VOICE STATE ---
+
+// 1. Thành viên gia nhập (Welcome & Cấp quyền)
 client.on(Events.GuildMemberAdd, async (member) => { 
     try {
         if (typeof handleWelcomeMember === 'function') await handleWelcomeMember(member);
         if (typeof handleAutoGrantPermission === 'function') await handleAutoGrantPermission(member);
     } catch (error) {
         console.error('Lỗi trong sự kiện GuildMemberAdd:', error);
+    }
+});
+
+// 2. Thành viên rời máy chủ (Goodbye) 👈 ĐÃ BỔ SUNG SỰ KIỆN TẠI ĐÂY
+client.on(Events.GuildMemberRemove, async (member) => {
+    try {
+        if (typeof handleGoodbyeMember === 'function') await handleGoodbyeMember(member);
+    } catch (error) {
+        console.error('Lỗi trong sự kiện GuildMemberRemove:', error);
     }
 });
 

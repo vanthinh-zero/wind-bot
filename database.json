@@ -585,12 +585,13 @@
         "dailyVoice": {}
     },
     "=)))": {
-        "totalMessages": 27,
+        "totalMessages": 29,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 2,
             "2026-07-28": 2,
-            "2026-07-31": 23
+            "2026-07-31": 23,
+            "2026-08-03": 2
         },
         "dailyVoice": {}
     },
@@ -751,10 +752,11 @@
         "dailyVoice": {}
     },
     "<a:flu_khocuu:1528290902013906984>": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-27": 1
+            "2026-07-27": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -977,12 +979,13 @@
         "dailyVoice": {}
     },
     "": {
-        "totalMessages": 253,
+        "totalMessages": 277,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 11,
             "2026-07-28": 145,
-            "2026-07-31": 97
+            "2026-07-31": 97,
+            "2026-08-03": 24
         },
         "dailyVoice": {}
     },
@@ -1019,12 +1022,13 @@
         "dailyVoice": {}
     },
     "<:01:1507966772786102332>": {
-        "totalMessages": 15,
+        "totalMessages": 18,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 2,
             "2026-07-28": 1,
-            "2026-07-31": 12
+            "2026-07-31": 12,
+            "2026-08-03": 3
         },
         "dailyVoice": {}
     },
@@ -1085,20 +1089,22 @@
         "dailyVoice": {}
     },
     "<:liuliu:1513015250763517962>": {
-        "totalMessages": 14,
+        "totalMessages": 17,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 1,
-            "2026-07-31": 13
+            "2026-07-31": 13,
+            "2026-08-03": 3
         },
         "dailyVoice": {}
     },
     "<:emoji_50:1513746459076329583>": {
-        "totalMessages": 5,
+        "totalMessages": 7,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 1,
-            "2026-07-31": 4
+            "2026-07-31": 4,
+            "2026-08-03": 2
         },
         "dailyVoice": {}
     },
@@ -1341,12 +1347,13 @@
         "dailyVoice": {}
     },
     "<:codon:1513732132948672583>": {
-        "totalMessages": 19,
+        "totalMessages": 23,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 1,
             "2026-07-28": 2,
-            "2026-07-31": 16
+            "2026-07-31": 16,
+            "2026-08-03": 4
         },
         "dailyVoice": {}
     },
@@ -1679,11 +1686,12 @@
         "dailyVoice": {}
     },
     "??": {
-        "totalMessages": 9,
+        "totalMessages": 10,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-27": 1,
-            "2026-07-28": 8
+            "2026-07-28": 8,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -2255,11 +2263,12 @@
         "dailyVoice": {}
     },
     "wlc": {
-        "totalMessages": 42,
+        "totalMessages": 52,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 5,
-            "2026-07-31": 37
+            "2026-07-31": 37,
+            "2026-08-03": 10
         },
         "dailyVoice": {}
     },
@@ -2948,11 +2957,12 @@
         "dailyVoice": {}
     },
     "Ok": {
-        "totalMessages": 9,
+        "totalMessages": 10,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 3,
-            "2026-07-31": 6
+            "2026-07-31": 6,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -3718,11 +3728,12 @@
         "dailyVoice": {}
     },
     "=))))": {
-        "totalMessages": 9,
+        "totalMessages": 11,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 3,
-            "2026-07-31": 6
+            "2026-07-31": 6,
+            "2026-08-03": 2
         },
         "dailyVoice": {}
     },
@@ -5580,11 +5591,12 @@
         "dailyVoice": {}
     },
     ":)))": {
-        "totalMessages": 2,
+        "totalMessages": 3,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 1,
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -7121,11 +7133,12 @@
         "dailyVoice": {}
     },
     "Helo": {
-        "totalMessages": 4,
+        "totalMessages": 6,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 3,
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 2
         },
         "dailyVoice": {}
     },
@@ -10042,10 +10055,11 @@
         "dailyVoice": {}
     },
     "Ơ": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-28": 1
+            "2026-07-28": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -10237,11 +10251,12 @@
         "dailyVoice": {}
     },
     "=))))))": {
-        "totalMessages": 3,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 1,
-            "2026-07-31": 2
+            "2026-07-31": 2,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -10694,10 +10709,11 @@
         "dailyVoice": {}
     },
     ".": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-28": 1
+            "2026-07-28": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -10814,11 +10830,12 @@
         "dailyVoice": {}
     },
     "!tutien": {
-        "totalMessages": 15,
+        "totalMessages": 22,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-28": 1,
-            "2026-07-31": 14
+            "2026-07-31": 14,
+            "2026-08-03": 7
         },
         "dailyVoice": {}
     },
@@ -12760,10 +12777,11 @@
         "dailyVoice": {}
     },
     "....": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-28": 1
+            "2026-07-28": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -12857,11 +12875,12 @@
         "dailyVoice": {}
     },
     "!play": {
-        "totalMessages": 4,
+        "totalMessages": 5,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-29": 1,
-            "2026-07-31": 3
+            "2026-07-31": 3,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -12874,10 +12893,11 @@
         "dailyVoice": {}
     },
     "!money": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -13674,18 +13694,20 @@
         "dailyVoice": {}
     },
     "Hello": {
-        "totalMessages": 3,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 3
+            "2026-07-31": 3,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
     "Wlc": {
-        "totalMessages": 5,
+        "totalMessages": 6,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 5
+            "2026-07-31": 5,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -14555,10 +14577,11 @@
         "dailyVoice": {}
     },
     "Ngầu": {
-        "totalMessages": 2,
+        "totalMessages": 3,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 2
+            "2026-07-31": 2,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -15043,10 +15066,11 @@
         "dailyVoice": {}
     },
     "<:caigico:1513732686328496188>": {
-        "totalMessages": 2,
+        "totalMessages": 3,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 2
+            "2026-07-31": 2,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -15107,10 +15131,11 @@
         "dailyVoice": {}
     },
     "vl": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -15475,10 +15500,11 @@
         "dailyVoice": {}
     },
     "Lo": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -15491,10 +15517,11 @@
         "dailyVoice": {}
     },
     "<:banbiu:1507965313012994209>": {
-        "totalMessages": 5,
+        "totalMessages": 6,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 5
+            "2026-07-31": 5,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -16797,10 +16824,11 @@
         "dailyVoice": {}
     },
     "!noitu": {
-        "totalMessages": 2,
+        "totalMessages": 3,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 2
+            "2026-07-31": 2,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -17541,18 +17569,20 @@
         "dailyVoice": {}
     },
     "!lamviec": {
-        "totalMessages": 24,
+        "totalMessages": 47,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 24
+            "2026-07-31": 24,
+            "2026-08-03": 23
         },
         "dailyVoice": {}
     },
     "!xinviec daotach": {
-        "totalMessages": 7,
+        "totalMessages": 10,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 7
+            "2026-07-31": 7,
+            "2026-08-03": 3
         },
         "dailyVoice": {}
     },
@@ -17565,10 +17595,11 @@
         "dailyVoice": {}
     },
     "!jobs": {
-        "totalMessages": 7,
+        "totalMessages": 9,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 7
+            "2026-07-31": 7,
+            "2026-08-03": 2
         },
         "dailyVoice": {}
     },
@@ -18029,10 +18060,11 @@
         "dailyVoice": {}
     },
     "!daily": {
-        "totalMessages": 3,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 3
+            "2026-07-31": 3,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -18541,10 +18573,11 @@
         "dailyVoice": {}
     },
     "okii": {
-        "totalMessages": 2,
+        "totalMessages": 3,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 2
+            "2026-07-31": 2,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -19757,10 +19790,11 @@
         "dailyVoice": {}
     },
     "<:liuliu:1513015250763517962> <:liuliu:1513015250763517962> <:liuliu:1513015250763517962> <:liuliu:1513015250763517962> <:liuliu:1513015250763517962>": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -20254,10 +20288,11 @@
         "dailyVoice": {}
     },
     "!shop-pet": {
-        "totalMessages": 1,
+        "totalMessages": 5,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 4
         },
         "dailyVoice": {}
     },
@@ -20342,18 +20377,20 @@
         "dailyVoice": {}
     },
     "!pet": {
-        "totalMessages": 1,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 3
         },
         "dailyVoice": {}
     },
     "!khopet": {
-        "totalMessages": 1,
+        "totalMessages": 6,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 5
         },
         "dailyVoice": {}
     },
@@ -20566,10 +20603,11 @@
         "dailyVoice": {}
     },
     "heloo": {
-        "totalMessages": 3,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 3
+            "2026-07-31": 3,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -24137,10 +24175,11 @@
         "dailyVoice": {}
     },
     "adidaphat": {
-        "totalMessages": 1,
+        "totalMessages": 2,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-07-31": 1
+            "2026-07-31": 1,
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     },
@@ -24877,6 +24916,2848 @@
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-07-31": 1
+        },
+        "dailyVoice": {}
+    },
+    "Buồn z": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@852834067044630558> heloo": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Nốtttttt": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@852834067044630558> hú êy": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hé lô": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tầm 10 lần r b ạ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hjhj": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ppai b hân": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Úi công an à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hi <@852834067044630558>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Ôi vcl": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Nhà nước vào à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh ơi em đủ tuổi r": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Đủ 16 tuổi lái xe gắn máy r nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:liuliu:1513015250763517962> <:liuliu:1513015250763517962> <:liuliu:1513015250763517962> <:banbiu:1507965313012994209> <:liuliu:1513015250763517962>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh oi e đủ tuổi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E chx đủ tuổi h sao": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_19:1523570497986498683>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "em ch đủ tuổi lái nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Trong trường hợp nhóm này bị điều tra bởi các cơ quan trực thuộc bộ công an (hoặc các tổ chức chính trị tương tự phục vụ cho nhà nước CHXHCNVN), tôi khẳng định mình không liên quan tới nhóm hoặc những cá nhân khác trong nhóm này. Tôi không rõ tại sao mình lại có mặt ở đây vào thời điểm này, có lẽ tài khoản của tôi đã được thêm bởi một bên thứ ba. Tôi cũng xin khẳng định rằng mình không hề giúp sức cho những hành động chống phá Đảng và nhà nước của các thành viên trong nhóm này.": {
+        "totalMessages": 3,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 3
+        },
+        "dailyVoice": {}
+    },
+    "Bị vậy lâu chưa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@981479686800564234> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@981479686800564234> halooo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "híii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hellooo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hí luuuu a": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:agl_ohshit:1527368521342910716>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Các cậu chat gì đấy": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@981479686800564234> hô le": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:nailing:1364993745505751060>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Hế nhô chú": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hê nhô": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Cháu đủ tuổi rùi nha chú": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A ơi ai add e vào nhóm này ấy e kbt": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hello <@981479686800564234> nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Rồi rồi tin mac": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "cháu chào chú ạ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<a:dnt_meme:1287631452212695054>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "cháu sắp đủ tuổi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chào cháu nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "À thế à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "cháu chào chú a": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chào cháu luôn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cháu nào cũng xinh": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Mà giờ này chưa ngủ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "sao chú ngủ muộn thế": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "gái xinh nổi loạn tí": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cháu bị ai đưa vào chứ cháu hông bt sao mình vô đây": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hjhj": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "# cαmíllα\n**Đại diện** <@981479686800564234>  \n  @everyone \nhttps://discord.gg/novecamilla": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "chú có ny ch": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hello <@1320959432984760410> nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú có tình nhân chx": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1320959432984760410> halooo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1320959432984760410> hi vợ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Helloooo <@1320959432984760410>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú đang ngủ thì bị dựng dậy": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hiii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1320959432984760410> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1465448086200516852> halooo nheee": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1465448086200516852> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1465448086200516852> hê luu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú có tình nhân chưa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ơ ai lại dựng chú dậy giờ này tr": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú chưa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "chú có vợ ch": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hong biết chắc là chị nhật kim anh": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chưa luôn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tình nhân còn chưa có": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Vợ đâu ra": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "# ˚₊‧꒰ა 𓂃 ࣪˖ Angelic 𓂃 ࣪˖ ໒꒱ ‧₊˚\n 🔔 … tiếng chuông nhà thờ ngân vang giữa màn sương trắng …\n\nNơi những đôi cánh trắng khẽ lướt qua biển mây và ánh sáng dịu dàng phủ lên màn sương mờ ảo. Một thiên đường nhỏ dành cho những tâm hồn muốn tìm kiếm sự bình yên, kết nối và những cuộc trò chuyện chân thành.\n♱⌣⌣    🦢🪽 .𖥔˖\n☁️ Cộng đồng thân thiện, văn minh\n🕊️ Không gian thoải mái\n✨ Trò chuyện, kết bạn và các hoạt động thú vị\n🌙 Góc nghỉ ngơi dành cho những trái tim mỏi mệt\n· · ────── ꒰ঌ·✦·໒꒱ ────── · ·\nNếu bạn đang tìm một nơi dịu dàng để thuộc về, Angelic luôn rộng mở chào đón bạn.\n\n「 Hãy để đôi cánh của bạn nghỉ ngơi giữa miền sương trắng này. 」\nLink server: https://discord.gg/4gSED3eW5a\nĐại diện: <@852834067044630558> \n@everyone": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "chú có mm k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "cân nhắc cháu nhed": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Mm là cgi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Make money à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú gà": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cháu có dàn hậu cung": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú còn chx có ai": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chia bớt cho chú đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:frogsmile:1393601518518931536>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú giành đồ của trẻ con à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hế nhô bạn nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Nhô bn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Sao bn chx ngủ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "buổi đêm vui vẻ nhó": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Có là được tầm này quan trọng gì": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:PES_LMAO:501478323088654347>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Noo hậu cung của cháu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:tsundere:1526542367711301823>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@1482752155793494016>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "<:1416pepehmm:1009822636202791003>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@1448354974173106399>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@910001518328033301>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Thôi sau cũng của ngta mà": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@1037019422918983810>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@986537662066327583>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Cho chú phần đẹp nhất đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@862540407942021171>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hông": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Check hoài v bbi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tại kiểu em nó thee a": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú tự kím đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Của cháu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:liuliu:1513015250763517962> thích hay j": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "rất to": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!avt <@1144461336961630340>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "vú to í, b có vú k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_50:1416253854114381945>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Thôi sủi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bye các cháu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "b lỏ v": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:l_:1528277230625489037> <:emoji_50:1513746459076329583> <:v_:1528277896316321924> <:e_:1528277245347500032>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "B có zú to như bé nga nhà tui hông": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "b có vú to k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "B lỏ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Vòng 1 có to hông?": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ủa kệ mẹ b": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Helo cậu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chú sủi sớm thế": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hê lô b": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "laura tí k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "halu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hi bạn nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú ê": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú hú <@1509143798305919056>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "có vú to k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "các cậu từ từ tớ chết ngạt <:emoji_12:1525854706264576021>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1011506797640695848> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<a:3734catkiss:1320226901612298350>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "A thịnh vs a đăng ai có vú to hơn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Thế wind vú có to hơn đăng hông": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> chúc chị nga ngủ ngon": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> hú": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ua anh đi đâu vậy<@1037019422918983810>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú hihihi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ê": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh bngu r cưng ơu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú ê ê": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "alo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E ngủ đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ouu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ẳng ẳng": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bbi ngủ ngon": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "em khong ngủ dc ay": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú ẳng": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "anh ngủ ngon nhe a": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Kemeem": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh đi ngủ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cảm": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ơn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tạm biệt 🙂": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh trêu chứ có ngủ đi bé": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A đăng chúc e bin sigma ngủ ngon đi a đăng<a:3734catkiss:1320226901612298350>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1509143798305919056> anh <@910001518328033301> có vuto k": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hú anh em": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "T méc chị quỳnh r": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hú": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tui buồn quá": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "nyc block r": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "saoo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "🤡🤡": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "mm^^": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1290898210025373851> híiii luuu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1290898210025373851> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "yasss": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Helooo <@1290898210025373851> bbi nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hello <@1290898210025373851>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:__:1528339398964412457> <:emoji_19:1523570497986498683>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "heli": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Đc nha ní": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A Đăng phân biệt đối xử,e bùn qus<:emoji_19:1523570497986498683>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "helooo babii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Helu bbi<:rizz:1403002043563642940>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "@everyone /@here": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Wanna be my gf?": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:rizz:1403002043563642940>": {
+        "totalMessages": 4,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 4
+        },
+        "dailyVoice": {}
+    },
+    "Xl t ng thẳng thắn nhìn vu đầu tin": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E cx có vú mà<:bm_hehehe:1526589911678062645>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "kìa anh đăng=))) <@1037019422918983810>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Anh có mình e rh": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Th": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Im đi tí t chảm cho chetme": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "vú của anh ở kia=)))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A đăng thiên vị tht": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "https://klipy.com/gifs/spider-man-sad-2": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Sigma cx biết buồn mà a Đăng": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "anh đầy em=))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:N111:1528823804879704197>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "K s em ơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A k bt e buồn đâu yên tMa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Vcl": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Nói thế oan": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "đúng màaa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "https://klipy.com/gifs/anime-432": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "em thấy anh thiếu gii đâuu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "I'm fine": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "https://klipy.com/gifs/cropped-sad": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@867385192477229066> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "yẹt sơ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "bò biết bay": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "yẹt": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hế nhô": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@867385192477229066> halooo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bò biết bay chào bạn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "khong can check theo rule": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ưng ngay từ đầu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tui yeu bạn nhieu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "em nói đúng mò...": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Đâu vạch ra bông xem": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Có qua có lại chứ chị bông": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:bm_hehehe:1526589911678062645>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "E trc đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tù xì đi chị": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Iu iu don't cry": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ngầu không em ?": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "đói quaa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E ra gì": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "mọi người đii ngủ dii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "để em thức choo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E ra bao": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chị làm giúp e bài writting tiếng anh dc k ạ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@910001518328033301> sao pet e lại bị mát": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "chị 10. ai eo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Siêu nhân hồng vs siêu nhân vàng của e": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "em dám đưa khong=)))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chị ra kéo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E thua rùi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Show đi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Oke chx chị": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "E show full body luôn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "R chị đâu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cái dcm": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "dm:))))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Vú đâu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "2 con vít to thế kia chị k thấy à": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "khá ngầu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chị thấy nặng k ạ,e nhận bê phụ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "thấy bth": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@986537662066327583> trả kèo cho e<:emoji_76:1525704683312775268>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!taixiu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!work": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cái tu tiên này cuốn phết": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "kèo vậy sao cj trả": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!xinviec daotac": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "để cj kím acc pugy": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "A đăng ơi,mai a on cứu e nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Linh thạch của e sao bị lỗi r": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tu tiên mà k có linh thạch sao dc": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:__:1528339398964412457>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "ms qua mà thấy kèo gì căng v": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Siêu nhân vàng vs siêu nhân hồng của cj cũng mất": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "bai baii mọi người em đi ngủ đâyy a": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ròi cái gì đây": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "-.-": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Pubg ôg ơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "mọi người ngủ ngonn nhee aa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bye chị": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "có chắc là chị khong..": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bé ngủ ngon": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ng đẹp ngủ ngonn<:emoji_50:1513746459076329583>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "daa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "vangg": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tu tiên mà k có tiền để mua đan tu luyên 🙁": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "oi ban nay di dau day": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chứ gọi saoo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Nuôi pet mà hông có pet để nuôi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "bin sn nhieu vay:)": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bot gà quá lỗi r": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "đi chơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bin k11": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "k cho đi dề à :>>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "dung thay tui cte qua ma qua day choi nho": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!nuoipet": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "thoi em bin ngủ sớm nhé=)))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "khong sao": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "cứ qua đây chơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_127:1528702068196511866>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ngủ sớm mới lớn dc em bin ạ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "tui lớp nhieu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "baii baiii mọi người": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "iuu iuu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<a:SA_alienDance:944995168170434560>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "toi coá xinh iu cụa riêng tui rùi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    ":33": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "baiii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chs sao v chị": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Gì": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ai tag t": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hello <@1159752281126879345>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<@1159752281126879345> heloo": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ấn vô kho pet": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Mua pet": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Haii": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Mua pet sao v chị": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Shop pet": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chào cả nhà nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hi cậu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "buổi đêm vui vẻ nhá": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!muapet": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "!muapet panda": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Kco tiền sao muâ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Cảm ơn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ngủ sớm di bann": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:32906lunacow:1520695414066647180>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Đcm sao pet t mất": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Mới dậy á": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Siêu nhân hồng của t": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:hahalaughing:1385311569927340154>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "vl=))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "! lamviec": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Sầu gần chớt": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Đang lướt ở sivi kia bỗng thấy có tên sivi này mà thú vị quá nên vô chơi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Sầuuuuu": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!nangcap": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Ít v": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Khóc": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!p": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_43:1518196151252156548>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Sivi này ngoài bò ra còn j khác ko": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "<:emoji_70:1525703542080409631>": {
+        "totalMessages": 2,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 2
+        },
+        "dailyVoice": {}
+    },
+    "Còn mik nha :))": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Còn siêu nhân bạn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Nhưng bị bán rùi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "còn trâu ngựa ạ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Đùa thiệt chứ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Còn Bin dzai này<:rizz:1403002043563642940>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hay ho": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "co biet ngai khong": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Show ra bông xem": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ơ sự tht mà chị": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "c luôn kìa": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "hh": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Kbt tại tưởng k11 là nhỏ nhất ròi nên auto a vs chị thui<:01:1507966772786102332>": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "kph nha": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "k15 moi nhỏ nhat nhé": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ai k15 thí": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tui": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Tui cái gì": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Phải gọi e": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Rút kinh nghiệm nhá 🐧": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bỏ số 1 đằng trc": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Ý là e gọi chị là e": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "1159752281126879345": {
+        "username": "asune_0",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 12,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-08-03": 12
+        }
+    },
+    "Th bái bai mn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Bin đi ngủ": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chúc mn ngủ ngon": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "G9": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "1352810217993404416": {
+        "username": "hazy_4610_52654",
+        "totalMessages": 0,
+        "totalVoiceMinutes": 39,
+        "dailyMessages": {},
+        "dailyVoice": {
+            "2026-08-03": 39
+        }
+    },
+    "em khong ngủ dc ^^": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "oidoioi": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "ua": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!xinviec": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "!muapey": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
+        },
+        "dailyVoice": {}
+    },
+    "Hello mn": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-03": 1
         },
         "dailyVoice": {}
     }

@@ -34,5 +34,29 @@
     "1352810217993404416": {
         "activePetId": null,
         "inventory": []
+    },
+    "986537662066327583": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785697390997
+    },
+    "1135010924214878300": {
+        "activePetId": "pet_1785699024990_648",
+        "inventory": [
+            {
+                "id": "pet_1785699024990_648",
+                "name": "panda (Gấu PANDA)",
+                "level": 3,
+                "exp": 0,
+                "food": 100,
+                "originalOwner": "1135010924214878300"
+            }
+        ],
+        "lastClaimTime": 1785699142499
+    },
+    "1448354974173106399": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785700792406
     }
 }
