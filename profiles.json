@@ -131,5 +131,20 @@
       "kethon": null,
       "banthan": null
     }
+  },
+  "1448354974173106399": {
+    "title": "HỒ SƠ THÀNH VIÊN",
+    "bio": "Xin chào! Rất vui được làm quen với mọi người.",
+    "status": "Đang hoạt động",
+    "color": "#2B2D31",
+    "media": "https://media.discordapp.net/attachments/1528282202222235718/1528878087683706880/MOO_MOO_9.gif?ex=6a608eed&is=6a5f3d6d&hm=1ed4637eb577a1624a0d6d336fa3069836c6a77285de6fc4c6df4d91af18f581&=",
+    "badge": "👑",
+    "divider": "────୨ৎ────────୨ৎ────────୨ৎ────",
+    "footerText": "Dùng các lệnh /set... để trang trí hồ sơ",
+    "relationships": {
+      "totinh": null,
+      "kethon": null,
+      "banthan": null
+    }
   }
 }

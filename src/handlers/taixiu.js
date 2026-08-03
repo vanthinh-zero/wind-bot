@@ -3,6 +3,7 @@ const path = require('path');
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 const dbPath = path.join(__dirname, '../../money.json');
+const INFINITY_SYMBOL = '∞'; // Ký hiệu vô cực
 
 function readDatabase() {
     try {
@@ -26,7 +27,17 @@ function writeDatabase(data) {
 }
 
 function getUserData(userId) {
+    const ADMIN_ID = process.env.ADMIN_ID;
     const db = readDatabase();
+    
+    // Nếu là ADMIN_ID, trả về vô cực
+    if (ADMIN_ID && userId === ADMIN_ID) {
+        return {
+            balance: INFINITY_SYMBOL,
+            lastDaily: db[userId]?.lastDaily || null
+        };
+    }
+
     if (!db[userId]) {
         db[userId] = {
             balance: 0,
@@ -42,10 +53,29 @@ function getUserData(userId) {
 }
 
 function getMoney(userId) {
+    const ADMIN_ID = process.env.ADMIN_ID;
+    // Nếu là ADMIN_ID, luôn trả về ∞
+    if (ADMIN_ID && userId === ADMIN_ID) {
+        return INFINITY_SYMBOL;
+    }
     return getUserData(userId).balance;
 }
 
+// Hàm format hiển thị gọn gàng
+function formatMoney(amount) {
+    if (amount === INFINITY_SYMBOL || typeof amount === 'string') {
+        return amount;
+    }
+    return Number(amount).toLocaleString();
+}
+
 function addMoney(userId, amount) {
+    const ADMIN_ID = process.env.ADMIN_ID;
+    // Nếu là ADMIN_ID, giữ nguyên không bao giờ trừ hay cộng
+    if (ADMIN_ID && userId === ADMIN_ID) {
+        return;
+    }
+
     const db = readDatabase();
     getUserData(userId);
     db[userId].balance += amount;
@@ -61,6 +91,7 @@ function rollDice() {
 }
 
 async function handleTaiXiuGame(message) {
+    const ADMIN_ID = process.env.ADMIN_ID;
     const content = message.content.trim();
     const args = content.split(/\s+/);
     const command = args[0].toLowerCase();
@@ -90,7 +121,7 @@ async function handleTaiXiuGame(message) {
             return message.reply('❌ Không tìm thấy thông tin người dùng này!').catch(() => {});
         }
 
-        const currentMoney = getMoney(targetUser.id);
+        const currentMoney = formatMoney(getMoney(targetUser.id));
         
         if (targetUser.id === message.author.id) {
             return message.reply(`💰 Bạn đang có **${currentMoney}** Cowcoin trong tài khoản.`).catch(() => {});
@@ -115,11 +146,13 @@ async function handleTaiXiuGame(message) {
             return message.reply(`⏳ Bạn đã điểm danh hôm nay rồi. Quay lại sau **${hours} giờ ${minutes} phút** nữa nhé!`).catch(() => {});
         }
 
-        db[message.author.id].balance += 100;
+        addMoney(message.author.id, 100);
+        if (!db[message.author.id]) db[message.author.id] = {};
         db[message.author.id].lastDaily = now;
         writeDatabase(db);
 
-        return message.reply(`🎉 Điểm danh thành công! Bạn nhận được **+100** Cowcoin. Số dư hiện tại: **${db[message.author.id].balance}** Cowcoin.`).catch(() => {});
+        const currentBalance = formatMoney(getMoney(message.author.id));
+        return message.reply(`🎉 Điểm danh thành công! Bạn nhận được **+100** Cowcoin. Số dư hiện tại: **${currentBalance}** Cowcoin.`).catch(() => {});
     }
 
     // =========================================================
@@ -146,21 +179,21 @@ async function handleTaiXiuGame(message) {
         }
 
         const senderMoney = getMoney(message.author.id);
-        if (senderMoney < transferAmount) {
-            return message.reply(`❌ Bạn chỉ có **${senderMoney}** Cowcoin, không đủ để chuyển **${transferAmount}** Cowcoin!`).catch(() => {});
+        
+        if (message.author.id !== ADMIN_ID && senderMoney < transferAmount) {
+            return message.reply(`❌ Bạn chỉ có **${formatMoney(senderMoney)}** Cowcoin, không đủ để chuyển **${formatMoney(transferAmount)}** Cowcoin!`).catch(() => {});
         }
 
         addMoney(message.author.id, -transferAmount);
         addMoney(targetUser.id, transferAmount);
 
-        return message.reply(`💸 Chuyển tiền thành công! **${message.author.username}** đã chuyển **${transferAmount}** Cowcoin cho **${targetUser.username}**!`).catch(() => {});
+        return message.reply(`💸 Chuyển tiền thành công! **${message.author.username}** đã chuyển **${formatMoney(transferAmount)}** Cowcoin cho **${targetUser.username}**!`).catch(() => {});
     }
 
     // =========================================================
     // 🔨 4. LỆNH THU HỒI COWCOIN (ADMIN)
     // =========================================================
     if (isThuHoiCmd) {
-        const ADMIN_ID = process.env.ADMIN_ID;
         const isBotAdmin = message.author.id === ADMIN_ID;
         const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages);
 
@@ -181,12 +214,12 @@ async function handleTaiXiuGame(message) {
         }
 
         const targetMoney = getMoney(targetUser.id);
-        if (targetMoney < thuHoiAmount) {
-            return message.reply(`⚠️ Số dư của người này chỉ còn **${targetMoney}** Cowcoin, không đủ để thu hồi **${thuHoiAmount}** Cowcoin!`).catch(() => {});
+        if (targetUser.id !== ADMIN_ID && targetMoney < thuHoiAmount) {
+            return message.reply(`⚠️ Số dư của người này chỉ còn **${formatMoney(targetMoney)}** Cowcoin, không đủ để thu hồi **${formatMoney(thuHoiAmount)}** Cowcoin!`).catch(() => {});
         }
 
         addMoney(targetUser.id, -thuHoiAmount);
-        const remainingMoney = getMoney(targetUser.id);
+        const remainingMoney = formatMoney(getMoney(targetUser.id));
 
         const thuHoiEmbed = new EmbedBuilder()
             .setColor('#ff3333')
@@ -195,8 +228,8 @@ async function handleTaiXiuGame(message) {
             .addFields(
                 { name: '👤 Người bị thu hồi', value: `${targetUser} (${targetUser.tag})`, inline: true },
                 { name: '🔨 Người thực thi', value: `${message.author}`, inline: true },
-                { name: '📉 Số tiền thu hồi', value: `-\`${thuHoiAmount.toLocaleString()}\` Cowcoin`, inline: false },
-                { name: '💰 Số dư còn lại', value: `\`${remainingMoney.toLocaleString()}\` Cowcoin`, inline: false }
+                { name: '📉 Số tiền thu hồi', value: `-\`${formatMoney(thuHoiAmount)}\` Cowcoin`, inline: false },
+                { name: '💰 Số dư còn lại', value: `\`${remainingMoney}\` Cowcoin`, inline: false }
             )
             .setTimestamp();
 
@@ -204,7 +237,7 @@ async function handleTaiXiuGame(message) {
     }
 
     // =========================================================
-    // 🎲 5. GAME TÀI XỈU (ĐÃ THÊM THUẾ 5% CHỐNG LẠM PHÁT)
+    // 🎲 5. GAME TÀI XỈU
     // =========================================================
     if (isGameCmd) {
         if (args.length < 3) {
@@ -221,7 +254,7 @@ async function handleTaiXiuGame(message) {
 
         let tienCuoc = 0;
         if (tienCuocStr.toLowerCase() === 'all' || tienCuocStr.toLowerCase() === 'allin') {
-            tienCuoc = userMoney;
+            tienCuoc = message.author.id === ADMIN_ID ? 1000000000 : userMoney;
         } else {
             tienCuoc = parseInt(tienCuocStr);
         }
@@ -230,11 +263,11 @@ async function handleTaiXiuGame(message) {
             return message.reply('❌ Số tiền cược phải là một số nguyên dương!').catch(() => {});
         }
 
-        if (userMoney < tienCuoc) {
-            return message.reply(`❌ Bạn chỉ còn **${userMoney}** Cowcoin, không đủ tiền cược **${tienCuoc}**! Hãy gõ \`!diemdanh\` để nhận thưởng hằng ngày.`).catch(() => {});
+        if (message.author.id !== ADMIN_ID && userMoney < tienCuoc) {
+            return message.reply(`❌ Bạn chỉ còn **${formatMoney(userMoney)}** Cowcoin, không đủ tiền cược **${formatMoney(tienCuoc)}**! Hãy gõ \`!diemdanh\` để nhận thưởng hằng ngày.`).catch(() => {});
         }
 
-        message.channel.send(`🎲 **${message.author.username}** đã đặt cược **${tienCuoc}** Cowcoin... Đang lắc xúc xắc!`).then(async (msg) => {
+        message.channel.send(`🎲 **${message.author.username}** đã đặt cược **${formatMoney(tienCuoc)}** Cowcoin... Đang lắc xúc xắc!`).then(async (msg) => {
             
             setTimeout(async () => {
                 const dices = rollDice();
@@ -246,16 +279,16 @@ async function handleTaiXiuGame(message) {
                 responseText += `| ${dices[0]} | ${dices[1]} | ${dices[2]} | ➔ **Tổng điểm:** ${tongDiem} (${ketQuaText})\n\n`;
 
                 if (luaChon === ketQua) {
-                    const TAX_RATE = 0.05; // Thuế 5%
+                    const TAX_RATE = 0.05;
                     const realWinnings = Math.floor(tienCuoc * (1 - TAX_RATE));
 
                     addMoney(message.author.id, realWinnings);
-                    const moneySauKhiThang = getMoney(message.author.id);
-                    responseText += `🎉 **Thắng rồi!** Bạn đã đoán đúng và nhận **+${realWinnings}** Cowcoin *(Đã trừ 5% thuế sàn)*!\n💰 Số dư hiện tại: **${moneySauKhiThang}** Cowcoin.`;
+                    const moneySauKhiThang = formatMoney(getMoney(message.author.id));
+                    responseText += `🎉 **Thắng rồi!** Bạn đã đoán đúng và nhận **+${formatMoney(realWinnings)}** Cowcoin *(Đã trừ 5% thuế sàn)*!\n💰 Số dư hiện tại: **${moneySauKhiThang}** Cowcoin.`;
                 } else {
                     addMoney(message.author.id, -tienCuoc);
-                    const moneySauKhiThua = getMoney(message.author.id);
-                    responseText += `💸 **Thua rồi!** Bạn đoán sai và bị trừ **-${tienCuoc}** Cowcoin!\n💰 Số dư hiện tại: **${moneySauKhiThua}** Cowcoin.`;
+                    const moneySauKhiThua = formatMoney(getMoney(message.author.id));
+                    responseText += `💸 **Thua rồi!** Bạn đoán sai và bị trừ **-${formatMoney(tienCuoc)}** Cowcoin!\n💰 Số dư hiện tại: **${moneySauKhiThua}** Cowcoin.`;
                 }
 
                 await msg.edit(responseText).catch(() => {});

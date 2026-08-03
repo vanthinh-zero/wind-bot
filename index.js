@@ -225,6 +225,12 @@ client.on(Events.MessageCreate, async (message) => {
         if (typeof handleAutoMod === 'function') await handleAutoMod(message);
         if (typeof handleAdminCommands === 'function') await handleAdminCommands(message);
 
+        // 🎮 XỬ LÝ MINIGAME NỐI TỪ ĐẦU TIÊN (Trước các bộ lọc khác)
+        if (typeof handleNoiTuGame === 'function') {
+            const isNoiTuHandled = await handleNoiTuGame(message);
+            if (isNoiTuHandled) return;
+        }
+
         const content = message.content.trim().toLowerCase();
 
         // 4. ĐIỀU HƯỚNG LỆNH CHÍNH XÁC (Sử dụng return để ngắt luồng chuẩn xác)
@@ -256,9 +262,7 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!wind')) {
             if (typeof handleWindCommand === 'function') return await handleWindCommand(message);
         }
-        if (content.startsWith('!noitu')) {
-            if (typeof handleNoiTuGame === 'function') return await handleNoiTuGame(message);
-        }
+
         // Bổ sung các lệnh tài chính/ví tiền (!vi, !ccash, !money, !cash, !diemdanh, !chuyentien, !thuhoi)
         if (content.startsWith('!taixiu') || content.startsWith('!tx') || content.startsWith('!vi') || content.startsWith('!ccash') || content.startsWith('!money') || content.startsWith('!cash') || content.startsWith('!diemdanh') || content.startsWith('!daily') || content.startsWith('!chuyentien') || content.startsWith('!thuhoi')) {
             if (typeof handleTaiXiuGame === 'function') return await handleTaiXiuGame(message);
@@ -331,6 +335,14 @@ client.on(Events.MessageCreate, async (message) => {
 // --- SỰ KIỆN TƯƠNG TÁC (INTERACTION CREATE) ---
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
+        // 🌟 [ƯU TIÊN LÊN ĐẦU] - Xử lý Nút Autorole trước để không bị dính kiểm tra Voice/Booster bên dưới
+        if (interaction.isButton() && interaction.customId === 'start_private_autorole') {
+            if (typeof handleAutoRoleInteraction === 'function') {
+                await handleAutoRoleInteraction(interaction);
+                return;
+            }
+        }
+
         // 1. Module Booster (Nút bấm tạo Voice, chọn Role màu, quản lý Voice VIP)
         if (typeof handleBoostTicketInteraction === 'function') {
             await handleBoostTicketInteraction(interaction);
@@ -344,9 +356,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 3. Module Relationship (Kết hôn & mối quan hệ)
-        if (relationshipHandler && typeof relationshipHandler.handleInteraction === 'function') {
-            await relationshipHandler.handleInteraction(interaction);
+        // 3. Module Relationship (Kết hôn & mối quan hệ) - ĐÃ ĐƯỢC SỬA TÊN HÀM TẠI ĐÂY
+        if (relationshipHandler) {
+            const relFn = relationshipHandler.handleRelationshipInteraction || relationshipHandler.handleInteraction;
+            if (typeof relFn === 'function') await relFn(interaction);
         }
         if (interaction.replied || interaction.deferred) return;
 

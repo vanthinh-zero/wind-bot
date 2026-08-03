@@ -81,7 +81,7 @@ function setRelationship(user1Id, user2Id, type) {
             marriedAt: new Date().toISOString(),
             ring: { ringId: 'co_4_la', name: 'Cỏ 4 Lá', emoji: '🍀' },
             lovePoints: 100, streakDays: 1, lastInteractedAt: new Date().toISOString(),
-            quote: '𝒩𝑜𝓌 𝒾𝓈𝓈! (´・ω・`) ♡', wallpaper: null
+            quote: '𝒩𝑜𝓌 𝓀𝒾𝓈𝓈! (´・ω・`) ♡', wallpaper: null
         };
         db[user1Id].marriageData = { ...defaultMarriageData };
         db[user2Id].marriageData = { ...defaultMarriageData };
@@ -186,6 +186,18 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply({ content: `${targetUser}`, embeds: [embed], components: [row] });
         }
 
+        if (commandName === 'banthan') {
+            const targetUser = options.getUser('user');
+            if (targetUser.id === user.id || targetUser.bot) return interaction.reply({ content: '❌ Đối phương không hợp lệ!', flags: MessageFlags.Ephemeral });
+
+            const embed = new EmbedBuilder().setColor('#00FFFF').setTitle('🤝 LỜI MỜI KẾT BẠN THÂN 🤝').setDescription(`${user} muốn kết bạn thân với ${targetUser}!`);
+            const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId(`rel_accept_banthan_${user.id}_${targetUser.id}`).setLabel('Đồng Ý 🤝').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId(`rel_refuse_banthan_${user.id}_${targetUser.id}`).setLabel('Từ Chối 💔').setStyle(ButtonStyle.Danger)
+            );
+            return interaction.reply({ content: `${targetUser}`, embeds: [embed], components: [row] });
+        }
+
         if (commandName === 'ket-hon') {
             const targetUser = options.getUser('user') || user;
             ensureUserExists(db, targetUser.id);
@@ -199,6 +211,21 @@ async function handleRelationshipInteraction(interaction) {
             return interaction.reply(cardData);
         }
 
+        if (commandName === 'setquote') {
+            const text = options.getString('text');
+            const partnerId = db[user.id]?.relationships?.kethon;
+
+            if (!partnerId || !db[user.id]?.marriageData) {
+                return interaction.reply({ content: '❌ Bạn chưa kết hôn để cài đặt câu chúc!', flags: MessageFlags.Ephemeral });
+            }
+
+            db[user.id].marriageData.quote = text;
+            if (db[partnerId]?.marriageData) db[partnerId].marriageData.quote = text;
+            writeDatabase(db);
+
+            return interaction.reply({ content: `✅ Đã cập nhật câu chúc thành công: "*${text}*"`, flags: MessageFlags.Ephemeral });
+        }
+
         if (commandName === 'huymoquanhe') {
             const type = options.getString('loai');
             const partnerId = removeRelationship(user.id, type);
@@ -208,11 +235,16 @@ async function handleRelationshipInteraction(interaction) {
 
         if (ACTION_DATA[commandName]) {
             const targetUser = options.getUser('user');
+            const customGif = options.getString('link_gif');
             const action = ACTION_DATA[commandName];
+            
+            const selectedGif = customGif || getRandom(action.gifs);
+
             const embed = new EmbedBuilder()
                 .setColor(action.color)
                 .setDescription(`✨ **${user}** ${getRandom(action.messages)} **${targetUser}**!`)
-                .setImage(getRandom(action.gifs));
+                .setImage(selectedGif);
+                
             return interaction.reply({ embeds: [embed] });
         }
     }
