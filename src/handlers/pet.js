@@ -104,7 +104,7 @@ function updatePassiveIncome(userId, userPetData) {
 
     if (minutesPassed > 0) {
         const petLevel = parseInt(activePet.level) || 1;
-        // Mỗi phút Cấp 1 tạo ra 0.1 Cowcoin (Tránh lạm phát khi giao dịch thực)
+        // Mỗi phút Cấp 1 tạo ra 0.1 Cowcoin
         const passiveMoneyEarned = Math.floor(minutesPassed * (petLevel * 0.1));
 
         // Giảm độ no theo thời gian (Mỗi 5 phút trừ 1 độ no)
@@ -134,7 +134,6 @@ async function handlePetSystem(message) {
     const args = message.content.trim().split(/\s+/);
     const userId = message.author.id;
 
-    // 🔥 ĐÃ THÊM !lockpet VÀ !banpet VÀO DANH SÁCH KIỂM TRA LỆNH
     const petCommands = [
         '!pet', '!shop-pet', '!muapet', '!choan', '!nangcap', 
         '!help', '!tromcho', '!thave', '!khopet', '!laypet', 
@@ -164,14 +163,14 @@ async function handlePetSystem(message) {
         let helpMsg = `📜 **HƯỚNG DẪN HỆ THỐNG THÚ CƯNG (PET)** 📜\n`;
         helpMsg += `-------------------------------------------\n`;
         helpMsg += `💸 *Cơ chế thu nhập: Thú cưng đang dắt sẽ tự động tạo ra tiền mỗi phút (Cần duy trì độ no).* \n\n`;
-        helpMsg += `➔ \`!shop-pet\` : Mở cửa hàng mua thú cưng và thức ăn.\n`;
+        helpMsg += `➔ \`!shop\` : Mở cửa hàng vật phẩm và thú cưng.\n`;
         helpMsg += `➔ \`!muapet [Tên]\` : Mua thú cưng mới (tự động chuyển vào kho).\n`;
         helpMsg += `➔ \`!pet\` : Xem thông tin thú cưng đang dắt theo.\n`;
         helpMsg += `➔ \`!choan\` / \`!nangcap\` : Chăm sóc và tăng cấp cho Pet.\n`;
         helpMsg += `➔ \`!khopet\` : Xem danh sách thú cưng đang sở hữu.\n`;
         helpMsg += `➔ \`!laypet [STT]\` : Đổi thú cưng xuất trận.\n`;
         helpMsg += `➔ \`!banpet [STT]\` : Bán bớt thú cưng trong kho thu về Cowcoin.\n`;
-        helpMsg += `➔ \`!lockpet\` : Khóa bảo vệ 60s cho Pet đang dắt (Cộng dồn thời gian khi gõ lại).\n`;
+        helpMsg += `➔ \`!lockpet\` : Khóa bảo vệ 60s cho Pet đang dắt (Bảo vệ chống bị trộm chó. Gõ '!lockpet' để nhận 60s miễn phí).\n`;
         helpMsg += `➔ \`!lockpet [Số_Phút]\` : Dùng Cowcoin mua thêm thời gian bảo vệ cho Pet đang dắt.\n`;
         helpMsg += `➔ \`!lockpet [STT] [Số_Phút]\` : Mua thời gian bảo vệ cho Pet chỉ định trong kho.\n`;
         helpMsg += `➔ \`!tromcho [@User]\` : Tỉ lệ 30% trộm 1 Pet không được bảo vệ. Thất bại bị phạt tiền.\n`;
@@ -181,16 +180,10 @@ async function handlePetSystem(message) {
     }
 
     // =========================================================
-    // 🏪 LỆNH: !shop-pet
+    // 🏪 LỆNH: !shop-pet (CHUYỂN HƯỚNG BÁO DÙNG !shop)
     // =========================================================
     if (content === '!shop-pet') {
-        let shopMsg = `🏪 **CỬA HÀNG THÚ CƯNG** 🏪\n`;
-        shopMsg += `-------------------------------------------\n`;
-        shopMsg += `🐶 **!muapet [Tên_Pet]** ➔ Giá: **${PRICE_BUY_PET.toLocaleString()}** Cowcoin\n`;
-        shopMsg += `🍖 **!choan** ➔ Giá: **${PRICE_FOOD.toLocaleString()}** Cowcoin (+30 độ no, +15 EXP)\n`;
-        shopMsg += `⚡ **!nangcap** ➔ Dùng Cowcoin để tăng kinh nghiệm cho Pet.\n`;
-        shopMsg += `🔒 **!lockpet** ➔ Mặc định miễn phí 60s (Gia hạn nâng cấp: **${COST_PER_LOCK_MINUTE}** Cowcoin/phút).`;
-        return message.reply(shopMsg).catch(() => {});
+        return message.reply("⚠️ Vui lòng sử dụng lệnh `/shop`").catch(() => {});
     }
 
     // =========================================================
@@ -262,27 +255,22 @@ async function handlePetSystem(message) {
         let targetPet = null;
         let extraMinutes = 0;
 
-        // 1. Chỉ gõ !lockpet -> Khóa 60s cho Pet đang dắt
         if (args.length === 1) {
             targetPet = activePet;
         } 
-        // 2. Gõ !lockpet [Tham_Số]
         else if (args.length === 2) {
             const param = parseInt(args[1]);
             if (isNaN(param) || param <= 0) {
                 return message.reply(`❌ Tham số không hợp lệ! Vui lòng nhập STT Pet hoặc số phút muốn gia hạn.`);
             }
             
-            // Nếu tham số <= số pet trong kho -> Chọn Pet theo STT (Cộng 60s)
             if (param <= userPetData.inventory.length) {
                 targetPet = userPetData.inventory[param - 1];
             } else {
-                // Nếu lớn hơn số pet trong kho -> Mua N phút cho Pet đang dắt
                 targetPet = activePet;
                 extraMinutes = param;
             }
         } 
-        // 3. Gõ !lockpet [STT] [Số_Phút]
         else if (args.length >= 3) {
             const index = parseInt(args[1]) - 1;
             if (isNaN(index) || index < 0 || index >= userPetData.inventory.length) {
@@ -297,10 +285,8 @@ async function handlePetSystem(message) {
         }
 
         const now = Date.now();
-        // Thời gian gốc để cộng dồn
         const currentLockTime = Math.max(targetPet.lockUntil || 0, now);
 
-        // Trường hợp A: Khóa/Cộng dồn 60 giây miễn phí
         if (extraMinutes <= 0) {
             targetPet.lockUntil = currentLockTime + (60 * 1000);
             savePetData(userId, userPetData);
@@ -309,7 +295,6 @@ async function handlePetSystem(message) {
             return message.reply(`🔒 **[Bảo vệ Pet]** Đã cộng thêm **60 giây** bảo vệ chống trộm cho **${targetPet.name}**!\n⏱️ Tổng thời gian khóa còn lại: **${totalSecs} giây**.`);
         }
 
-        // Trường hợp B: Nâng cấp mua thời gian khóa bằng Cowcoin
         const cost = extraMinutes * COST_PER_LOCK_MINUTE;
         if (userMoney < cost) {
             return message.reply(`❌ Bạn không đủ Cowcoin! Gia hạn **${extraMinutes} phút** bảo vệ cần **${cost.toLocaleString()} Cowcoin**.`);
@@ -388,7 +373,6 @@ async function handlePetSystem(message) {
             return message.reply(`❌ Trong kho của **${targetUser.username}** không có thú cưng nào.`);
         }
 
-        // Lọc các Pet không được bảo vệ bởi lockpet
         const now = Date.now();
         const stealablePets = targetPetData.inventory.filter(p => !p.lockUntil || p.lockUntil <= now);
 
@@ -402,15 +386,13 @@ async function handlePetSystem(message) {
             const randomPetIndex = Math.floor(Math.random() * stealablePets.length);
             const stolenPet = stealablePets[randomPetIndex];
 
-            // Trừ Pet khỏi nạn nhân
             targetPetData.inventory = targetPetData.inventory.filter(p => p.id !== stolenPet.id);
             if (targetPetData.activePetId === stolenPet.id) {
                 targetPetData.activePetId = targetPetData.inventory[0]?.id || null;
             }
             savePetData(targetUser.id, targetPetData);
 
-            // Thêm Pet cho trộm
-            stolenPet.lockUntil = 0; // Reset trạng thái khóa
+            stolenPet.lockUntil = 0;
             userPetData.inventory.push(stolenPet);
             savePetData(userId, userPetData);
 

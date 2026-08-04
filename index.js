@@ -270,6 +270,15 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!pet') || content.startsWith('!shop-pet') || content.startsWith('!muapet') || content.startsWith('!choan') || content.startsWith('!nangcap') || content.startsWith('!tromcho') || content.startsWith('!thave') || content.startsWith('!khopet') || content.startsWith('!laypet') || content.startsWith('!lockpet') || content.startsWith('!banpet')) {
             if (typeof handlePetSystem === 'function') return await handlePetSystem(message);
         }
+
+        // 🛍️ ĐIỀU HƯỚNG CỬA HÀNG VẬT PHẨM & NHẪN (!shop, !muanhan, !khodo, !inventory)
+        if (content === '!shop' || content.startsWith('!muanhan') || content === '!khodo' || content === '!inventory') {
+            if (shopHandler) {
+                const shopFn = shopHandler.handleShopSystem || shopHandler.handleShopCommand;
+                if (typeof shopFn === 'function') return await shopFn(message);
+            }
+        }
+
         if (content.startsWith('!poem') || content.startsWith('!tho')) {
             if (typeof handlePoemCommand === 'function') return await handlePoemCommand(message);
         }
