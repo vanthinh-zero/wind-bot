@@ -267,7 +267,7 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!taixiu') || content.startsWith('!tx') || content.startsWith('!vi') || content.startsWith('!ccash') || content.startsWith('!money') || content.startsWith('!cash') || content.startsWith('!diemdanh') || content.startsWith('!daily') || content.startsWith('!chuyentien') || content.startsWith('!thuhoi')) {
             if (typeof handleTaiXiuGame === 'function') return await handleTaiXiuGame(message);
         }
-        if (content.startsWith('!pet') || content.startsWith('!shop-pet') || content.startsWith('!muapet') || content.startsWith('!choan') || content.startsWith('!nangcap') || content.startsWith('!tromcho') || content.startsWith('!thave') || content.startsWith('!khopet') || content.startsWith('!laypet')) {
+        if (content.startsWith('!pet') || content.startsWith('!shop-pet') || content.startsWith('!muapet') || content.startsWith('!choan') || content.startsWith('!nangcap') || content.startsWith('!tromcho') || content.startsWith('!thave') || content.startsWith('!khopet') || content.startsWith('!laypet') || content.startsWith('!lockpet') || content.startsWith('!banpet')) {
             if (typeof handlePetSystem === 'function') return await handlePetSystem(message);
         }
         if (content.startsWith('!poem') || content.startsWith('!tho')) {
@@ -369,8 +369,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 5. Các Button / SelectMenu / Modal khác
-        if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) {
+        // 5. Các Button / SelectMenu / Modal khác (ĐÃ BỔ SUNG isUserSelectMenu() VÀ isAnySelectMenu())
+        if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {
             if (typeof handleTicketInteraction === 'function') await handleTicketInteraction(interaction);
             if (typeof handleTuTienInteraction === 'function') await handleTuTienInteraction(interaction);
             if (typeof handleVoiceMenuInteraction === 'function') await handleVoiceMenuInteraction(interaction);

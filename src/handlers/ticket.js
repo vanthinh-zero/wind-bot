@@ -6,14 +6,33 @@ const {
     ChannelType, 
     PermissionsBitField, 
     MessageFlags,
-    UserSelectMenuBuilder
+    UserSelectMenuBuilder,
+    OverwriteType
 } = require('discord.js');
 
 const CATEGORY_ID = process.env.CATEGORY_ID;
 const ROLE_STAFF_ID = process.env.ROLE_STAFF;
 const ROLE_CAN_THONG_BAO_ID = process.env.ROLE_CAN_THONG_BAO;
 
-// Hàm gửi tin nhắn bảng Ticket ban đầu khi gõ !set ticket
+// Mảng Bitfield Flags CHUẨN cho người dùng trong ticket
+const ALLOW_PERMISSIONS = [
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.ReadMessageHistory,
+    PermissionsBitField.Flags.EmbedLinks,
+    PermissionsBitField.Flags.AttachFiles,
+    PermissionsBitField.Flags.AddReactions,
+    PermissionsBitField.Flags.UseExternalEmojis,
+    PermissionsBitField.Flags.SendMessagesInThreads
+];
+
+// Mảng Bitfield Flags cấm @everyone
+const DENY_PERMISSIONS = [
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.SendMessages
+];
+
+// 1. Hàm gửi bảng Ticket (Spawnticket / Ticket Setup)
 async function sendTicketSetup(channel) {
     const mainEmbed = new EmbedBuilder()
         .setTitle('ʕ•ᴥ•ʔ ĐÀＮ ＢÒ ＢＩẾＴ ＢＡＹ ')
@@ -40,48 +59,54 @@ async function sendTicketSetup(channel) {
     await channel.send({ embeds: [mainEmbed], components: [row] });
 }
 
-// Hàm xử lý tương tác Ticket
+// 2. Hàm xử lý tương tác Ticket
 async function handleTicketInteraction(interaction) {
     const ticketButtonIds = ['ticket_giveaway', 'ticket_gopy', 'ticket_chuyenrieng', 'ticket_khac'];
 
-    // 1. TẠO CHANNEL TICKET
+    // --- A. TẠO CHANNEL TICKET ---
     if (interaction.isButton() && ticketButtonIds.includes(interaction.customId)) {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-        
+
         let prefix = 'ticket';
+        
+        // Khóa @everyone nhưng cấp phép đầy đủ (CÓ TÍCH XANH ✔️) cho người bấm tạo
         const permissions = [
-            { id: interaction.guild.roles.everyone, deny: [PermissionsBitField.Flags.ViewChannel] },
-            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.EmbedLinks] },
-            { id: interaction.guild.ownerId, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }
+            { 
+                id: interaction.guild.roles.everyone, 
+                deny: DENY_PERMISSIONS 
+            },
+            { 
+                id: interaction.user.id, 
+                allow: ALLOW_PERMISSIONS,
+                type: OverwriteType.Member
+            },
+            { 
+                id: interaction.guild.ownerId, 
+                allow: ALLOW_PERMISSIONS,
+                type: OverwriteType.Member
+            }
         ];
 
-        // Kiểm tra an toàn xem Role ID có thực sự tồn tại trong server không
         const hasStaffRole = ROLE_STAFF_ID && interaction.guild.roles.cache.has(ROLE_STAFF_ID);
         const hasCanThongBaoRole = ROLE_CAN_THONG_BAO_ID && interaction.guild.roles.cache.has(ROLE_CAN_THONG_BAO_ID);
 
-        // Phân quyền chi tiết theo từng nút
         if (interaction.customId === 'ticket_giveaway') {
             prefix = 'giveaway';
-            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-        } 
-        else if (interaction.customId === 'ticket_gopy') {
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
+        } else if (interaction.customId === 'ticket_gopy') {
             prefix = 'khieu-nai-gopy';
-            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-        } 
-        else if (interaction.customId === 'ticket_chuyenrieng') {
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
+        } else if (interaction.customId === 'ticket_chuyenrieng') {
             prefix = 'chuyen-rieng';
-            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-        } 
-        else if (interaction.customId === 'ticket_khac') {
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
+        } else if (interaction.customId === 'ticket_khac') {
             prefix = 'support';
-            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
-            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] });
+            if (hasStaffRole) permissions.push({ id: ROLE_STAFF_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
+            if (hasCanThongBaoRole) permissions.push({ id: ROLE_CAN_THONG_BAO_ID, allow: ALLOW_PERMISSIONS, type: OverwriteType.Role });
         }
 
         const channelName = `${prefix}-${interaction.user.username}`.toLowerCase().replace(/[^a-z0-9-]/g, '');
-        
-        // Kiểm tra Category có thực sự tồn tại không (Phòng trường hợp ID hỏng/bị xóa)
         const categoryChannel = CATEGORY_ID ? interaction.guild.channels.cache.get(CATEGORY_ID) : null;
         const validParentId = (categoryChannel && categoryChannel.type === ChannelType.GuildCategory) ? CATEGORY_ID : null;
 
@@ -92,7 +117,7 @@ async function handleTicketInteraction(interaction) {
             permissionOverwrites: permissions,
         }).catch(async (err) => {
             console.error('Lỗi khi tạo kênh ticket:', err);
-            await interaction.editReply({ content: '❌ Tạo phòng thất bại! Vui lòng kiểm tra lại quyền tạo kênh của Bot.' }).catch(() => {});
+            await interaction.editReply({ content: '❌ Tạo phòng thất bại! Vui lòng kiểm tra lại quyền của Bot.' }).catch(() => {});
         });
 
         if (!ticketChannel) return;
@@ -125,7 +150,7 @@ async function handleTicketInteraction(interaction) {
         return;
     }
 
-    // 2. NÚT "KÉO THÊM NGƯỜI"
+    // --- B. NÚT "KÉO THÊM NGƯỜI" ---
     if (interaction.isButton() && interaction.customId === 'add_user_ticket') {
         const userSelectMenu = new UserSelectMenuBuilder()
             .setCustomId('select_user_to_add')
@@ -143,35 +168,47 @@ async function handleTicketInteraction(interaction) {
         return;
     }
 
-    // 3. XỬ LÝ MENU CHỌN THÀNH VIÊN
+    // --- C. XỬ LÝ KÉO NGƯỜI (KHI DÙNG .edit CHUYỂN BẬT XANH BẰNG OBJECT) ---
     if (interaction.isUserSelectMenu() && interaction.customId === 'select_user_to_add') {
-        await interaction.deferUpdate();
+        await interaction.deferUpdate().catch(() => {});
 
-        const selectedUsers = interaction.users;
+        const selectedUserIds = interaction.values;
         const addedUserMentions = [];
 
-        for (const [userId] of selectedUsers) {
-            await interaction.channel.permissionOverwrites.edit(userId, {
-                ViewChannel: true,
-                SendMessages: true,
-                EmbedLinks: true
-            }).catch((err) => console.error('Lỗi khi thêm quyền cho user:', err.message));
+        for (const userId of selectedUserIds) {
+            try {
+                // permissionOverwrites.edit hỗ trợ dạng object Boolean { SendMessages: true }
+                await interaction.channel.permissionOverwrites.edit(userId, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                    EmbedLinks: true,
+                    AttachFiles: true,
+                    AddReactions: true,
+                    UseExternalEmojis: true,
+                    SendMessagesInThreads: true
+                }, { type: OverwriteType.Member });
 
-            addedUserMentions.push(`<@${userId}>`);
+                addedUserMentions.push(`<@${userId}>`);
+            } catch (err) {
+                console.error(`Không thể cấp quyền cho User ${userId}:`, err.message);
+            }
         }
 
-        await interaction.channel.send({
-            content: `✨ **${interaction.user}** đã kéo thêm thành viên: ${addedUserMentions.join(', ')} vào phòng hỗ trợ!`
-        });
+        if (addedUserMentions.length > 0) {
+            await interaction.channel.send({
+                content: `✨ **${interaction.user}** đã kéo thêm thành viên: ${addedUserMentions.join(', ')} vào phòng hỗ trợ!`
+            }).catch(() => {});
+        }
 
         await interaction.editReply({
             content: `✅ Đã thêm thành công: ${addedUserMentions.join(', ')} vào ticket!`,
             components: []
-        });
+        }).catch(() => {});
         return;
     }
 
-    // 4. XỬ LÝ ĐÓNG TICKET
+    // --- D. ĐÓNG TICKET ---
     if (interaction.isButton() && interaction.customId === 'close_ticket') {
         await interaction.reply('Hệ thống sẽ dọn dẹp và xóa kênh này sau 5 giây...').catch(() => {});
         

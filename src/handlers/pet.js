@@ -68,7 +68,8 @@ function getPetData(userId) {
                     level: oldData.level || 1,
                     exp: oldData.exp || 0,
                     food: oldData.food || 100,
-                    originalOwner: userId
+                    originalOwner: userId,
+                    lockUntil: 0
                 }] : [],
                 lastClaimTime: Date.now()
             };
@@ -88,7 +89,7 @@ function savePetData(userId, data) {
 }
 
 // =========================================================
-// 💸 HÀM TỰ ĐỘNG TÍNH VÀ CỘNG TIỀN THỤ ĐỘNG THEO THỜI GIAN (ĐÃ SỬA CHỐNG LẠM PHÁT)
+// 💸 HÀM TỰ ĐỘNG TÍNH VÀ CỘNG TIỀN THỤ ĐỘNG THEO THỜI GIAN
 // =========================================================
 function updatePassiveIncome(userId, userPetData) {
     if (!userPetData.inventory || userPetData.inventory.length === 0) return 0;
@@ -103,25 +104,29 @@ function updatePassiveIncome(userId, userPetData) {
 
     if (minutesPassed > 0) {
         const petLevel = parseInt(activePet.level) || 1;
-        const passiveMoneyEarned = minutesPassed * petLevel;
+        // Mỗi phút Cấp 1 tạo ra 0.1 Cowcoin (Tránh lạm phát khi giao dịch thực)
+        const passiveMoneyEarned = Math.floor(minutesPassed * (petLevel * 0.1));
+
+        // Giảm độ no theo thời gian (Mỗi 5 phút trừ 1 độ no)
+        const foodLoss = Math.floor(minutesPassed / 5);
+        activePet.food = Math.max(0, activePet.food - foodLoss);
+
+        userPetData.lastClaimTime = userPetData.lastClaimTime + (minutesPassed * 60 * 1000);
 
         if (passiveMoneyEarned > 0) {
-            // Giảm độ no theo thời gian (Mỗi 5 phút trừ 1 độ no)
-            const foodLoss = Math.floor(minutesPassed / 5);
-            activePet.food = Math.max(0, activePet.food - foodLoss);
-
             addMoney(userId, passiveMoneyEarned);
-            userPetData.lastClaimTime = userPetData.lastClaimTime + (minutesPassed * 60 * 1000);
-            savePetData(userId, userPetData);
-            return passiveMoneyEarned;
         }
+        
+        savePetData(userId, userPetData);
+        return passiveMoneyEarned;
     }
     return 0;
 }
 
 // --- CONFIG CỬA HÀNG & COOLDOWN ---
-const PRICE_BUY_PET = 1000;    
-const PRICE_FOOD = 50;        
+const PRICE_BUY_PET = 10000;    
+const PRICE_FOOD = 500;        
+const COST_PER_LOCK_MINUTE = 100; // 100 Cowcoin / 1 phút khóa bảo vệ nâng cấp
 const tromchoCooldowns = new Map();
 
 async function handlePetSystem(message) {
@@ -129,7 +134,12 @@ async function handlePetSystem(message) {
     const args = message.content.trim().split(/\s+/);
     const userId = message.author.id;
 
-    const petCommands = ['!pet', '!shop-pet', '!muapet', '!choan', '!nangcap', '!help', '!tromcho', '!thave', '!khopet', '!laypet'];
+    // 🔥 ĐÃ THÊM !lockpet VÀ !banpet VÀO DANH SÁCH KIỂM TRA LỆNH
+    const petCommands = [
+        '!pet', '!shop-pet', '!muapet', '!choan', '!nangcap', 
+        '!help', '!tromcho', '!thave', '!khopet', '!laypet', 
+        '!banpet', '!lockpet'
+    ];
     if (!petCommands.some(cmd => content.startsWith(cmd))) return;
 
     const configuredPetChannel = process.env.KENH_NUOI_PET;
@@ -153,14 +163,18 @@ async function handlePetSystem(message) {
     if (content === '!help') {
         let helpMsg = `📜 **HƯỚNG DẪN HỆ THỐNG THÚ CƯNG (PET)** 📜\n`;
         helpMsg += `-------------------------------------------\n`;
-        helpMsg += `💸 *Cơ chế thu nhập: Thú cưng đang dắt sẽ tự động tạo ra tiền mỗi phút dựa trên cấp độ (Cần duy trì độ no).* \n\n`;
+        helpMsg += `💸 *Cơ chế thu nhập: Thú cưng đang dắt sẽ tự động tạo ra tiền mỗi phút (Cần duy trì độ no).* \n\n`;
         helpMsg += `➔ \`!shop-pet\` : Mở cửa hàng mua thú cưng và thức ăn.\n`;
         helpMsg += `➔ \`!muapet [Tên]\` : Mua thú cưng mới (tự động chuyển vào kho).\n`;
         helpMsg += `➔ \`!pet\` : Xem thông tin thú cưng đang dắt theo.\n`;
         helpMsg += `➔ \`!choan\` / \`!nangcap\` : Chăm sóc và tăng cấp cho Pet.\n`;
         helpMsg += `➔ \`!khopet\` : Xem danh sách thú cưng đang sở hữu.\n`;
         helpMsg += `➔ \`!laypet [STT]\` : Đổi thú cưng xuất trận.\n`;
-        helpMsg += `➔ \`!tromcho [@User]\` : Tỉ lệ 30% trộm 1 Pet trong kho người khác. Thất bại sẽ bị phạt tiền trả cho nạn nhân.\n`;
+        helpMsg += `➔ \`!banpet [STT]\` : Bán bớt thú cưng trong kho thu về Cowcoin.\n`;
+        helpMsg += `➔ \`!lockpet\` : Khóa bảo vệ 60s cho Pet đang dắt (Cộng dồn thời gian khi gõ lại).\n`;
+        helpMsg += `➔ \`!lockpet [Số_Phút]\` : Dùng Cowcoin mua thêm thời gian bảo vệ cho Pet đang dắt.\n`;
+        helpMsg += `➔ \`!lockpet [STT] [Số_Phút]\` : Mua thời gian bảo vệ cho Pet chỉ định trong kho.\n`;
+        helpMsg += `➔ \`!tromcho [@User]\` : Tỉ lệ 30% trộm 1 Pet không được bảo vệ. Thất bại bị phạt tiền.\n`;
         helpMsg += `➔ \`!thave\` : Thả vĩnh viễn thú cưng đang dắt.\n`;
         helpMsg += `➔ \`!thave @User\` : Trả lại thú cưng cho chủ sở hữu ban đầu.\n`;
         return message.reply(helpMsg).catch(() => {});
@@ -172,9 +186,10 @@ async function handlePetSystem(message) {
     if (content === '!shop-pet') {
         let shopMsg = `🏪 **CỬA HÀNG THÚ CƯNG** 🏪\n`;
         shopMsg += `-------------------------------------------\n`;
-        shopMsg += `🐶 **!muapet [Tên_Pet]** ➔ Giá: **${PRICE_BUY_PET}** Cowcoin\n`;
-        shopMsg += `🍖 **!choan** ➔ Giá: **${PRICE_FOOD}** Cowcoin (+30 độ no, +15 EXP)\n`;
-        shopMsg += `⚡ **!nangcap** ➔ Dùng Cowcoin để tăng kinh nghiệm cho Pet.`;
+        shopMsg += `🐶 **!muapet [Tên_Pet]** ➔ Giá: **${PRICE_BUY_PET.toLocaleString()}** Cowcoin\n`;
+        shopMsg += `🍖 **!choan** ➔ Giá: **${PRICE_FOOD.toLocaleString()}** Cowcoin (+30 độ no, +15 EXP)\n`;
+        shopMsg += `⚡ **!nangcap** ➔ Dùng Cowcoin để tăng kinh nghiệm cho Pet.\n`;
+        shopMsg += `🔒 **!lockpet** ➔ Mặc định miễn phí 60s (Gia hạn nâng cấp: **${COST_PER_LOCK_MINUTE}** Cowcoin/phút).`;
         return message.reply(shopMsg).catch(() => {});
     }
 
@@ -182,7 +197,7 @@ async function handlePetSystem(message) {
     // 🐶 LỆNH: !muapet
     // =========================================================
     if (content.startsWith('!muapet')) {
-        if (userMoney < PRICE_BUY_PET) return message.reply(`❌ Bạn không đủ **${PRICE_BUY_PET}** Cowcoin!`);
+        if (userMoney < PRICE_BUY_PET) return message.reply(`❌ Bạn không đủ **${PRICE_BUY_PET.toLocaleString()}** Cowcoin!`);
 
         let petName = args.slice(1).join(" ");
         if (!petName) petName = "Thú Cưng";
@@ -196,7 +211,8 @@ async function handlePetSystem(message) {
             level: 1,
             exp: 0,
             food: 100,
-            originalOwner: userId
+            originalOwner: userId,
+            lockUntil: 0
         };
 
         addMoney(userId, -PRICE_BUY_PET);
@@ -211,6 +227,103 @@ async function handlePetSystem(message) {
     }
 
     // =========================================================
+    // 🏷️ LỆNH: BÁN PET (!banpet [STT])
+    // =========================================================
+    if (content.startsWith('!banpet')) {
+        const index = parseInt(args[1]) - 1;
+        if (isNaN(index) || index < 0 || index >= userPetData.inventory.length) {
+            return message.reply(`❌ Vui lòng nhập đúng số thứ tự Pet trong kho muốn bán (Ví dụ: \`!banpet 1\`).`);
+        }
+
+        const targetSellPet = userPetData.inventory[index];
+        const sellPrice = Math.floor((PRICE_BUY_PET * 0.5) + (targetSellPet.level * 1000));
+
+        message.reply(`💰 Bạn có chắc muốn bán **${targetSellPet.name}** (Cấp ${targetSellPet.level}) với giá **${sellPrice.toLocaleString()} Cowcoin** không?\nGõ \`ok\` trong 15 giây để xác nhận.`);
+
+        const filter = m => m.author.id === userId && m.content.toLowerCase() === 'ok';
+        message.channel.awaitMessages({ filter, max: 1, time: 15000, errors: ['time'] })
+            .then(() => {
+                userPetData.inventory.splice(index, 1);
+                if (userPetData.activePetId === targetSellPet.id) {
+                    userPetData.activePetId = userPetData.inventory[0]?.id || null;
+                }
+                savePetData(userId, userPetData);
+                addMoney(userId, sellPrice);
+
+                return message.channel.send(`💵 <@${userId}> đã bán thành công **${targetSellPet.name}** và nhận lại **+${sellPrice.toLocaleString()} Cowcoin**!`);
+            }).catch(() => message.reply(`❌ Đã hủy thao tác bán Pet.`));
+        return;
+    }
+
+    // =========================================================
+    // 🔒 LỆNH: KHÓA PET VÀ NÂNG CẤP THỜI GIAN KHÓA (!lockpet)
+    // =========================================================
+    if (content.startsWith('!lockpet')) {
+        let targetPet = null;
+        let extraMinutes = 0;
+
+        // 1. Chỉ gõ !lockpet -> Khóa 60s cho Pet đang dắt
+        if (args.length === 1) {
+            targetPet = activePet;
+        } 
+        // 2. Gõ !lockpet [Tham_Số]
+        else if (args.length === 2) {
+            const param = parseInt(args[1]);
+            if (isNaN(param) || param <= 0) {
+                return message.reply(`❌ Tham số không hợp lệ! Vui lòng nhập STT Pet hoặc số phút muốn gia hạn.`);
+            }
+            
+            // Nếu tham số <= số pet trong kho -> Chọn Pet theo STT (Cộng 60s)
+            if (param <= userPetData.inventory.length) {
+                targetPet = userPetData.inventory[param - 1];
+            } else {
+                // Nếu lớn hơn số pet trong kho -> Mua N phút cho Pet đang dắt
+                targetPet = activePet;
+                extraMinutes = param;
+            }
+        } 
+        // 3. Gõ !lockpet [STT] [Số_Phút]
+        else if (args.length >= 3) {
+            const index = parseInt(args[1]) - 1;
+            if (isNaN(index) || index < 0 || index >= userPetData.inventory.length) {
+                return message.reply(`❌ Không tìm thấy Pet ở vị trí số **${args[1]}** trong kho!`);
+            }
+            targetPet = userPetData.inventory[index];
+            extraMinutes = parseInt(args[2]) || 0;
+        }
+
+        if (!targetPet) {
+            return message.reply(`❌ Bạn chưa dắt Pet nào! Hãy gõ \`!khopet\` và gõ \`!laypet [STT]\` trước.`);
+        }
+
+        const now = Date.now();
+        // Thời gian gốc để cộng dồn
+        const currentLockTime = Math.max(targetPet.lockUntil || 0, now);
+
+        // Trường hợp A: Khóa/Cộng dồn 60 giây miễn phí
+        if (extraMinutes <= 0) {
+            targetPet.lockUntil = currentLockTime + (60 * 1000);
+            savePetData(userId, userPetData);
+
+            const totalSecs = Math.ceil((targetPet.lockUntil - now) / 1000);
+            return message.reply(`🔒 **[Bảo vệ Pet]** Đã cộng thêm **60 giây** bảo vệ chống trộm cho **${targetPet.name}**!\n⏱️ Tổng thời gian khóa còn lại: **${totalSecs} giây**.`);
+        }
+
+        // Trường hợp B: Nâng cấp mua thời gian khóa bằng Cowcoin
+        const cost = extraMinutes * COST_PER_LOCK_MINUTE;
+        if (userMoney < cost) {
+            return message.reply(`❌ Bạn không đủ Cowcoin! Gia hạn **${extraMinutes} phút** bảo vệ cần **${cost.toLocaleString()} Cowcoin**.`);
+        }
+
+        addMoney(userId, -cost);
+        targetPet.lockUntil = currentLockTime + (extraMinutes * 60 * 1000);
+        savePetData(userId, userPetData);
+
+        const totalMins = Math.ceil((targetPet.lockUntil - now) / (60 * 1000));
+        return message.reply(`🛡️ **[Nâng Cấp Bảo Vệ]** Đã tốn **${cost.toLocaleString()} Cowcoin** gia hạn thêm **${extraMinutes} phút** cho **${targetPet.name}**!\n⏱️ Tổng thời gian khóa hiện tại: **${totalMins} phút**.`);
+    }
+
+    // =========================================================
     // 📦 LỆNH: XEM KHO ĐỒ PET (!khopet)
     // =========================================================
     if (content === '!khopet') {
@@ -219,12 +332,22 @@ async function handlePetSystem(message) {
         let invMsg = `🎒 **KHO THÚ CƯNG CỦA ${message.author.username.toUpperCase()}** 🎒\n`;
         invMsg += `-------------------------------------------\n\n`;
         
+        const now = Date.now();
         userPetData.inventory.forEach((petItem, index) => {
             const isActive = petItem.id === userPetData.activePetId ? "👉 [ĐANG DẮT]" : "";
             const isStolen = petItem.originalOwner !== userId ? " 🏴‍☠️ (Thú Trộm)" : "";
-            invMsg += `**${index + 1}.** ${petItem.name} - Cấp ${petItem.level} ${isActive}${isStolen} *(+${petItem.level} Cowcoin/phút)*\n`;
+            
+            let lockStatus = "";
+            if (petItem.lockUntil && petItem.lockUntil > now) {
+                const diffSecs = Math.ceil((petItem.lockUntil - now) / 1000);
+                lockStatus = diffSecs > 60 
+                    ? ` 🔒 (${Math.ceil(diffSecs / 60)} phút)` 
+                    : ` 🔒 (${diffSecs}s)`;
+            }
+
+            invMsg += `**${index + 1}.** ${petItem.name} - Cấp ${petItem.level} ${isActive}${isStolen}${lockStatus}\n`;
         });
-        invMsg += `-------------------------------------------\n💡 Dùng \`!laypet [STT]\` để đổi thú cưng ra trận.`;
+        invMsg += `-------------------------------------------\n💡 Dùng \`!laypet [STT]\` để đổi, \`!lockpet [STT]\` để khóa, \`!banpet [STT]\` để bán.`;
         return message.reply(invMsg);
     }
 
@@ -265,27 +388,39 @@ async function handlePetSystem(message) {
             return message.reply(`❌ Trong kho của **${targetUser.username}** không có thú cưng nào.`);
         }
 
+        // Lọc các Pet không được bảo vệ bởi lockpet
+        const now = Date.now();
+        const stealablePets = targetPetData.inventory.filter(p => !p.lockUntil || p.lockUntil <= now);
+
+        if (stealablePets.length === 0) {
+            return message.reply(`🛡️ Tất cả thú cưng của **${targetUser.username}** đều đang được khóa bảo vệ! Không thể trộm.`);
+        }
+
         tromchoCooldowns.set(userId, Date.now());
 
         if (Math.random() <= 0.30) {
-            const randomIndex = Math.floor(Math.random() * targetPetData.inventory.length);
-            const stolenPet = targetPetData.inventory.splice(randomIndex, 1)[0];
+            const randomPetIndex = Math.floor(Math.random() * stealablePets.length);
+            const stolenPet = stealablePets[randomPetIndex];
 
+            // Trừ Pet khỏi nạn nhân
+            targetPetData.inventory = targetPetData.inventory.filter(p => p.id !== stolenPet.id);
             if (targetPetData.activePetId === stolenPet.id) {
                 targetPetData.activePetId = targetPetData.inventory[0]?.id || null;
             }
             savePetData(targetUser.id, targetPetData);
 
+            // Thêm Pet cho trộm
+            stolenPet.lockUntil = 0; // Reset trạng thái khóa
             userPetData.inventory.push(stolenPet);
             savePetData(userId, userPetData);
 
             return message.reply(`🥷 **TRỘM THÀNH CÔNG!** Bạn đã lấy mất con **${stolenPet.name}** (Cấp ${stolenPet.level}) từ kho của <@${targetUser.id}>!`);
         } else {
-            const fine = 300;
+            const fine = 2000;
             addMoney(userId, -fine);
             addMoney(targetUser.id, fine); 
 
-            return message.reply(`🚨 **BỊ BẮT QUẢ TANG!** Bạn trộm hụt và bị phát hiện. Bạn phải bồi thường **${fine} Cowcoin** trực tiếp cho <@${targetUser.id}>!`);
+            return message.reply(`🚨 **BỊ BẮT QUẢ TANG!** Bạn trộm hụt và bị phát hiện. Bạn phải bồi thường **${fine.toLocaleString()} Cowcoin** trực tiếp cho <@${targetUser.id}>!`);
         }
     }
 
@@ -343,16 +478,26 @@ async function handlePetSystem(message) {
     // =========================================================
     if (content === '!pet') {
         const expNeeded = activePet.level * 100;
+        const now = Date.now();
+        
+        let lockInfo = " 🔓 (Không khóa)";
+        if (activePet.lockUntil && activePet.lockUntil > now) {
+            const diffSecs = Math.ceil((activePet.lockUntil - now) / 1000);
+            lockInfo = diffSecs > 60 
+                ? ` 🔒 (Đang bảo vệ còn ${Math.ceil(diffSecs / 60)} phút)` 
+                : ` 🔒 (Đang bảo vệ còn ${diffSecs}s)`;
+        }
 
         let petMsg = `🐾 **THÔNG TIN THÚ CƯNG CỦA ${message.author.username.toUpperCase()}** 🐾\n`;
         petMsg += `-------------------------------------------\n`;
         petMsg += `🏷️ **Tên:** ${activePet.name}\n`;
-        petMsg += `⭐ **Cấp độ:** Cấp ${activePet.level} *(Tạo ra: +${activePet.level} Cowcoin/phút)*\n`;
+        petMsg += `⭐ **Cấp độ:** Cấp ${activePet.level} *(Tạo ra: +${(activePet.level * 0.1).toFixed(1)} Cowcoin/phút)*\n`;
         petMsg += `✨ **Kinh nghiệm:** [${activePet.exp}/${expNeeded}] EXP\n`;
         
         let foodBar = "🍖 " + "🟩".repeat(Math.ceil(activePet.food / 10)) + "⬜".repeat(10 - Math.ceil(activePet.food / 10)) + ` (${activePet.food}/100)`;
         if (activePet.food <= 30) foodBar += " ⚠️ *Đang đói!*";
         petMsg += `🍖 **Độ no:** ${foodBar}\n`;
+        petMsg += `🛡️ **Trạng thái:** ${lockInfo}\n`;
         petMsg += `👤 **Chủ ban đầu:** <@${activePet.originalOwner}>\n\n`;
         petMsg += `💡 *Dùng lệnh \`!khopet\` để xem danh sách thú cưng.*`;
 
@@ -365,7 +510,7 @@ async function handlePetSystem(message) {
     // =========================================================
     if (content === '!choan') {
         if (activePet.food >= 100) return message.reply(`❌ **${activePet.name}** đã no rồi!`);
-        if (userMoney < PRICE_FOOD) return message.reply(`❌ Bạn không đủ **${PRICE_FOOD}** Cowcoin!`);
+        if (userMoney < PRICE_FOOD) return message.reply(`❌ Bạn không đủ **${PRICE_FOOD.toLocaleString()}** Cowcoin!`);
 
         addMoney(userId, -PRICE_FOOD);
         activePet.food = Math.min(100, activePet.food + 30);
@@ -380,7 +525,7 @@ async function handlePetSystem(message) {
         }
 
         savePetData(userId, userPetData);
-        return message.reply(`🍖 Bạn tốn **${PRICE_FOOD}** Cowcoin mua thức ăn cho **${activePet.name}**. Độ no: **${activePet.food}/100** (+15 EXP).${upLevelText}`);
+        return message.reply(`🍖 Bạn tốn **${PRICE_FOOD.toLocaleString()}** Cowcoin mua thức ăn cho **${activePet.name}**. Độ no: **${activePet.food}/100** (+15 EXP).${upLevelText}`);
     }
 
     // =========================================================
@@ -388,15 +533,15 @@ async function handlePetSystem(message) {
     // =========================================================
     if (content === '!nangcap') {
         const expNeeded = activePet.level * 100;
-        const upgradeCost = activePet.level * 300;
+        const upgradeCost = activePet.level * 3000;
 
-        if (userMoney < upgradeCost) return message.reply(`❌ Chi phí nâng cấp cần **${upgradeCost}** Cowcoin.`);
+        if (userMoney < upgradeCost) return message.reply(`❌ Chi phí nâng cấp cần **${upgradeCost.toLocaleString()}** Cowcoin.`);
         if (activePet.food < 40) return message.reply(`❌ Thú cưng đang đói, hãy cho ăn trước khi nâng cấp!`);
 
         addMoney(userId, -upgradeCost);
         activePet.exp += 150; 
         
-        let responseText = `⚡ Dùng **${upgradeCost}** Cowcoin nâng cấp cho **${activePet.name}** (+150 EXP).\n`;
+        let responseText = `⚡ Dùng **${upgradeCost.toLocaleString()}** Cowcoin nâng cấp cho **${activePet.name}** (+150 EXP).\n`;
 
         if (activePet.exp >= expNeeded) {
             activePet.exp -= expNeeded;

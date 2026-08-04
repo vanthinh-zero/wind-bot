@@ -1,7 +1,7 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const ADMIN_ID = process.env.ADMIN_ID;
 
-// Bộ từ khóa cấm nặng (Chửi bậy bạ sẽ bị Mute 10 phút)
+// Bộ từ khóa cấm nặng (Chửi bậy bạ sẽ bị Mute 10 phút ngoài kênh thường)
 const BANNED_REGEX = [
     /\bcặc\b/i, /\bcac\b/i, /\bcajc\b/i, /\bkặc\b/i, /\bkac\b/i,
     /\blồn\b/i, /\blon\b/i, /\blozn\b/i, /\bl0n\b/i,
@@ -14,6 +14,16 @@ const BANNED_REGEX = [
 // =========================================================
 async function handleAutoMod(message) {
     if (message.author.bot || !message.guild) return false;
+
+    // 🛑 CHO PHÉP CHỬI TỤC TRONG TICKET: Bỏ qua AutoMod hoàn toàn nếu đang ở kênh Ticket
+    const channelName = message.channel.name.toLowerCase();
+    const isTicketChannel = channelName.includes('ticket') || 
+                            channelName.includes('giveaway') || 
+                            channelName.includes('khieu-nai') || 
+                            channelName.includes('chuyen-rieng') || 
+                            channelName.includes('support');
+
+    if (isTicketChannel) return false; // Không xóa tin nhắn, không warn, không mute!
 
     const isBotAdmin = message.author.id === ADMIN_ID;
     const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) || 
@@ -47,6 +57,7 @@ async function handleAutoMod(message) {
                 const violatedContent = message.content; 
                 
                 if (message.deletable) await message.delete().catch(() => {});
+                
                 const muteDuration = 10 * 60 * 1000;
                 const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết mời (Discord Invite) trái phép.";
                 await message.member.timeout(muteDuration, `[AutoMod] ${reason}`);
