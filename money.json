@@ -41,8 +41,8 @@
         "lastDaily": 1781805570279
     },
     "986537662066327583": {
-        "balance": 5253,
-        "money": 5253,
+        "balance": 4416,
+        "money": 4416,
         "job": "daotach"
     },
     "1214249074879111208": {
@@ -61,20 +61,47 @@
         "lastDaily": 1785509340334
     },
     "1135010924214878300": {
-        "balance": 4864,
+        "balance": -9749,
         "lastDaily": null,
-        "money": 730,
+        "money": -9749,
         "job": "daotach"
     },
     "1516383164023439533": {
-        "balance": 4841,
-        "money": 4841,
-        "job": "tiemmay"
+        "balance": 9547,
+        "money": 9547,
+        "job": "daotach"
     },
     "1448354974173106399": {
-        "balance": 733,
-        "money": 589,
+        "balance": 8421,
+        "money": 8421,
         "job": "daotach",
         "lastDaily": 1785700763860
+    },
+    "1532954027132981305": {
+        "balance": 10310,
+        "money": 10310,
+        "job": "daotach"
+    },
+    "1369689653996683367": {
+        "balance": 2755,
+        "money": 725,
+        "job": "daotach"
+    },
+    "692216879388819487": {
+        "balance": 0,
+        "lastDaily": null
+    },
+    "1497931944816803961": {
+        "balance": 1094,
+        "money": 1094,
+        "job": "daotach"
+    },
+    "1509859795069567007": {
+        "balance": 0,
+        "lastDaily": null
+    },
+    "1513562974714073178": {
+        "balance": -2000,
+        "lastDaily": null
     }
 }

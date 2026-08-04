@@ -6,9 +6,10 @@
                 "id": "pet_legacy_1",
                 "name": "Tiểu Linh Thú (Hắc Ám Ma Lang)",
                 "level": 6,
-                "exp": 30,
+                "exp": 45,
                 "food": 0,
-                "originalOwner": "1480876805937430571"
+                "originalOwner": "1480876805937430571",
+                "lockUntil": 1785825943684
             },
             {
                 "id": "pet_legacy_1",
@@ -17,9 +18,18 @@
                 "exp": 300,
                 "food": 100,
                 "originalOwner": "1037019422918983810"
+            },
+            {
+                "id": "pet_1785858712150_681",
+                "name": "Thú Cưng (Thỏ Ngọc)",
+                "level": 1,
+                "exp": 0,
+                "food": 100,
+                "originalOwner": "910001518328033301",
+                "lockUntil": 0
             }
         ],
-        "lastClaimTime": 1785772361263
+        "lastClaimTime": 1785858581263
     },
     "1480876805937430571": {
         "activePetId": null,
@@ -50,36 +60,64 @@
         "activePetId": "pet_1785771817207_103",
         "inventory": [
             {
-                "id": "pet_1785699024990_648",
-                "name": "panda (Gấu PANDA)",
-                "level": 3,
-                "exp": 0,
-                "food": 0,
-                "originalOwner": "1135010924214878300"
-            },
-            {
                 "id": "pet_1785771817207_103",
                 "name": "Thú Cưng (Cáo Tuyết)",
                 "level": 3,
                 "exp": 60,
-                "food": 98,
-                "originalOwner": "1448354974173106399"
-            }
-        ],
-        "lastClaimTime": 1785775822499
-    },
-    "1448354974173106399": {
-        "activePetId": "pet_1785771903008_98",
-        "inventory": [
+                "food": 0,
+                "originalOwner": "1448354974173106399",
+                "lockUntil": 1785827078350
+            },
             {
                 "id": "pet_1785771903008_98",
                 "name": "Thú Cưng (Thỏ Ngọc)",
                 "level": 4,
                 "exp": 0,
-                "food": 91,
-                "originalOwner": "1448354974173106399"
+                "food": 0,
+                "originalOwner": "1448354974173106399",
+                "lockUntil": 0
             }
         ],
-        "lastClaimTime": 1785775792406
+        "lastClaimTime": 1785826642499
+    },
+    "1448354974173106399": {
+        "activePetId": "pet_1785699024990_648",
+        "inventory": [
+            {
+                "id": "pet_1785699024990_648",
+                "name": "panda (Gấu PANDA)",
+                "level": 3,
+                "exp": 30,
+                "food": 25,
+                "originalOwner": "1135010924214878300",
+                "lockUntil": 0
+            }
+        ],
+        "lastClaimTime": 1785867052406
+    },
+    "1532954027132981305": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785864715564
+    },
+    "692216879388819487": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785825312615
+    },
+    "1369689653996683367": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785825390886
+    },
+    "1144461336961630340": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785825687112
+    },
+    "1513562974714073178": {
+        "activePetId": null,
+        "inventory": [],
+        "lastClaimTime": 1785828670485
     }
 }
