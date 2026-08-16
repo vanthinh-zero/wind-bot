@@ -2,10 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 
-// 🎬 IMPORT MODULE XỬ LÝ VIDEO ĐA NỀN TẢNG (MỚI)
 const { handleVideoLink } = require('./src/handlers/video.js');
 
-// --- IMPORT TẤT CẢ CÁC HANDLERS HỆ THỐNG SẴN CÓ ---
 const { handleWindCommand } = require('./src/handlers/wind.js'); 
 const { handleAutoMod, handleAdminCommands } = require('./src/handlers/automod.js');
 const { handleNoiTuGame } = require('./src/handlers/noitu.js'); 
@@ -24,13 +22,10 @@ const { handleLamViecGame } = require('./src/handlers/lamviec.js');
 const { handleTarotCommand, handleTarotInteraction } = require('./src/handlers/tarotModule.js');
 const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rule.js');
 
-// --- IMPORT MODULE SPAM CHAT ---
 const { handleSpamCommand } = require('./src/handlers/spamchat.js');
 
-// --- IMPORT MODULE BROADCAST (!say) ---
 const { handleBroadcastCommand } = require('./src/handlers/broadcastHandler.js');
 
-// 👤 MODULE PROFILE, RELATIONSHIP & SHOP CỬA HÀNG
 const profileHandler = require('./src/handlers/profile.js');
 const relationshipHandler = require('./src/handlers/relationship.js');
 let shopHandler;
@@ -40,10 +35,8 @@ try {
     console.warn('⚠️ Chưa tìm thấy module shop.js hoặc lỗi import, bỏ qua shopHandler.');
 }
 
-// 🎵 IMPORT MODULE KIỂM TRA BOT NHẠC
 const { handleMusicCheckCommand } = require('./src/handlers/musicChecker.js');
 
-// 🚀 HỆ THỐNG BOOSTER (Hỗ trợ !svip Hub & !menuvip Control Panel)
 const { 
     handleServerBoost, 
     handleBoostTicketInteraction, 
@@ -52,7 +45,6 @@ const {
     handleAutoGrantPermission
 } = require('./src/handlers/boostHandler.js');
 
-// Bổ sung logic quét phòng trống an toàn trực tiếp
 async function checkAndCleanVipRoom(oldState, newState) {
     try {
         const oldChannel = oldState.channel;
@@ -71,7 +63,6 @@ async function checkAndCleanVipRoom(oldState, newState) {
     }
 }
 
-// 📊 HỆ THỐNG ĐẾM TIN NHẮN & DASHBOARD ĐỒ HỌA MỚI
 const { addMessageCount } = require('./src/handlers/counter.js');
 const { handleTopChatImageCommand } = require('./src/handlers/topchatImage.js');
 
@@ -83,22 +74,16 @@ const {
     handleAutoRoleReactionRemove 
 } = require('./src/handlers/autorole.js');
 
-// 💬 TÍNH NĂNG CHAT TỰ ĐỘNG
 const { handleChatInteraction, initAutoSpam } = require('./src/handlers/chat.js');
 
-// --- MODULE ĐỀ THI ---
 const { handleDeThiCommand, handleDeThiInteraction } = require('./src/handlers/dethi.js');
 
-// --- MODULE ANTI-RAID & FAKE-RAID BẢO AN ---
 const { handleAntiSpam, handleFakeRaidCommand } = require('./src/handlers/antiRaid.js');
 
-// --- MODULE MARKETING (DISBOARD BUMP) ---
 const start25hReminder = require('./src/handlers/marketing.js')?.start25hReminder || require('./src/handlers/marketing.js');
 
-// 📚 MODULE TỪ VỰNG TIẾNG ANH ĐỊNH KỲ
 const vocabularySystem = require('./src/handlers/vocabulary.js');
 
-// --- KHỞI TẠO WEB SERVER ĐỂ TREO BOT CẢ NĂM TRÊN RENDER ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -112,13 +97,12 @@ app.listen(PORT, () => {
     console.log(`==================================================`);
 });
 
-// --- KHỞI TẠO DISCORD CLIENT VỚI ĐẦY ĐỦ INTENTS ---
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMembers, // 👈 Intent cần thiết cho cả Welcome lẫn Goodbye
+        GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildPresences
@@ -168,9 +152,7 @@ client.once(Events.ClientReady, async (readyClient) => {
     }
 });
 
-// --- SỰ KIỆN THÀNH VIÊN VÀ VOICE STATE ---
 
-// 1. Thành viên gia nhập (Welcome & Cấp quyền)
 client.on(Events.GuildMemberAdd, async (member) => { 
     try {
         if (typeof handleWelcomeMember === 'function') await handleWelcomeMember(member);
@@ -180,7 +162,6 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
 });
 
-// 2. Thành viên rời máy chủ (Goodbye) 👈 ĐÃ BỔ SUNG SỰ KIỆN TẠI ĐÂY
 client.on(Events.GuildMemberRemove, async (member) => {
     try {
         if (typeof handleGoodbyeMember === 'function') await handleGoodbyeMember(member);
@@ -198,34 +179,28 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     }
 });
 
-// --- SỰ KIỆN NHẬN TIN NHẮN (MESSAGE CREATE) ---
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
 
     try {
-        // 🌟 LẮP ĐẶT VIDEO HANDLER NGAY TẠI ĐÂY NÀY SẾP!
         if (typeof handleVideoLink === 'function') {
             const isVideo = await handleVideoLink(message);
             if (isVideo) return; // Đã xử lý link video xong thì dừng
         }
 
-        // 1. Kiểm tra Anti-Spam / Anti-Raid trước
         if (typeof handleAntiSpam === 'function') {
             const isSpam = await handleAntiSpam(message);
             if (isSpam) return;
         }
 
-        // 2. Tự động cấp quyền cho bạn bè khi chủ phòng Tag tên trong chat voice
         if (typeof handleAutoGrantPermission === 'function') {
             await handleAutoGrantPermission(message);
         }
 
-        // 3. Đếm tin nhắn & Chạy AutoMod ngầm
         if (typeof addMessageCount === 'function') await addMessageCount(message);
         if (typeof handleAutoMod === 'function') await handleAutoMod(message);
         if (typeof handleAdminCommands === 'function') await handleAdminCommands(message);
 
-        // 🎮 XỬ LÝ MINIGAME NỐI TỪ ĐẦU TIÊN (Trước các bộ lọc khác)
         if (typeof handleNoiTuGame === 'function') {
             const isNoiTuHandled = await handleNoiTuGame(message);
             if (isNoiTuHandled) return;
@@ -233,9 +208,7 @@ client.on(Events.MessageCreate, async (message) => {
 
         const content = message.content.trim().toLowerCase();
 
-        // 4. ĐIỀU HƯỚNG LỆNH CHÍNH XÁC (Sử dụng return để ngắt luồng chuẩn xác)
 
-        // ✦ Lệnh !say <channel_id> <nội dung> -> Nhắn tin sang server/channel bất kỳ
         if (content.startsWith('!say')) {
             if (typeof handleBroadcastCommand === 'function') {
                 const handled = await handleBroadcastCommand(message);
@@ -243,27 +216,22 @@ client.on(Events.MessageCreate, async (message) => {
             }
         }
         
-        // ✦ Lệnh !spawntinnhan <nội dung> <số_tin> -> Spam tin nhắn theo nội dung truyền vào (Admin)
         if (content.startsWith('!spawntinnhan')) {
             if (typeof handleSpamCommand === 'function') return await handleSpamCommand(message);
         }
 
-        // ✦ Lệnh !svip / !spawnvip -> Gửi Bảng Hub Trung Tâm Đặc Quyền Booster (Admin)
         if (content.startsWith('!svip') || content.startsWith('!spawnvip')) {
             if (typeof handleSpawnVipCommand === 'function') return await handleSpawnVipCommand(message);
         }
 
-        // ✦ Lệnh !menuvip / !vip -> Gửi Bảng Điều Khiển Voice VIP (Khi ở trong phòng Voice VIP)
         if (content.startsWith('!menuvip') || content.startsWith('!vip')) {
             if (typeof handleMenuVipCommand === 'function') return await handleMenuVipCommand(message);
         }
 
-        // ✦ Các lệnh tiện ích & trò chơi khác
         if (content.startsWith('!wind')) {
             if (typeof handleWindCommand === 'function') return await handleWindCommand(message);
         }
 
-        // Bổ sung các lệnh tài chính/ví tiền (!vi, !ccash, !money, !cash, !diemdanh, !chuyentien, !thuhoi)
         if (content.startsWith('!taixiu') || content.startsWith('!tx') || content.startsWith('!vi') || content.startsWith('!ccash') || content.startsWith('!money') || content.startsWith('!cash') || content.startsWith('!diemdanh') || content.startsWith('!daily') || content.startsWith('!chuyentien') || content.startsWith('!thuhoi')) {
             if (typeof handleTaiXiuGame === 'function') return await handleTaiXiuGame(message);
         }
@@ -271,7 +239,6 @@ client.on(Events.MessageCreate, async (message) => {
             if (typeof handlePetSystem === 'function') return await handlePetSystem(message);
         }
 
-        // 🛍️ ĐIỀU HƯỚNG CỬA HÀNG VẬT PHẨM & NHẪN (!shop, !muanhan, !khodo, !inventory)
         if (content === '!shop' || content.startsWith('!muanhan') || content === '!khodo' || content === '!inventory') {
             if (shopHandler) {
                 const shopFn = shopHandler.handleShopSystem || shopHandler.handleShopCommand;
@@ -289,7 +256,6 @@ client.on(Events.MessageCreate, async (message) => {
             if (typeof handleChuaLanhCommand === 'function') return await handleChuaLanhCommand(message);
         }
         
-        // 🛠️ BỔ SUNG ĐẦY ĐỦ LỆNH LÀM VIỆC ĐỂ TRÁNH BỊ BỎ SÓT LỆNH
         if (content.startsWith('!work') || content.startsWith('!lamviec') || content.startsWith('!jobs') || content.startsWith('!xinviec') || content.startsWith('!boviec') || content.startsWith('!profile')) {
             if (typeof handleLamViecGame === 'function') return await handleLamViecGame(message);
         }
@@ -322,17 +288,14 @@ client.on(Events.MessageCreate, async (message) => {
             if (typeof sendTuTienMainMenu === 'function') return await sendTuTienMainMenu(message);
         }
 
-        // ✦ ĐẤU LỆNH CHAT VÀ QUẢN LÝ TỪ KHÓA (!tukhoa, !chat, !mood, !trathongtin, !)
         if (content.startsWith('!tukhoa') || content.startsWith('!chat') || content.startsWith('!mood') || content.startsWith('!trathongtin') || content.startsWith('!thongketag') || content.startsWith('!taocontent')) {
             if (typeof handleChatInteraction === 'function') {
                 return await handleChatInteraction(message);
             }
         }
 
-        // 5. Nếu tin nhắn bắt đầu bằng dấu '!' nhưng không trùng bất kỳ lệnh nào ở trên -> Ngắt ngay
         if (content.startsWith('!')) return;
 
-        // 6. Trò chuyện tự động AI/Bot Chat (Dành cho câu không có prefix '!'):
         if (typeof handleChatInteraction === 'function') {
             await handleChatInteraction(message);
         }
@@ -341,10 +304,8 @@ client.on(Events.MessageCreate, async (message) => {
     }
 });
 
-// --- SỰ KIỆN TƯƠNG TÁC (INTERACTION CREATE) ---
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
-        // 🌟 [ƯU TIÊN LÊN ĐẦU] - Xử lý Nút Autorole trước để không bị dính kiểm tra Voice/Booster bên dưới
         if (interaction.isButton() && interaction.customId === 'start_private_autorole') {
             if (typeof handleAutoRoleInteraction === 'function') {
                 await handleAutoRoleInteraction(interaction);
@@ -352,33 +313,28 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
-        // 1. Module Booster (Nút bấm tạo Voice, chọn Role màu, quản lý Voice VIP)
         if (typeof handleBoostTicketInteraction === 'function') {
             await handleBoostTicketInteraction(interaction);
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 2. Module Shop Cửa hàng
         if (shopHandler) {
             const shopFn = shopHandler.handleShopInteraction || shopHandler.handleInteraction;
             if (typeof shopFn === 'function') await shopFn(interaction);
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 3. Module Relationship (Kết hôn & mối quan hệ) - ĐÃ ĐƯỢC SỬA TÊN HÀM TẠI ĐÂY
         if (relationshipHandler) {
             const relFn = relationshipHandler.handleRelationshipInteraction || relationshipHandler.handleInteraction;
             if (typeof relFn === 'function') await relFn(interaction);
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 4. Module Profile Cá Nhân
         if (profileHandler && typeof profileHandler.handleInteraction === 'function') {
             await profileHandler.handleInteraction(interaction);
         }
         if (interaction.replied || interaction.deferred) return;
 
-        // 5. Các Button / SelectMenu / Modal khác (ĐÃ BỔ SUNG isUserSelectMenu() VÀ isAnySelectMenu())
         if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {
             if (typeof handleTicketInteraction === 'function') await handleTicketInteraction(interaction);
             if (typeof handleTuTienInteraction === 'function') await handleTuTienInteraction(interaction);
@@ -400,7 +356,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 });
 
-// --- SỰ KIỆN REACTION (AUTOROLE) ---
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
     try {
         if (typeof handleAutoRoleReactionAdd === 'function') {
@@ -421,7 +376,6 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
     }
 });
 
-// --- SỰ KIỆN SERVER BOOST ---
 client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
     try {
         if (typeof handleServerBoost === 'function') {
@@ -432,7 +386,6 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
     }
 });
 
-// --- ĐĂNG NHẬP BOT VÀO DISCORD ---
 const token = process.env.DISCORD_TOKEN || process.env.TOKEN;
 
 if (!token) {

@@ -1,12 +1,65 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const ADMIN_ID = process.env.ADMIN_ID;
 
-// Bộ từ khóa cấm nặng (Chửi bậy bạ sẽ bị Mute 10 phút ngoài kênh thường)
-const BANNED_REGEX = [
-    /\bcặc\b/i, /\bcac\b/i, /\bcajc\b/i, /\bkặc\b/i, /\bkac\b/i,
-    /\blồn\b/i, /\blon\b/i, /\blozn\b/i, /\bl0n\b/i,
-    /\bđịt\b/i, /\bdit\b/i, /\bđjt\b/i, /\bdjt\b/i,
-    /\bsex\b/i, /\bporn\b/i, /\bpỏn\b/i, /\bhentai\b/i
+// Bộ lưu trữ bộ nhớ tạm ghi nhận ai đã mute thành viên nào
+// Key: targetUserId, Value: { mutedBy: moderatorId, isAutoMod: boolean }
+const mutedTracker = new Map();
+
+// =========================================================
+// 🚨 BỘ TỪ KHÓA CẤM MỞ RỘNG & TỐI ƯU CHỐNG LÁCH LUẬT
+// =========================================================
+const BANNED_PATTERNS = [
+    // --- 1. NHÓM TỤC TĨU (CẶC, LỒN, ĐỊT, ĐỒ LỒN, BUỒI...) ---
+    // Cặc, cac, cajc, kặc, kac, kack, k@c, c@c, c.ặ.c...
+    /[c|k]+[\s\.\-\_\,\;\:\*\d\@]*[ă|a|â|á|à|ả|ã|ạ|4|\@]*[\s\.\-\_\,\;\:\*\d\@]*[c|k|j]+/i,
+    
+    // Lồn, lon, lozn, l0n, l3n, l.ồ.n...
+    /l+[\s\.\-\_\,\;\:\*\d\@]*[ô|o|0|ồ|ố|ổ|ỗ|ộ|3]+[\s\.\-\_\,\;\:\*\d\@]*[n|zn]+/i,
+    
+    // Địt, dit, đjt, djt, d1t, đ1t, d.ị.t...
+    /[đ|d]+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1|í|ì|ỉ|ĩ|ị]+[\s\.\-\_\,\;\:\*\d\@]*t+/i,
+    
+    // Buồi, buoi, buo2i, b.u.ồ.i...
+    /b+[\s\.\-\_\,\;\:\*\d\@]*[u|ú|ù|ủ|ũ|ụ]+[\s\.\-\_\,\;\:\*\d\@]*[ô|o|ồ|ố|ổ|ỗ|ộ|0]+[\s\.\-\_\,\;\:\*\d\@]*[i|j|1]+/i,
+    
+    // Con đĩ, đĩ xõa...
+    /con[\s\.\-\_\,\;\:\*]*đĩ/i, /con[\s\.\-\_\,\;\:\*]*đĩa/i, /con[\s\.\-\_\,\;\:\*]*di/i,
+
+    // --- 2. NHÓM TỪ NGHĨA ĐỒI TRỤY / 18+ ---
+    // Sex, s3x, s.e.x...
+    /s+[\s\.\-\_\,\;\:\*\d\@]*[e|3]+[\s\.\-\_\,\;\:\*\d\@]*x+/i,
+    
+    // Porn, p0rn, prn, p.o.r.n...
+    /p+[\s\.\-\_\,\;\:\*\d\@]*[o|ô|0]+[\s\.\-\_\,\;\:\*\d\@]*r+[\s\.\-\_\,\;\:\*\d\@]*n+/i,
+    
+    // Bỏn, pon, pỏn...
+    /p+[\s\.\-\_\,\;\:\*\d\@]*[ỏ|o|ô|0]+[\s\.\-\_\,\;\:\*\d\@]*n+/i,
+    
+    // Hentai, h3ntai, h.e.n.t.a.i...
+    /h+[\s\.\-\_\,\;\:\*\d\@]*[e|3]+[\s\.\-\_\,\;\:\*\d\@]*n+[\s\.\-\_\,\;\:\*\d\@]*t+[\s\.\-\_\,\;\:\*\d\@]*a+[\s\.\-\_\,\;\:\*\d\@]*[i|j|1]+/i,
+    
+    // Dâm, dam, dâmm, d.â.m...
+    /[d|đ]+[\s\.\-\_\,\;\:\*\d\@]*[â|a|á|à|ả|ã|ạ]+[\s\.\-\_\,\;\:\*\d\@]*m+/i,
+    
+    // Thủ dâm, quay tay, hiếp, hiep dam, chịch, chich...
+    /ch+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1]+[\s\.\-\_\,\;\:\*\d\@]*ch+/i,
+    /hiếp/i, /hiep/i, /quay[\s\.\-\_\,\;\:\*]*tay/i, /thu[\s\.\-\_\,\;\:\*]*dam/i,
+
+    // --- 3. NHÓM CHỬI THỀ / XÚC PHẠM VĂN HÓA XÃ HỘI ---
+    // dm, dmm, dcm, đcm, dkm, đkm, vcl, vkl, vcc...
+    /\b(d|đ)(m|mm|cm|km|kc|cl|kl|cc)\b/i,
+    /\b(v|w)(c|k)(l|c|k)\b/i,
+    
+    // Địt mẹ, dit me, đm, dm, đ*t mẹ, d.ị.t m.ẹ...
+    /[đ|d]+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1]*[\s\.\-\_\,\;\:\*\d\@]*t*[\s\.\-\_\,\;\:\*\d\@]*m+[ẹ|e|é|è|ẻ|ẽ|ẹ]*/i,
+    
+    // Mẹ kiếp, chó đẻ, cún đẻ, đĩ mẹ...
+    /chó[\s\.\-\_\,\;\:\*]*đẻ/i, /cho[\s\.\-\_\,\;\:\*]*de/i,
+    /đĩ[\s\.\-\_\,\;\:\*]*mẹ/i, /di[\s\.\-\_\,\;\:\*]*me/i,
+    
+    // --- 4. NHÓM TỪ NGHĨA BỆNH HOẢN / BIẾN THÁI ---
+    /lọan[\s\.\-\_\,\;\:\*]*luan/i, /loạn[\s\.\-\_\,\;\:\*]*luân/i,
+    /hiếp[\s\.\-\_\,\;\:\*]*dâm/i, /hiep[\s\.\-\_\,\;\:\*]*dam/i
 ];
 
 // =========================================================
@@ -32,18 +85,18 @@ async function handleAutoMod(message) {
     if (message.content.startsWith('!')) return false;
 
     if (!isBotAdmin && !hasModPerms) {
-        const contentLower = message.content.toLowerCase();
-        
-        if (contentLower.includes('bot')) {
-            return false;
-        }
+        // Xiết chặt kiểm tra: Chuẩn hóa unicode và loại bỏ các ký tự đặc biệt/khoảng trắng dư thừa
+        const rawContent = message.content.toLowerCase();
+        const normalizedContent = rawContent
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // Xóa dấu tiếng Việt để tránh lách
+            .replace(/[\.\-\_\,\;\:\*\s\~\`\^\&\#\@\$\%\(\)\{\}\[\]\\\/\|]/g, ''); // Xóa ký tự phân tách
 
-        const normalizedContent = contentLower.replace(/[\.\-\_\,\;\:\*]/g, ' '); 
-        const hasBannedWord = BANNED_REGEX.some(regex => regex.test(normalizedContent));
+        const hasBannedWord = BANNED_PATTERNS.some(regex => regex.test(rawContent) || regex.test(normalizedContent));
 
         const linkRegex = /(https?:\/\/[^\s]+)/g;
         let hasForbiddenLink = false;
-        const links = contentLower.match(linkRegex); 
+        const links = rawContent.match(linkRegex); 
         
         if (links && links.length > 0) {
             const containsDiscordInvite = links.some(link => link.includes('discord.gg') || link.includes('discord.com/invite'));
@@ -61,6 +114,12 @@ async function handleAutoMod(message) {
                 const muteDuration = 10 * 60 * 1000;
                 const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết mời (Discord Invite) trái phép.";
                 await message.member.timeout(muteDuration, `[AutoMod] ${reason}`);
+
+                // Lưu vết AutoMod đã phạt
+                mutedTracker.set(message.author.id, {
+                    mutedBy: 'AUTOMOD',
+                    isAutoMod: true
+                });
 
                 const logChannelId = process.env.KENH_LOG_AUTOMOD;
                 if (logChannelId) {
@@ -161,7 +220,14 @@ async function handleAdminCommands(message) {
         const duration = parseInt(args[2]);
         if (!target || isNaN(duration)) return message.reply('❌ Sai định dạng! Ví dụ: `!mute @Tên 10`');
         
-        await target.timeout(duration * 60 * 1000, "Lệnh phạt").catch(() => {});
+        await target.timeout(duration * 60 * 1000, `Lệnh phạt bởi ${message.author.tag}`).catch(() => {});
+        
+        // Lưu vết Admin nào đã thực hiện Mute
+        mutedTracker.set(target.id, {
+            mutedBy: message.author.id,
+            isAutoMod: false
+        });
+
         await message.channel.send(`🔇 Đã tắt tiếng **${target.user.tag}** trong ${duration} phút!`);
         return true;
     }
@@ -176,8 +242,23 @@ async function handleAdminCommands(message) {
             return message.reply('🙋‍♂️ Thành viên này hiện tại không bị tắt tiếng.');
         }
 
+        const muteInfo = mutedTracker.get(target.id);
+        const isOwnerAdmin = message.author.id === ADMIN_ID;
+
+        // KIỂM TRA PHÂN QUYỀN UNMUTE
+        // 1. Nếu bị AutoMod phạt (chửi tục/link bẩn): CHỈ ADMIN_ID (OWNER) mới có quyền gỡ
+        if (muteInfo?.isAutoMod && !isOwnerAdmin) {
+            return message.reply('❌ Thành viên này bị Mute do hệ thống AutoMod (chửi tục/link cấm). Chỉ có **OWNER** mới được quyền unmute!');
+        }
+
+        // 2. Nếu Mute thủ công bằng lệnh !mute: Chỉ ADMIN_ID (OWNER) HOẶC chính Admin đã gõ !mute người đó mới được gỡ
+        if (muteInfo && !muteInfo.isAutoMod && muteInfo.mutedBy !== message.author.id && !isOwnerAdmin) {
+            return message.reply('❌ Bạn không thể gỡ Mute cho thành viên này vì người này do một Admin/Mod khác xử lý!');
+        }
+
         try {
             await target.timeout(null, `Được giải phạt bởi ${message.author.tag}`);
+            mutedTracker.delete(target.id); // Xóa dữ liệu tạm sau khi unmute thành công
             await message.channel.send(`🔊 Đã gỡ tắt tiếng cho **${target.user.tag}**!`);
             return true;
         } catch (error) {

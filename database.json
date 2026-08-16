@@ -34426,10 +34426,11 @@
         "dailyVoice": {}
     },
     "!unmute <@1144461336961630340>": {
-        "totalMessages": 12,
+        "totalMessages": 13,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-08-04": 12
+            "2026-08-04": 12,
+            "2026-08-16": 1
         },
         "dailyVoice": {}
     },
@@ -36246,10 +36247,11 @@
         "dailyVoice": {}
     },
     "Cặc": {
-        "totalMessages": 3,
+        "totalMessages": 4,
         "totalVoiceMinutes": 0,
         "dailyMessages": {
-            "2026-08-04": 3
+            "2026-08-04": 3,
+            "2026-08-16": 1
         },
         "dailyVoice": {}
     },
@@ -54655,6 +54657,30 @@
         "totalVoiceMinutes": 0,
         "dailyMessages": {
             "2026-08-05": 1
+        },
+        "dailyVoice": {}
+    },
+    "Dam": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-16": 1
+        },
+        "dailyVoice": {}
+    },
+    "Dâm": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-16": 1
+        },
+        "dailyVoice": {}
+    },
+    "Chịch": {
+        "totalMessages": 1,
+        "totalVoiceMinutes": 0,
+        "dailyMessages": {
+            "2026-08-16": 1
         },
         "dailyVoice": {}
     }
