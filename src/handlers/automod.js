@@ -1,74 +1,46 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const ADMIN_ID = process.env.ADMIN_ID;
 
-// Bộ lưu trữ bộ nhớ tạm ghi nhận ai đã mute thành viên nào
-// Key: targetUserId, Value: { mutedBy: moderatorId, isAutoMod: boolean }
 const mutedTracker = new Map();
 
 // =========================================================
-// 🚨 BỘ TỪ KHÓA CẤM MỞ RỘNG & TỐI ƯU CHỐNG LÁCH LUẬT
+// 🚨 BỘ REGEX CHỐNG MUTE OAN (CHỈ BẮT TỪ CHỬI TỤC RÕ RÀNG)
 // =========================================================
 const BANNED_PATTERNS = [
-    // --- 1. NHÓM TỤC TĨU (CẶC, LỒN, ĐỊT, ĐỒ LỒN, BUỒI...) ---
-    // Cặc, cac, cajc, kặc, kac, kack, k@c, c@c, c.ặ.c...
-    /[c|k]+[\s\.\-\_\,\;\:\*\d\@]*[ă|a|â|á|à|ả|ã|ạ|4|\@]*[\s\.\-\_\,\;\:\*\d\@]*[c|k|j]+/i,
+    // --- 1. CẶC / KẶC ---
+    /\b(c|k)[ặaâáàảãạ4@]*[c|k|j]+\b/i,
+    /c[\.\-\_\,\;\:\*\~\s]+ặ[\.\-\_\,\;\:\*\~\s]+c/i,
     
-    // Lồn, lon, lozn, l0n, l3n, l.ồ.n...
-    /l+[\s\.\-\_\,\;\:\*\d\@]*[ô|o|0|ồ|ố|ổ|ỗ|ộ|3]+[\s\.\-\_\,\;\:\*\d\@]*[n|zn]+/i,
+    // --- 2. LỒN ---
+    /\bl[ôo0ồốổỗộ3]+(n|zn)\b/i,
+    /l[\.\-\_\,\;\:\*\~\s]+ồ[\.\-\_\,\;\:\*\~\s]+n/i,
     
-    // Địt, dit, đjt, djt, d1t, đ1t, d.ị.t...
-    /[đ|d]+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1|í|ì|ỉ|ĩ|ị]+[\s\.\-\_\,\;\:\*\d\@]*t+/i,
+    // --- 3. ĐỊT / ĐJ T ---
+    /\b(đ|d)[ịij1]+t\b/i,
+    /đ[\.\-\_\,\;\:\*\~\s]+ị[\.\-\_\,\;\:\*\~\s]+t/i,
     
-    // Buồi, buoi, buo2i, b.u.ồ.i...
-    /b+[\s\.\-\_\,\;\:\*\d\@]*[u|ú|ù|ủ|ũ|ụ]+[\s\.\-\_\,\;\:\*\d\@]*[ô|o|ồ|ố|ổ|ỗ|ộ|0]+[\s\.\-\_\,\;\:\*\d\@]*[i|j|1]+/i,
+    // --- 4. BUỒI ---
+    /\bb[uúùủũụ]+[ôoồốổỗộ0]+[ij1]+\b/i,
     
-    // Con đĩ, đĩ xõa...
-    /con[\s\.\-\_\,\;\:\*]*đĩ/i, /con[\s\.\-\_\,\;\:\*]*đĩa/i, /con[\s\.\-\_\,\;\:\*]*di/i,
+    // --- 5. ĐĨ (Không bắt chữ "đi", "đẹp", "dẹp") ---
+    /\bcon[\s\.\-\_\*]*(đĩ|đĩ|đĩa|dĩa)\b/i,
+    /\b(đĩ|đĩ|đĩa)\b/i,
 
-    // --- 2. NHÓM TỪ NGHĨA ĐỒI TRỤY / 18+ ---
-    // Sex, s3x, s.e.x...
-    /s+[\s\.\-\_\,\;\:\*\d\@]*[e|3]+[\s\.\-\_\,\;\:\*\d\@]*x+/i,
-    
-    // Porn, p0rn, prn, p.o.r.n...
-    /p+[\s\.\-\_\,\;\:\*\d\@]*[o|ô|0]+[\s\.\-\_\,\;\:\*\d\@]*r+[\s\.\-\_\,\;\:\*\d\@]*n+/i,
-    
-    // Bỏn, pon, pỏn...
-    /p+[\s\.\-\_\,\;\:\*\d\@]*[ỏ|o|ô|0]+[\s\.\-\_\,\;\:\*\d\@]*n+/i,
-    
-    // Hentai, h3ntai, h.e.n.t.a.i...
-    /h+[\s\.\-\_\,\;\:\*\d\@]*[e|3]+[\s\.\-\_\,\;\:\*\d\@]*n+[\s\.\-\_\,\;\:\*\d\@]*t+[\s\.\-\_\,\;\:\*\d\@]*a+[\s\.\-\_\,\;\:\*\d\@]*[i|j|1]+/i,
-    
-    // Dâm, dam, dâmm, d.â.m...
-    /[d|đ]+[\s\.\-\_\,\;\:\*\d\@]*[â|a|á|à|ả|ã|ạ]+[\s\.\-\_\,\;\:\*\d\@]*m+/i,
-    
-    // Thủ dâm, quay tay, hiếp, hiep dam, chịch, chich...
-    /ch+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1]+[\s\.\-\_\,\;\:\*\d\@]*ch+/i,
-    /hiếp/i, /hiep/i, /quay[\s\.\-\_\,\;\:\*]*tay/i, /thu[\s\.\-\_\,\;\:\*]*dam/i,
-
-    // --- 3. NHÓM CHỬI THỀ / XÚC PHẠM VĂN HÓA XÃ HỘI ---
-    // dm, dmm, dcm, đcm, dkm, đkm, vcl, vkl, vcc...
+    // --- 6. CHỬI THỀ TẮT ---
     /\b(d|đ)(m|mm|cm|km|kc|cl|kl|cc)\b/i,
     /\b(v|w)(c|k)(l|c|k)\b/i,
-    
-    // Địt mẹ, dit me, đm, dm, đ*t mẹ, d.ị.t m.ẹ...
-    /[đ|d]+[\s\.\-\_\,\;\:\*\d\@]*[ị|i|j|1]*[\s\.\-\_\,\;\:\*\d\@]*t*[\s\.\-\_\,\;\:\*\d\@]*m+[ẹ|e|é|è|ẻ|ẽ|ẹ]*/i,
-    
-    // Mẹ kiếp, chó đẻ, cún đẻ, đĩ mẹ...
-    /chó[\s\.\-\_\,\;\:\*]*đẻ/i, /cho[\s\.\-\_\,\;\:\*]*de/i,
-    /đĩ[\s\.\-\_\,\;\:\*]*mẹ/i, /di[\s\.\-\_\,\;\:\*]*me/i,
-    
-    // --- 4. NHÓM TỪ NGHĨA BỆNH HOẢN / BIẾN THÁI ---
-    /lọan[\s\.\-\_\,\;\:\*]*luan/i, /loạn[\s\.\-\_\,\;\:\*]*luân/i,
-    /hiếp[\s\.\-\_\,\;\:\*]*dâm/i, /hiep[\s\.\-\_\,\;\:\*]*dam/i
+    /\b(địt|dit|đ|d)[\s\.\-\_\*]*(mẹ|me)\b/i,
+    /\b(chó|cho)[\s\.\-\_\*]*(đẻ|de)\b/i,
+
+    // --- 7. 18+ / ĐỒI TRỤY ---
+    /\b(sex|s3x|porn|p0rn|pỏn|prn|hentai|h3ntai)\b/i,
+    /\b(chịch|chich|hiếp\s*dâm|quay\s*tay|thủ\s*dâm)\b/i
 ];
 
-// =========================================================
-// 🚨 LUỒNG 1: QUÉT VÀ XỬ LÝ TỪ CẤM / LINK BẨN (AUTOMOD)
-// =========================================================
 async function handleAutoMod(message) {
     if (message.author.bot || !message.guild) return false;
 
-    // 🛑 CHO PHÉP CHỬI TỤC TRONG TICKET: Bỏ qua AutoMod hoàn toàn nếu đang ở kênh Ticket
+    // Bỏ qua trong các kênh riêng tư / ticket
     const channelName = message.channel.name.toLowerCase();
     const isTicketChannel = channelName.includes('ticket') || 
                             channelName.includes('giveaway') || 
@@ -76,7 +48,7 @@ async function handleAutoMod(message) {
                             channelName.includes('chuyen-rieng') || 
                             channelName.includes('support');
 
-    if (isTicketChannel) return false; // Không xóa tin nhắn, không warn, không mute!
+    if (isTicketChannel) return false;
 
     const isBotAdmin = message.author.id === ADMIN_ID;
     const hasModPerms = message.member.permissions.has(PermissionsBitField.Flags.ManageMessages) || 
@@ -85,15 +57,12 @@ async function handleAutoMod(message) {
     if (message.content.startsWith('!')) return false;
 
     if (!isBotAdmin && !hasModPerms) {
-        // Xiết chặt kiểm tra: Chuẩn hóa unicode và loại bỏ các ký tự đặc biệt/khoảng trắng dư thừa
-        const rawContent = message.content.toLowerCase();
-        const normalizedContent = rawContent
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "") // Xóa dấu tiếng Việt để tránh lách
-            .replace(/[\.\-\_\,\;\:\*\s\~\`\^\&\#\@\$\%\(\)\{\}\[\]\\\/\|]/g, ''); // Xóa ký tự phân tách
+        // Chỉ quét trực tiếp văn bản gốc, KHÔNG xóa khoảng trắng để tránh gộp chữ gây hiểu nhầm
+        const rawContent = message.content;
 
-        const hasBannedWord = BANNED_PATTERNS.some(regex => regex.test(rawContent) || regex.test(normalizedContent));
+        const hasBannedWord = BANNED_PATTERNS.some(regex => regex.test(rawContent));
 
+        // Kiểm tra link discord invite
         const linkRegex = /(https?:\/\/[^\s]+)/g;
         let hasForbiddenLink = false;
         const links = rawContent.match(linkRegex); 
@@ -115,7 +84,6 @@ async function handleAutoMod(message) {
                 const reason = hasBannedWord ? "Gửi từ ngữ không hợp lệ / nội dung 18+." : "Gửi liên kết mời (Discord Invite) trái phép.";
                 await message.member.timeout(muteDuration, `[AutoMod] ${reason}`);
 
-                // Lưu vết AutoMod đã phạt
                 mutedTracker.set(message.author.id, {
                     mutedBy: 'AUTOMOD',
                     isAutoMod: true
@@ -159,9 +127,6 @@ async function handleAutoMod(message) {
     return false;
 }
 
-// =========================================================
-// 🔨 LUỒNG 2: CÁC LỆNH ĐIỀU HÀNH BAN QUẢN TRỊ (ADMIN COMMANDS)
-// =========================================================
 async function handleAdminCommands(message) {
     if (message.author.bot || !message.guild) return false;
 
@@ -222,7 +187,6 @@ async function handleAdminCommands(message) {
         
         await target.timeout(duration * 60 * 1000, `Lệnh phạt bởi ${message.author.tag}`).catch(() => {});
         
-        // Lưu vết Admin nào đã thực hiện Mute
         mutedTracker.set(target.id, {
             mutedBy: message.author.id,
             isAutoMod: false
@@ -245,20 +209,17 @@ async function handleAdminCommands(message) {
         const muteInfo = mutedTracker.get(target.id);
         const isOwnerAdmin = message.author.id === ADMIN_ID;
 
-        // KIỂM TRA PHÂN QUYỀN UNMUTE
-        // 1. Nếu bị AutoMod phạt (chửi tục/link bẩn): CHỈ ADMIN_ID (OWNER) mới có quyền gỡ
         if (muteInfo?.isAutoMod && !isOwnerAdmin) {
             return message.reply('❌ Thành viên này bị Mute do hệ thống AutoMod (chửi tục/link cấm). Chỉ có **OWNER** mới được quyền unmute!');
         }
 
-        // 2. Nếu Mute thủ công bằng lệnh !mute: Chỉ ADMIN_ID (OWNER) HOẶC chính Admin đã gõ !mute người đó mới được gỡ
         if (muteInfo && !muteInfo.isAutoMod && muteInfo.mutedBy !== message.author.id && !isOwnerAdmin) {
             return message.reply('❌ Bạn không thể gỡ Mute cho thành viên này vì người này do một Admin/Mod khác xử lý!');
         }
 
         try {
             await target.timeout(null, `Được giải phạt bởi ${message.author.tag}`);
-            mutedTracker.delete(target.id); // Xóa dữ liệu tạm sau khi unmute thành công
+            mutedTracker.delete(target.id);
             await message.channel.send(`🔊 Đã gỡ tắt tiếng cho **${target.user.tag}**!`);
             return true;
         } catch (error) {
