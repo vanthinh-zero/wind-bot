@@ -187,6 +187,40 @@ function getAskPrice(symbol = 'BTC/cowcoin') {
 // ==========================================
 // 2. THUẬT TOÁN PHÂN TÍCH KỸ THUẬT THỰC CHIẾN (TA & SMC ENGINE)
 // ==========================================
+function detectMarketStructure(candles, options = {}) {
+    const source = Array.isArray(candles) ? candles.filter(Boolean) : [];
+    const n = Math.max(1, Number(options.swingLength) || 2);
+    if (source.length < n * 2 + 3) return { trend:'NEUTRAL', trendLabel:'Trung tính ⚖️', event:'NONE', eventLabel:'Chưa đủ dữ liệu', points:[], highs:[], lows:[], support:null, resistance:null, lastBreakPrice:null };
+    const highs=[], lows=[];
+    for(let i=n;i<source.length-n;i++){ let hi=true,lo=true; for(let j=1;j<=n;j++){ if(source[i].high<source[i-j].high||source[i].high<source[i+j].high)hi=false; if(source[i].low>source[i-j].low||source[i].low>source[i+j].low)lo=false; } if(hi)highs.push({index:i,price:source[i].high}); if(lo)lows.push({index:i,price:source[i].low}); }
+    const rh=highs.slice(-4),rl=lows.slice(-4),h2=rh.slice(-2),l2=rl.slice(-2);
+    let trend='NEUTRAL'; if(h2.length===2&&l2.length===2){ if(h2[1].price>h2[0].price&&l2[1].price>l2[0].price)trend='BULLISH'; else if(h2[1].price<h2[0].price&&l2[1].price<l2[0].price)trend='BEARISH'; else trend='RANGING'; }
+    const close=source.at(-1).close,lastHigh=rh.at(-1),lastLow=rl.at(-1); let event='NONE',breakPrice=null;
+    if(lastHigh&&close>lastHigh.price){event=trend==='BEARISH'?'CHOCH_BULLISH':'BOS_BULLISH';breakPrice=lastHigh.price;} else if(lastLow&&close<lastLow.price){event=trend==='BULLISH'?'CHOCH_BEARISH':'BOS_BEARISH';breakPrice=lastLow.price;}
+    const points=[]; if(h2.length===2)points.push({type:h2[1].price>h2[0].price?'HH':'LH',...h2[1]}); if(l2.length===2)points.push({type:l2[1].price>l2[0].price?'HL':'LL',...l2[1]});
+    const trendLabel={BULLISH:'Tăng 🟢',BEARISH:'Giảm 🔴',RANGING:'Đi ngang 🟡',NEUTRAL:'Trung tính ⚖️'}[trend];
+    const eventLabel={BOS_BULLISH:'BOS Bullish 🟢',BOS_BEARISH:'BOS Bearish 🔴',CHOCH_BULLISH:'CHoCH Bullish ⚡',CHOCH_BEARISH:'CHoCH Bearish ⚡',NONE:'Chưa có break cấu trúc'}[event];
+    return {trend,trendLabel,event,eventLabel,points:points.sort((a,b)=>a.index-b.index),highs:rh,lows:rl,support:lastLow?.price??null,resistance:lastHigh?.price??null,lastBreakPrice:breakPrice};
+}
+
+function getMarketStructure(symbol='BTC/cowcoin'){ const m=getMarket(symbol); return detectMarketStructure([...m.candleHistory,m.currentCandle],{swingLength:2}); }
+
+const marketStructureCommandData = new SlashCommandBuilder().setName('ms').setDescription('Hiển thị Market Structure của thị trường giả lập')
+    .addStringOption(o=>o.setName('symbol').setDescription('Cặp giao dịch').addChoices({name:'BTC / cowcoin',value:'BTC/cowcoin'},{name:'ETH / cowcoin',value:'ETH/cowcoin'},{name:'SOL / cowcoin',value:'SOL/cowcoin'},{name:'BNB / cowcoin',value:'BNB/cowcoin'}));
+
+async function handleMarketStructureSlash(interaction){
+    const symbol=interaction.options.getString('symbol')||'BTC/cowcoin',m=getMarket(symbol),ms=getMarketStructure(symbol);
+    const fmt=v=>v==null?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:2});
+    const point=p=>{const x=ms.points.find(v=>v.type===p);return x?fmt(x.price):'—';};
+    const sequence=ms.points.length?ms.points.map(p=>p.type+' '+fmt(p.price)).join(' → '):'Chưa đủ swing';
+    const embed=new EmbedBuilder().setTitle('📐 MARKET STRUCTURE • '+m.symbol).setDescription('Dữ liệu nến của Wind Trading Engine').addFields(
+        {name:'Xu hướng',value:ms.trendLabel,inline:true},{name:'Cấu trúc',value:ms.eventLabel,inline:true},
+        {name:'HH / HL',value:point('HH')+' / '+point('HL'),inline:true},{name:'LH / LL',value:point('LH')+' / '+point('LL'),inline:true},
+        {name:'Support / Resistance',value:fmt(ms.support)+' / '+fmt(ms.resistance),inline:true},{name:'Swing gần nhất',value:sequence.slice(0,1024),inline:false}
+    ).setFooter({text:'HH • HL • LH • LL • BOS • CHoCH'});
+    return interaction.reply({embeds:[embed]});
+}
+
 function calculateRSI(candles, period = 14) {
     if (!candles || candles.length < period + 1) return 50.0;
     let gains = 0, losses = 0;
@@ -1603,5 +1637,9 @@ module.exports = {
     analyzeMarketTechnical,
     calculateRiskReward,
     getTradeHelpEmbed,
+    detectMarketStructure,
+    getMarketStructure,
+    marketStructureCommandData,
+    handleMarketStructureSlash,
     MARKETS
 };
