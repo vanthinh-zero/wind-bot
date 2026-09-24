@@ -1,9 +1,8 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 require('dotenv').config();
+const { getUserMoney, addMoney, formatMoney } = require('../utils/db');
+const { COLORS, author, luxuryTitle } = require('../utils/embedTheme');
 
-const moneyPath = path.join(__dirname, '../../money.json'); 
 const tarotSessions = new Map();
 
 // Bộ bài dự phòng tích hợp sẵn
@@ -54,13 +53,6 @@ const TAROT_PRICES = { '1_card': 500, '3_cards': 1200, 'daily': 300, 'love': 100
 const DEFAULT_TAROT_IMAGE = 'https://i.pinimg.com/564x/df/7e/3d/df7e3d1be5494d930292bfcb78cc4306.jpg';
 const MAIN_HALL_IMAGE = 'https://i.pinimg.com/736x/21/df/b6/21dfb689df96791e878cc60fa1107f9c.jpg';
 
-function getMoneyData() {
-    try { if (!fs.existsSync(moneyPath)) return {}; const data = fs.readFileSync(moneyPath, 'utf8'); return data ? JSON.parse(data) : {}; } 
-    catch (error) { return {}; }
-}
-function saveMoneyData(data) {
-    try { fs.writeFileSync(moneyPath, JSON.stringify(data, null, 2), 'utf8'); } catch (error) {}
-}
 
 function drawRandomCard(type) {
     const card = tarotDeck[Math.floor(Math.random() * tarotDeck.length)];
@@ -88,8 +80,9 @@ async function handleTarotCommand(message) {
     }
 
     const mainEmbed = new EmbedBuilder()
-        .setColor('#1A0B2E')
-        .setTitle('🔮 ĐẠI SẢNH TAROT - KẾT NỐI TÂM THỨC 🔮')
+        .setColor(COLORS.plum)
+        .setAuthor(author('THE ARCANA'))
+        .setTitle(luxuryTitle('🔮', 'Tarot room'))
         .setDescription(
             '**Hãy thả lỏng cơ thể, nhắm mắt và hít thở sâu 3 nhịp...**\n\n' +
             '*Lắng nghe trực giác và chọn loại quẻ bạn muốn thỉnh từ Vũ Trụ.*\n\n' +
@@ -100,7 +93,7 @@ async function handleTarotCommand(message) {
             `• ❤️ Trải Bài Tình Cảm: \`${TAROT_PRICES['love']} Cowcoin\``
         )
         .setImage(MAIN_HALL_IMAGE)
-        .setFooter({ text: 'Hãy bấm loại quẻ bên dưới để bắt đầu...' });
+        .setFooter(footer('Chọn một trải bài để mở cánh cửa trực giác.'));
 
     // Đồng bộ tất cả ID bắt đầu bằng tarot_new_
     const row1 = new ActionRowBuilder().addComponents(
@@ -127,12 +120,11 @@ async function handleTarotInteraction(interaction) {
     if (customId.startsWith('tarot_new_init_')) {
         const type = customId.replace('tarot_new_init_', '');
         const price = TAROT_PRICES[type];
-        const moneyData = getMoneyData();
-        const currentBalance = moneyData[userId]?.money || 0; 
-        
-        if (currentBalance < price) {
+        const currentBalance = await getUserMoney(userId);
+
+        if (typeof currentBalance === 'number' && currentBalance < price) {
             await interaction.reply({ 
-                content: `❌ **Không đủ Cowcoin!** Bạn cần **${price} Cowcoin** để thỉnh quẻ này (Hiện tại bạn có: **${currentBalance} Cowcoin**).`,
+                content: `❌ **Không đủ Cowcoin!** Bạn cần **${price} Cowcoin** để thỉnh quẻ này (Hiện tại bạn có: **${formatMoney(currentBalance)} Cowcoin**).`,
                 flags: [MessageFlags.Ephemeral]
             }).catch(() => {});
             return true;
@@ -200,17 +192,17 @@ async function handleTarotInteraction(interaction) {
             return true;
         }
 
-        const moneyData = getMoneyData();
-        if (!moneyData[userId] || moneyData[userId].money < price) {
+        const currentMoney = await getUserMoney(userId);
+        if (typeof currentMoney === 'number' && currentMoney < price) {
             await interaction.reply({ content: `❌ Tài khoản của bạn không đủ số dư Cowcoin để thực hiện giao dịch!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
             return true;
         }
-        
-        moneyData[userId].money -= price;
-        saveMoneyData(moneyData);
 
-        const remainingMsg = `*(Đã khấu trừ ${price} Cowcoin, số dư còn lại: ${moneyData[userId].money} Cowcoin)*`;
+        await addMoney(userId, -price);
+        const newBalance = await getUserMoney(userId);
+        const remainingMsg = `*(Đã khấu trừ ${price} Cowcoin, số dư còn lại: ${formatMoney(newBalance)} Cowcoin)*`;
         tarotSessions.delete(userId);
+
 
         let resultEmbed;
         if (type === '1_card' || type === 'daily') {

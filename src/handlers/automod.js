@@ -1,4 +1,5 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 const ADMIN_ID = process.env.ADMIN_ID;
 
 const mutedTracker = new Map();
@@ -94,8 +95,9 @@ async function handleAutoMod(message) {
                     const logChannel = message.guild.channels.cache.get(logChannelId);
                     if (logChannel) {
                         const logEmbed = new EmbedBuilder()
-                            .setColor('#ffaa00')
-                            .setTitle('🚨 HỆ THỐNG AUTOMOD - NHẬT KÝ PHẠT')
+                            .setColor(COLORS.sun)
+                            .setAuthor(author('MODERATION LOG'))
+                            .setTitle('🚨 Nhật ký xử lý AutoMod')
                             .addFields(
                                 { name: '👤 Người vi phạm', value: `${message.author} (${message.author.tag})`, inline: true },
                                 { name: '🆔 ID Người dùng', value: `\`${message.author.id}\``, inline: true },
@@ -111,9 +113,11 @@ async function handleAutoMod(message) {
                 }
 
                 const alertEmbed = new EmbedBuilder()
-                    .setColor('#ff3333')
-                    .setTitle('⚠️ CẢNH BÁO HỆ THỐNG')
+                    .setColor(COLORS.danger)
+                    .setAuthor(author('SAFETY SYSTEM'))
+                    .setTitle('⚠️ Cảnh báo hệ thống')
                     .setDescription(`Thành viên ${message.author} đã bị **tắt tiếng 10 phút**.\n**Lý do:** ${reason}`)
+                    .setFooter(footer('AutoMod • Bảo vệ không gian cộng đồng'))
                     .setTimestamp();
 
                 const alertMsg = await message.channel.send({ embeds: [alertEmbed] });

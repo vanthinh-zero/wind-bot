@@ -1,67 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-
-const dbPath = path.join(process.cwd(), 'profiles.json');
-
-const DEFAULT_GIF = 'https://media.discordapp.net/attachments/1528282202222235718/1528878087683706880/MOO_MOO_9.gif?ex=6a608eed&is=6a5f3d6d&hm=1ed4637eb577a1624a0d6d336fa3069836c6a77285de6fc4c6df4d91af18f581&=';
-const DEFAULT_DIVIDER = '────୨ৎ────────୨ৎ────────୨ৎ────';
-
-const DEFAULT_PROFILE = {
-    title: 'HỒ SƠ THÀNH VIÊN',
-    bio: 'Xin chào! Rất vui được làm quen với mọi người.',
-    status: 'Đang hoạt động',
-    color: '#2B2D31',
-    media: DEFAULT_GIF,
-    badge: '👑',
-    divider: DEFAULT_DIVIDER,
-    footerText: 'Dùng các lệnh /set... để trang trí hồ sơ',
-    relationships: { totinh: null, kethon: null, banthan: null }
-};
-
-function readDatabase() {
-    try {
-        if (!fs.existsSync(dbPath)) {
-            fs.writeFileSync(dbPath, '{}', 'utf8');
-            return {};
-        }
-        const raw = fs.readFileSync(dbPath, 'utf8');
-        return JSON.parse(raw || '{}');
-    } catch (error) {
-        console.error('Lỗi đọc profiles.json:', error);
-        return {};
-    }
-}
-
-function writeDatabase(data) {
-    try {
-        fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error('Lỗi ghi vào profiles.json:', error);
-    }
-}
-
-function getUserProfile(userId) {
-    const db = readDatabase();
-    if (!db[userId]) {
-        db[userId] = { ...DEFAULT_PROFILE };
-        writeDatabase(db);
-    }
-    const profile = { ...DEFAULT_PROFILE, ...db[userId] };
-    if (!profile.relationships) {
-        profile.relationships = { totinh: null, kethon: null, banthan: null };
-    }
-    return profile;
-}
-
-function updateUserProfile(userId, key, value) {
-    const db = readDatabase();
-    if (!db[userId]) {
-        db[userId] = { ...DEFAULT_PROFILE };
-    }
-    db[userId][key] = value;
-    writeDatabase(db);
-}
+const { 
+    getUserProfile, 
+    updateUserProfile, 
+    DEFAULT_PROFILE, 
+    DEFAULT_DIVIDER, 
+    DEFAULT_GIF 
+} = require('../utils/db');
+const { COLORS, author, footer, luxuryTitle } = require('../utils/embedTheme');
 
 const commandsData = [
     new SlashCommandBuilder()
@@ -129,7 +74,7 @@ async function handleProfileInteraction(interaction) {
     if (commandName === 'profile') {
         const targetUser = options.getUser('user') || user;
         const member = guild ? guild.members.cache.get(targetUser.id) : null;
-        const profileData = getUserProfile(targetUser.id);
+        const profileData = await getUserProfile(targetUser.id);
 
         const joinedTimestamp = member && member.joinedTimestamp ? Math.floor(member.joinedTimestamp / 1000) : null;
         const createdTimestamp = Math.floor(targetUser.createdTimestamp / 1000);
@@ -152,13 +97,10 @@ async function handleProfileInteraction(interaction) {
 
         const embed = new EmbedBuilder()
             .setColor(profileData.color || '#2B2D31')
-            .setAuthor({ 
-                name: (profileData.title || 'HỒ SƠ THÀNH VIÊN').toUpperCase(), 
-                iconURL: guild ? guild.iconURL({ dynamic: true }) : avatarUrl
-            })
+            .setAuthor(author((profileData.title || 'HỒ SƠ THÀNH VIÊN').toUpperCase(), guild ? guild.iconURL({ dynamic: true }) : avatarUrl))
+            .setTitle(luxuryTitle(profileData.badge || '👑', targetUser.displayName))
             .setThumbnail(avatarUrl)
             .setDescription(
-                `### ${profileData.badge || '👑'} **${targetUser.displayName}**\n` +
                 `> *"${profileData.bio || 'Chưa có lời giới thiệu.'}"*\n\n` +
                 `${divider}`
             )
@@ -177,10 +119,7 @@ async function handleProfileInteraction(interaction) {
                 }
             )
             .setImage(mediaUrl)
-            .setFooter({ 
-                text: profileData.footerText || 'Dùng các lệnh /set... để trang trí hồ sơ', 
-                iconURL: avatarUrl
-            })
+            .setFooter(footer(profileData.footerText || 'Dùng các lệnh /set... để trang trí hồ sơ', avatarUrl))
             .setTimestamp();
 
         return await interaction.reply({ embeds: [embed] });
@@ -191,50 +130,50 @@ async function handleProfileInteraction(interaction) {
         if (newBio.length > 120) {
             return await interaction.reply({ content: '⚠️ Câu giới thiệu cần ngắn hơn 120 ký tự.', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'bio', newBio);
+        await updateUserProfile(userId, 'bio', newBio);
         return await interaction.reply({ content: '✅ **Đã cập nhật câu giới thiệu thành công!**', flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'status') {
         const newStatus = options.getString('text') || '';
-        updateUserProfile(userId, 'status', newStatus);
+        await updateUserProfile(userId, 'status', newStatus);
         return await interaction.reply({ content: '✅ **Đã cập nhật trạng thái thành công!**', flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'settitle') {
         const text = options.getString('text') || '';
         if (text.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'title', DEFAULT_PROFILE.title);
+            await updateUserProfile(userId, 'title', DEFAULT_PROFILE.title);
             return await interaction.reply({ content: '🔄 **Đã đặt lại tiêu đề mặc định.**', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'title', text);
+        await updateUserProfile(userId, 'title', text);
         return await interaction.reply({ content: `✨ **Tiêu đề đã đổi thành:** \`${text}\``, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setdivider') {
         const text = options.getString('text') || '';
         if (text.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'divider', DEFAULT_DIVIDER);
+            await updateUserProfile(userId, 'divider', DEFAULT_DIVIDER);
             return await interaction.reply({ content: '🔄 **Đã đặt lại dòng phân cách mặc định.**', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'divider', text);
+        await updateUserProfile(userId, 'divider', text);
         return await interaction.reply({ content: `✨ **Dòng phân cách đã đổi thành:**\n${text}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setfooter') {
         const text = options.getString('text') || '';
         if (text.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'footerText', DEFAULT_PROFILE.footerText);
+            await updateUserProfile(userId, 'footerText', DEFAULT_PROFILE.footerText);
             return await interaction.reply({ content: '🔄 **Đã đặt lại dòng dưới cùng mặc định.**', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'footerText', text);
+        await updateUserProfile(userId, 'footerText', text);
         return await interaction.reply({ content: `✨ **Dòng chữ dưới cùng đã đổi thành:** \`${text}\``, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setcolor') {
         const hexInput = options.getString('hex') || '';
         if (hexInput.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'color', DEFAULT_PROFILE.color);
+            await updateUserProfile(userId, 'color', DEFAULT_PROFILE.color);
             return await interaction.reply({ content: '🔄 **Đã đặt lại màu viền mặc định.**', flags: MessageFlags.Ephemeral });
         }
         const hexRegex = /^#?([0-9A-F]{6})$/i;
@@ -242,30 +181,30 @@ async function handleProfileInteraction(interaction) {
             return await interaction.reply({ content: '❌ Mã màu không đúng. Ví dụ: `#FF69B4`, `#4A90E2`, `#2B2D31`', flags: MessageFlags.Ephemeral });
         }
         const formattedColor = hexInput.startsWith('#') ? hexInput : `#${hexInput}`;
-        updateUserProfile(userId, 'color', formattedColor);
+        await updateUserProfile(userId, 'color', formattedColor);
         return await interaction.reply({ content: `🎨 **Đã đổi màu viền thành:** \`${formattedColor}\``, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setbadge') {
         const badge = options.getString('badge') || '';
         if (badge.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'badge', DEFAULT_PROFILE.badge);
+            await updateUserProfile(userId, 'badge', DEFAULT_PROFILE.badge);
             return await interaction.reply({ content: '🔄 **Đã đặt lại huy hiệu mặc định.**', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'badge', badge);
+        await updateUserProfile(userId, 'badge', badge);
         return await interaction.reply({ content: `🏅 **Huy hiệu đổi thành:** ${badge}`, flags: MessageFlags.Ephemeral });
     }
 
     if (commandName === 'setmedia') {
         const url = options.getString('url') || '';
         if (url.toLowerCase() === 'reset') {
-            updateUserProfile(userId, 'media', DEFAULT_PROFILE.media);
+            await updateUserProfile(userId, 'media', DEFAULT_PROFILE.media);
             return await interaction.reply({ content: '🔄 **Đã khôi phục ảnh/GIF mặc định.**', flags: MessageFlags.Ephemeral });
         }
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             return await interaction.reply({ content: '❌ Liên kết không hợp lệ.', flags: MessageFlags.Ephemeral });
         }
-        updateUserProfile(userId, 'media', url);
+        await updateUserProfile(userId, 'media', url);
         return await interaction.reply({ content: '🖼️ **Đã cập nhật ảnh/GIF cá nhân thành công!**', flags: MessageFlags.Ephemeral });
     }
 }
@@ -273,5 +212,7 @@ async function handleProfileInteraction(interaction) {
 module.exports = {
     commandsData,
     handleInteraction: handleProfileInteraction,
-    handleProfileInteraction
+    handleProfileInteraction,
+    getUserProfile,
+    updateUserProfile
 };

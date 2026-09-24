@@ -4,6 +4,7 @@ const {
     EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
     ModalBuilder, TextInputBuilder, TextInputStyle
 } = require('discord.js');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 // --- TỰ ĐỘNG ĐỊNH VỊ FILE CẤU HÌNH ĐỀ THI (HOÀN HẢO CHO LOCAL & RENDER) ---
 // Cách 1: Thư mục config nằm ngang hàng với src (Thường thấy trên cấu trúc Deploy Render)
@@ -67,9 +68,11 @@ async function handleDeThiCommand(message) {
     }
 
     const embed = new EmbedBuilder()
+        .setColor(COLORS.violet)
+        .setAuthor(author('WIND ACADEMY'))
         .setTitle(`📝 ${configMon.name}`)
         .setDescription(`File PDF đính kèm bên dưới.\n\nSau khi làm xong, bấm nút **Nộp Bài Toàn Diện**.`)
-        .setColor('#bf55ec');
+        .setFooter(footer('Tập trung, làm bài, và để Wind chấm phần còn lại.'));
 
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -186,8 +189,9 @@ async function handleDeThiInteraction(interaction) {
 
             // Gửi Embed kết quả bảo mật riêng tư (Ephemeral) cho thí sinh
             const resultEmbed = new EmbedBuilder()
+                .setColor(COLORS.sapphire)
+                .setAuthor(author('WIND ACADEMY • KẾT QUẢ'))
                 .setTitle(`📊 KẾT QUẢ KIỂM TRA - ${configMon.name}`)
-                .setColor('#26a65b')
                 .setDescription(`Chúc mừng thí sinh ${interaction.user} đã hoàn thành bài thi tự động thành công!`)
                 .addFields(
                     { name: '☘️ Tổng điểm đạt được', value: `💯 **${tongDiem} / 10.00** điểm`, inline: false },
@@ -196,7 +200,7 @@ async function handleDeThiInteraction(interaction) {
                     { name: 'Phần III (Điền số)', value: `\`${diemP3.toFixed(2)}đ\``, inline: true }
                 )
                 .setTimestamp()
-                .setFooter({ text: 'ĐÀN BÒ BIẾT BAY - Rèn luyện mỗi ngày để bứt phá bước vào cổng trường Đại học!' });
+                .setFooter(footer('WIND ACADEMY • Mỗi bài làm là một bước tiến.'));
 
             await interaction.editReply({ embeds: [resultEmbed] });
         }

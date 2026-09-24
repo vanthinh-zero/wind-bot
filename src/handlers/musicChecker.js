@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
-// Danh sách ID các bot nhạc trong máy chủ (Bao gồm Rythm 2, Rythm 9, Classical Radio, v.v.)
+
 const MUSIC_BOT_IDS = [
     '412347553141751808', 
     '411916947773587456', 
@@ -12,7 +12,7 @@ const MUSIC_BOT_IDS = [
 async function handleMusicCheckCommand(message) {
     const msgContent = message.content.trim().toLowerCase();
     
-    // Hỗ trợ các kiểu gõ lệnh
+
     if (msgContent !== '!music' && msgContent !== '!musicbot' && msgContent !== '!music bot') {
         return false;
     }
@@ -24,10 +24,10 @@ async function handleMusicCheckCommand(message) {
     let descriptionText = "📊 **BẢNG TRẠNG THÁI BOT NHẠC HỆ THỐNG**\n\n";
 
     try {
-        // Tải toàn bộ thành viên trong Guild về Cache để tránh bỏ sót
+
         const members = await guild.members.fetch();
 
-        // Lọc lấy danh sách các Bot có trong Guild (Nếu ID khớp hoặc là Bot)
+
         const musicBots = members.filter(m => m.user.bot && (MUSIC_BOT_IDS.includes(m.id) || m.displayName.toLowerCase().includes('rythm') || m.displayName.toLowerCase().includes('radio')));
 
         if (musicBots.size === 0) {

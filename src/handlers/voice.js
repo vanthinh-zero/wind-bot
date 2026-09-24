@@ -1,5 +1,6 @@
 const { ChannelType, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { addVoiceMinutes } = require('./counter.js'); // Import hàm cộng giờ từ counter
+const { COLORS, author, footer, luxuryTitle } = require('../utils/embedTheme');
 
 const CREATOR_CHANNEL_ID = process.env.VOICE_CREATOR_CHANNEL_ID;
 
@@ -91,15 +92,16 @@ async function handleVoiceStateUpdate(oldState, newState) {
 
             // --- TẠO MENU LINK NÚT BẤM (Đã nâng cấp 2 hàng nút) ---
             const menuEmbed = new EmbedBuilder()
-                .setColor('#5865F2')
-                .setTitle('🔊 VOICEMASTER CONTROL PANEL')
+                .setColor(COLORS.sapphire)
+                .setAuthor(author('VOICE LOUNGE'))
+                .setTitle(luxuryTitle('🔊', 'Voice Control Panel'))
                 .setDescription(`Chào mừng <@${member.id}> đến với phòng thoại riêng!\nBạn có thể quản lý phòng của mình bằng các nút bấm dưới đây.`)
                 .addFields(
                     { name: '🔒 Khóa / 🔓 Mở', value: 'Quản lý quyền vào phòng', inline: true },
                     { name: '👻 Ẩn / Hiện', value: 'Ẩn phòng khỏi danh sách', inline: true },
                     { name: '📝 Đổi Tên / 👥 Giới Hạn', value: 'Tùy chỉnh thông số phòng', inline: false }
                 )
-                .setFooter({ text: 'Chỉ chủ phòng mới có thể tương tác!' });
+                .setFooter(footer('Chỉ chủ phòng mới có thể tương tác.'));
 
             // Hàng nút 1: Quyền hạn cơ bản
             const row1 = new ActionRowBuilder().addComponents(

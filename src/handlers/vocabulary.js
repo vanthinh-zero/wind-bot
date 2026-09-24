@@ -2,9 +2,11 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const { envOrSetting } = require('../utils/config');
 
-const CHANNEL_ID = process.env.VOCAB_CHANNEL_ID; 
+const CHANNEL_ID = envOrSetting('VOCAB_CHANNEL_ID', 'channels.vocabulary');
 const INTERVAL_TIME = 3 * 60 * 60 * 1000; // Định kỳ lặp lại đúng 3 tiếng
+let channelUnavailable = false;
 
 // --- ĐÃ SỬA: Đường dẫn trỏ thẳng tới file vocab.json nằm tại thư mục src/config/ ---
 const dbPath = path.join(__dirname, '../config/vocab.json');
@@ -61,6 +63,7 @@ function getNextWords(vocabularyIndex) {
 async function sendVocabMessage(client) {
     try {
         if (!CHANNEL_ID) return console.error("⚠️ Chưa cấu hình VOCAB_CHANNEL_ID trong file .env!");
+        if (channelUnavailable) return;
 
         const channel = await client.channels.fetch(CHANNEL_ID);
         if (!channel) return console.error("⚠️ Không tìm thấy channel Discord ứng với ID từ vựng này!");
@@ -80,6 +83,11 @@ async function sendVocabMessage(client) {
         await channel.send(messageContent);
         console.log(`[${new Date().toLocaleTimeString()}] Đã gửi tự động thành công ${wordsToSend.length} từ vựng vào channel.`);
     } catch (error) {
+        if (error.code === 10003 || error.code === 10004) {
+            channelUnavailable = true;
+            console.warn('⚠️ Kênh từ vựng không tồn tại hoặc bot không truy cập được; tạm dừng job cho tới lần khởi động tiếp theo.');
+            return;
+        }
         console.error("❌ Lỗi khi gửi tin nhắn từ vựng định kỳ:", error);
     }
 }

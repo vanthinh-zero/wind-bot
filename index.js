@@ -12,8 +12,9 @@ const { sendTuTienMainMenu, handleTuTienInteraction } = require('./src/handlers/
 const { handleVoiceStateUpdate } = require('./src/handlers/voice.js');
 const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/handlers/voiceMenu.js');
 const { handleWelcomeMember } = require('./src/handlers/welcome.js');
-const { handleGoodbyeMember } = require('./src/handlers/goodbye.js'); // 👈 Bổ sung module Goodbye
-const { handleTaiXiuGame } = require('./src/handlers/taixiu.js');
+const { handleGoodbyeMember } = require('./src/handlers/goodbye.js');
+// 👈 Bổ sung handleTradeButtons từ taixiu.js
+const { handleTaiXiuGame, handleTradeButtons } = require('./src/handlers/taixiu.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
 const { handleAvatarCheck } = require('./src/handlers/avatar.js'); 
@@ -25,6 +26,7 @@ const { handleRuleCommand, handleRuleInteraction } = require('./src/handlers/rul
 const { handleSpamCommand } = require('./src/handlers/spamchat.js');
 
 const { handleBroadcastCommand } = require('./src/handlers/broadcastHandler.js');
+const { handleDeleteAllChannels, commandData: nukeCommandData, handleNukeSlash } = require('./src/handlers/nuke.js');
 
 const profileHandler = require('./src/handlers/profile.js');
 const relationshipHandler = require('./src/handlers/relationship.js');
@@ -35,7 +37,10 @@ try {
     console.warn('⚠️ Chưa tìm thấy module shop.js hoặc lỗi import, bỏ qua shopHandler.');
 }
 
+const setChannelHandler = require('./src/handlers/setchannel.js');
 const { handleMusicCheckCommand } = require('./src/handlers/musicChecker.js');
+const premiumHandler = require('./src/handlers/premium.js');
+const serverSetupHandler = require('./src/handlers/serverSetup.js');
 
 const { 
     handleServerBoost, 
@@ -63,10 +68,10 @@ async function checkAndCleanVipRoom(oldState, newState) {
     }
 }
 
-const { addMessageCount } = require('./src/handlers/counter.js');
+const { addMessageCount, flushCounterWrites } = require('./src/handlers/counter.js');
+const { commandData: climateCommandData, handleClimateCommand } = require('./src/handlers/climate.js');
 const { handleTopChatImageCommand } = require('./src/handlers/topchatImage.js');
 
-// 🏷️ MODULE AUTOROLE
 const { 
     handleAutoRoleCommand, 
     handleAutoRoleInteraction,
@@ -87,11 +92,20 @@ const vocabularySystem = require('./src/handlers/vocabulary.js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.post('/webhooks/sepay', express.json(), async (req, res) => {
+    try {
+        await premiumHandler.handleSepayWebhook(req, res, client);
+    } catch (error) {
+        console.error('[SePay] Lỗi webhook:', error);
+        if (!res.headersSent) res.status(500).json({ success: false, message: 'Webhook processing failed' });
+    }
+});
+
 app.get('/', (req, res) => {
     res.send('🤖 Quản gia Wind đang hoạt động bình thường sếp ơi! 🚀');
 });
 
-app.listen(PORT, () => {
+const httpServer = app.listen(PORT, () => {
     console.log(`==================================================`);
     console.log(`🌐 [Render Hub]: Web Server đang mở tại cổng: ${PORT}`);
     console.log(`==================================================`);
@@ -109,7 +123,6 @@ const client = new Client({
     ]
 });
 
-// --- SỰ KIỆN KHỞI CHẠY BOT ---
 client.once(Events.ClientReady, async (readyClient) => {
     console.log('==================================================');
     console.log(`🤖 Bot đã trực tuyến thành công dưới tên: ${readyClient.user.tag}`);
@@ -117,17 +130,29 @@ client.once(Events.ClientReady, async (readyClient) => {
     
     try {
         const allSlashCommands = [
+            ...(nukeCommandData ? [nukeCommandData] : []),
+            ...(setChannelHandler?.commandData ? [setChannelHandler.commandData] : []),
             ...(profileHandler?.commandsData || []),
             ...(relationshipHandler?.commandsData || relationshipHandler?.relationshipCommands || []),
-            ...(shopHandler?.shopCommands || shopHandler?.commandsData || [])
+            ...(shopHandler?.shopCommands || shopHandler?.commandsData || []),
+            ...(premiumHandler?.commandData ? [premiumHandler.commandData] : []),
+            ...(climateCommandData ? [climateCommandData] : []),
+            ...(serverSetupHandler?.commandData ? [serverSetupHandler.commandData] : [])
         ];
 
         if (allSlashCommands.length > 0) {
+            if (readyClient.application) {
+                await readyClient.application.commands.set(allSlashCommands).catch((e) => {
+                    console.error('⚠️ Không thể đăng ký Global Slash Commands:', e.message);
+                });
+                console.log('🌐 [Global Commands] Đã đồng bộ thành công cho toàn bộ Server!');
+            }
+
             for (const [guildId, guild] of readyClient.guilds.cache) {
                 await guild.commands.set(allSlashCommands).catch((e) => {
                     console.error(`⚠️ Không thể gán Slash Commands cho ${guild.name}:`, e.message);
                 });
-                console.log(`✅ [Slash Commands] Đã đăng ký tức thì cho Server: ${guild.name} (${guildId})`);
+                console.log(`✅ [Guild Commands] Đã cập nhật tức thì cho Server: ${guild.name} (${guildId})`);
             }
         }
     } catch (e) {
@@ -147,11 +172,13 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     try {
         if (typeof initAutoSpam === 'function') initAutoSpam(readyClient);
+        if (typeof premiumHandler.startPremiumExpiryWatcher === 'function') {
+            premiumHandler.startPremiumExpiryWatcher(readyClient);
+        }
     } catch (e) {
         console.error('Lỗi khi khởi chạy Auto Spam:', e);
     }
 });
-
 
 client.on(Events.GuildMemberAdd, async (member) => { 
     try {
@@ -185,7 +212,7 @@ client.on(Events.MessageCreate, async (message) => {
     try {
         if (typeof handleVideoLink === 'function') {
             const isVideo = await handleVideoLink(message);
-            if (isVideo) return; // Đã xử lý link video xong thì dừng
+            if (isVideo) return;
         }
 
         if (typeof handleAntiSpam === 'function') {
@@ -197,7 +224,7 @@ client.on(Events.MessageCreate, async (message) => {
             await handleAutoGrantPermission(message);
         }
 
-        if (typeof addMessageCount === 'function') await addMessageCount(message);
+        if (typeof addMessageCount === 'function') await addMessageCount(message.author.id, message.author.username, message.guild?.id);
         if (typeof handleAutoMod === 'function') await handleAutoMod(message);
         if (typeof handleAdminCommands === 'function') await handleAdminCommands(message);
 
@@ -208,6 +235,11 @@ client.on(Events.MessageCreate, async (message) => {
 
         const content = message.content.trim().toLowerCase();
 
+        if (content.startsWith('!delete all channel') || content === '!nuke') {
+            if (typeof handleDeleteAllChannels === 'function') {
+                return await handleDeleteAllChannels(message);
+            }
+        }
 
         if (content.startsWith('!say')) {
             if (typeof handleBroadcastCommand === 'function') {
@@ -231,10 +263,22 @@ client.on(Events.MessageCreate, async (message) => {
         if (content.startsWith('!wind')) {
             if (typeof handleWindCommand === 'function') return await handleWindCommand(message);
         }
+        if (content === '!khihau' || content === '!khí hậu') {
+            if (typeof handleClimateCommand === 'function') return await handleClimateCommand(message);
+        }
 
-        if (content.startsWith('!taixiu') || content.startsWith('!tx') || content.startsWith('!vi') || content.startsWith('!ccash') || content.startsWith('!money') || content.startsWith('!cash') || content.startsWith('!diemdanh') || content.startsWith('!daily') || content.startsWith('!chuyentien') || content.startsWith('!thuhoi')) {
+        // 🚀 CẬP NHẬT TIỀN TỐ !trade & TRỢ LÝ A.I
+        const tradePrefixes = [
+            '!trade', '!helptrade', '!ptkt', '!signal', '!soikeo', '!kienthuc',
+            '!long', '!short', '!buy', '!sell', '!close', '!tp', '!sl', 
+            '!chart', '!pos', '!position', '!pnl', '!history', '!leverage', '!lev', 
+            '!wms', '!structure', '!taixiu', '!tx', '!vi', '!ccash', '!money', '!cash', 
+            '!diemdanh', '!daily', '!chuyentien', '!thuhoi'
+        ];
+        if (tradePrefixes.some(prefix => content.startsWith(prefix))) {
             if (typeof handleTaiXiuGame === 'function') return await handleTaiXiuGame(message);
         }
+
         if (content.startsWith('!pet') || content.startsWith('!shop-pet') || content.startsWith('!muapet') || content.startsWith('!choan') || content.startsWith('!nangcap') || content.startsWith('!tromcho') || content.startsWith('!thave') || content.startsWith('!khopet') || content.startsWith('!laypet') || content.startsWith('!lockpet') || content.startsWith('!banpet')) {
             if (typeof handlePetSystem === 'function') return await handlePetSystem(message);
         }
@@ -306,6 +350,43 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
+        // 🚨 Xử lý Nút Bấm, Modal & Menu Lệnh Trade (!trade)
+        if (
+            (interaction.isButton() && (interaction.customId.startsWith('trade_') || interaction.customId.startsWith('btn_trade_'))) ||
+            (interaction.isModalSubmit() && (interaction.customId.startsWith('trade_') || interaction.customId.startsWith('modal_trade_'))) ||
+            (interaction.isStringSelectMenu() && interaction.customId.startsWith('trade_'))
+        ) {
+            if (typeof handleTradeButtons === 'function') {
+                await handleTradeButtons(interaction);
+                return;
+            }
+        }
+
+        if (interaction.isChatInputCommand() && interaction.commandName === 'nuke') {
+            if (typeof handleNukeSlash === 'function') {
+                return await handleNukeSlash(interaction);
+            }
+        }
+
+        if (interaction.isChatInputCommand() && interaction.commandName === 'setchannel') {
+            if (typeof setChannelHandler?.handleSetChannelSlash === 'function') {
+                return await setChannelHandler.handleSetChannelSlash(interaction);
+            }
+        }
+
+        if (interaction.isChatInputCommand() && interaction.commandName === 'vip') {
+            return await premiumHandler.handlePremiumInteraction(interaction);
+        }
+
+        if ((interaction.isChatInputCommand() && interaction.commandName === 'setup-server')
+            || (interaction.isStringSelectMenu() && ['wind_setup_style', 'wind_setup_features', 'wind_setup_motif'].includes(interaction.customId))) {
+            return await serverSetupHandler.handleServerSetup(interaction);
+        }
+
+        if (interaction.isChatInputCommand() && interaction.commandName === 'khihau') {
+            return await handleClimateCommand(interaction);
+        }
+
         if (interaction.isButton() && interaction.customId === 'start_private_autorole') {
             if (typeof handleAutoRoleInteraction === 'function') {
                 await handleAutoRoleInteraction(interaction);
@@ -387,6 +468,19 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
 });
 
 const token = process.env.DISCORD_TOKEN || process.env.TOKEN;
+
+let isShuttingDown = false;
+async function shutdown(signal) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`🛑 Nhận ${signal}, đang tắt Wind an toàn...`);
+    await flushCounterWrites().catch(error => console.error('❌ Không thể flush counter khi tắt:', error));
+    httpServer.close(() => {});
+    client.destroy();
+}
+
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
 
 if (!token) {
     console.error('❌ Không tìm thấy DISCORD_TOKEN hoặc TOKEN trong file .env!');

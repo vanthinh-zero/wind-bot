@@ -5,11 +5,8 @@ const {
     ActionRowBuilder, 
     StringSelectMenuBuilder 
 } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-
-const dbPath = path.join(process.cwd(), 'profiles.json');
-const moneyDbPath = path.join(process.cwd(), 'money.json');
+const { db, getGuildMoney, addGuildMoney, getUserPetData, saveUserPetData } = require('../utils/db');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 // 🖼️ URL ẢNH THUMBNAIL SHOP
 const SHOP_THUMBNAIL_URL = "https://media.discordapp.net/attachments/1508103127956455536/1534226338947535131/Khong_Co_Tieu_e4_20260727092420.png?ex=6a735b1f&is=6a72099f&hm=46f0e4341042629e9edf0fd7180f19f74eb50c513e6a061971b22558089391f9&=&format=webp&quality=lossless&width=640&height=640";
@@ -35,52 +32,22 @@ const PETS_SHOP = [
 
 const ITEM_SHOP = [...RINGS_SHOP, ...PETS_SHOP];
 
-function readDatabase() {
+async function readDatabase() {
     try {
-        if (!fs.existsSync(dbPath)) return {};
-        return JSON.parse(fs.readFileSync(dbPath, 'utf8') || '{}');
+        return (await db.get('profiles')) || {};
     } catch { return {}; }
 }
 
-function writeDatabase(data) {
-    try { fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.error(e); }
-}
-
-function readMoneyDatabase() {
-    try {
-        if (!fs.existsSync(moneyDbPath)) return {};
-        return JSON.parse(fs.readFileSync(moneyDbPath, 'utf8') || '{}');
-    } catch { return {}; }
-}
-
-function writeMoneyDatabase(data) {
-    try { fs.writeFileSync(moneyDbPath, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.error(e); }
-}
-
-function getUserMoney(userId) {
-    const moneyDb = readMoneyDatabase();
-    const userData = moneyDb[userId];
-    if (typeof userData === 'number') return userData;
-    if (typeof userData === 'object' && userData !== null) {
-        return userData.money ?? userData.coins ?? userData.cash ?? userData.balance ?? 0;
+async function writeDatabase(data) {
+    try { 
+        await db.set('profiles', data); 
+    } catch (e) { 
+        console.error('Lỗi lưu profiles trong shop.js:', e); 
     }
-    return 0;
 }
 
-function deductUserMoney(userId, amount) {
-    const moneyDb = readMoneyDatabase();
-    if (!moneyDb[userId]) moneyDb[userId] = { money: 0 };
-
-    if (typeof moneyDb[userId] === 'number') {
-        moneyDb[userId] -= amount;
-    } else if (typeof moneyDb[userId] === 'object' && moneyDb[userId] !== null) {
-        if ('balance' in moneyDb[userId]) moneyDb[userId].balance -= amount;
-        else if ('money' in moneyDb[userId]) moneyDb[userId].money -= amount;
-        else if ('coins' in moneyDb[userId]) moneyDb[userId].coins -= amount;
-        else if ('cash' in moneyDb[userId]) moneyDb[userId].cash -= amount;
-        else moneyDb[userId].money = -amount;
-    }
-    writeMoneyDatabase(moneyDb);
+async function deductUserMoney(guildId, userId, amount) {
+    return await addGuildMoney(guildId, userId, -amount);
 }
 
 function ensureUserExists(db, userId) {
@@ -106,20 +73,23 @@ const shopCommands = [
 ].map(cmd => cmd.toJSON());
 
 // Hàm tạo Embed và 2 Menu chọn
-function createShopMenu(userId) {
-    const currentBalance = getUserMoney(userId);
+async function createShopMenu(userId, guildId) {
+    const currentBalance = await getGuildMoney(guildId, userId);
 
     const embed = new EmbedBuilder()
-        .setColor('#FFD700')
-        .setTitle('🛍️ CỬA HÀNG VẬT PHẨM VÀ DỊCH VỤ')
+        .setColor(COLORS.gold)
+        .setAuthor(author('MARKETPLACE'))
+        .setTitle('✦ MARKETPLACE • Cửa hàng của Wind')
         .setDescription(
             `💰 **Số dư của bạn:** **${formatNumber(currentBalance)} Cowcoin**\n\n` +
-            `💍 **PHẦN 1: SHOP NHẪN & QUÀ TẶNG TÌNH YÊU**\n` +
-            `👉 *Chọn menu thứ nhất để mua nhẫn đính hôn hoặc quà.*\n\n` +
-            `🐶 **PHẦN 2: SHOP THÚ CƯNG & DỊCH VỤ**\n` +
-            `👉 *Chọn menu thứ hai để mua thú cưng, thức ăn hoặc gia hạn khóa trộm.*`
+            `💍 **JEWELRY & GIFTS**\n` +
+            `Nhẫn và quà tặng để nâng niu những mối quan hệ.\n\n` +
+            `🐾 **PET LOUNGE**\n` +
+            `Thú cưng, thức ăn và dịch vụ bảo vệ trong kho của bạn.`
         )
-        .setThumbnail(SHOP_THUMBNAIL_URL);
+        .setThumbnail(SHOP_THUMBNAIL_URL)
+        .setFooter(footer('Chọn một danh mục bên dưới để bắt đầu mua sắm.'))
+        .setTimestamp();
 
     // Menu phần 1: Nhẫn & Quà
     const ringOptions = RINGS_SHOP.map(item => ({
@@ -164,7 +134,7 @@ async function handleShopSystem(message) {
     }
 
     if (content === '!khodo' || content === '!inventory') {
-        const db = readDatabase();
+        const db = await readDatabase();
         const inventory = db[userId]?.inventory || [];
         
         if (inventory.length === 0) {
@@ -195,11 +165,11 @@ async function handleShopSystem(message) {
 async function handleShopInteraction(interaction) {
     if (interaction.isChatInputCommand()) {
         const { commandName, user } = interaction;
-        const db = readDatabase();
+        const db = await readDatabase();
         ensureUserExists(db, user.id);
 
         if (commandName === 'shop') {
-            const shopPayload = createShopMenu(user.id);
+            const shopPayload = await createShopMenu(user.id, interaction.guild?.id);
             // ephemeral: true giúp tin nhắn hoàn toàn ẩn với người khác
             return interaction.reply({ ...shopPayload, flags: MessageFlags.Ephemeral });
         }
@@ -239,7 +209,7 @@ async function handleShopInteraction(interaction) {
             const userId = interaction.user.id;
             const selectedId = interaction.values[0];
             const item = ITEM_SHOP.find(r => r.id === selectedId);
-            const currentBalance = getUserMoney(userId);
+            const currentBalance = await getGuildMoney(interaction.guild?.id, userId);
 
             if (!item) return;
 
@@ -251,11 +221,11 @@ async function handleShopInteraction(interaction) {
             }
 
             // Xử lý trừ tiền
-            deductUserMoney(userId, item.price);
+            await deductUserMoney(interaction.guild?.id, userId, item.price);
 
             // 1. Mua Nhẫn / Quà
             if (item.category === 'ring' || item.category === 'gift') {
-                const db = readDatabase();
+                const db = await readDatabase();
                 const userData = ensureUserExists(db, userId);
                 userData.inventory.push({
                     ringId: item.id,
@@ -263,15 +233,11 @@ async function handleShopInteraction(interaction) {
                     emoji: item.emoji,
                     category: item.category
                 });
-                writeDatabase(db);
+                await writeDatabase(db);
             } 
             // 2. Mua Pet Mới
             else if (item.id === 'pet_new') {
-                const petDbPath = path.join(process.cwd(), 'pet_db.json');
-                let petDb = {};
-                try { if (fs.existsSync(petDbPath)) petDb = JSON.parse(fs.readFileSync(petDbPath, 'utf8') || '{}'); } catch {}
-
-                if (!petDb[userId]) petDb[userId] = { activePetId: null, inventory: [], lastClaimTime: Date.now() };
+                const petData = await getUserPetData(userId);
 
                 const petTypes = ["Chó Shiba", "Mèo Dù", "Thỏ Ngọc", "Cáo Tuyết", "Gấu PANDA"];
                 const randomType = petTypes[Math.floor(Math.random() * petTypes.length)];
@@ -286,44 +252,37 @@ async function handleShopInteraction(interaction) {
                     lockUntil: 0
                 };
 
-                petDb[userId].inventory.push(newPet);
-                if (!petDb[userId].activePetId) petDb[userId].activePetId = newPet.id;
-                fs.writeFileSync(petDbPath, JSON.stringify(petDb, null, 4), 'utf8');
+                petData.inventory.push(newPet);
+                if (!petData.activePetId) petData.activePetId = newPet.id;
+                await saveUserPetData(userId, petData);
             }
             // 3. Mua Thức Ăn cho Pet
             else if (item.id === 'pet_food') {
-                const petDbPath = path.join(process.cwd(), 'pet_db.json');
-                let petDb = {};
-                try { if (fs.existsSync(petDbPath)) petDb = JSON.parse(fs.readFileSync(petDbPath, 'utf8') || '{}'); } catch {}
+                const petData = await getUserPetData(userId);
 
-                if (petDb[userId] && petDb[userId].inventory) {
-                    const activePet = petDb[userId].inventory.find(p => p.id === petDb[userId].activePetId);
-                    if (activePet) {
-                        activePet.food = Math.min(100, activePet.food + 30);
-                        activePet.exp += 15;
-                        fs.writeFileSync(petDbPath, JSON.stringify(petDb, null, 4), 'utf8');
-                    }
+                const activePet = petData.inventory.find(p => p.id === petData.activePetId);
+                if (activePet) {
+                    activePet.food = Math.min(100, activePet.food + 30);
+                    activePet.exp += 15;
+                    await saveUserPetData(userId, petData);
                 }
             }
-            // 4. Mua Gia Hạn Khóa Chống Trộm (!lockpet)
+            // 4. Mua Gia Hạn Khóa Chống Trộm
             else if (item.id === 'pet_lock_10m' || item.id === 'pet_lock_60m') {
-                const petDbPath = path.join(process.cwd(), 'pet_db.json');
-                let petDb = {};
-                try { if (fs.existsSync(petDbPath)) petDb = JSON.parse(fs.readFileSync(petDbPath, 'utf8') || '{}'); } catch {}
+                const petData = await getUserPetData(userId);
 
-                if (petDb[userId] && petDb[userId].inventory) {
-                    const activePet = petDb[userId].inventory.find(p => p.id === petDb[userId].activePetId);
-                    if (activePet) {
-                        const lockTimeMs = (item.id === 'pet_lock_10m' ? 10 : 60) * 60 * 1000;
-                        const currentLock = activePet.lockUntil && activePet.lockUntil > Date.now() ? activePet.lockUntil : Date.now();
-                        activePet.lockUntil = currentLock + lockTimeMs;
-                        fs.writeFileSync(petDbPath, JSON.stringify(petDb, null, 4), 'utf8');
-                    }
+                const activePet = petData.inventory.find(p => p.id === petData.activePetId);
+                if (activePet) {
+                    const lockTimeMs = (item.id === 'pet_lock_10m' ? 10 : 60) * 60 * 1000;
+                    const currentLock = activePet.lockUntil && activePet.lockUntil > Date.now() ? activePet.lockUntil : Date.now();
+                    activePet.lockUntil = currentLock + lockTimeMs;
+                    await saveUserPetData(userId, petData);
                 }
             }
 
+            const newBalance = await getGuildMoney(interaction.guild?.id, userId);
             return interaction.reply({
-                content: `🎉 Bạn đã mua thành công **${item.emoji} ${item.name}** với giá **${formatNumber(item.price)} Cowcoin**!\n💰 Số dư còn lại: **${formatNumber(getUserMoney(userId))} Cowcoin**.`,
+                content: `🎉 Bạn đã mua thành công **${item.emoji} ${item.name}** với giá **${formatNumber(item.price)} Cowcoin**!\n💰 Số dư còn lại: **${formatNumber(newBalance)} Cowcoin**.`,
                 flags: MessageFlags.Ephemeral
             });
         }

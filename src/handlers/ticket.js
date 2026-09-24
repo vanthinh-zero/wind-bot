@@ -9,6 +9,7 @@ const {
     UserSelectMenuBuilder,
     OverwriteType
 } = require('discord.js');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 const CATEGORY_ID = process.env.CATEGORY_ID;
 const ROLE_STAFF_ID = process.env.ROLE_STAFF;
@@ -35,19 +36,18 @@ const DENY_PERMISSIONS = [
 // 1. Hàm gửi bảng Ticket (Spawnticket / Ticket Setup)
 async function sendTicketSetup(channel) {
     const mainEmbed = new EmbedBuilder()
-        .setTitle('ʕ•ᴥ•ʔ ĐÀＮ ＢÒ ＢＩẾＴ ＢＡＹ ')
+        .setAuthor(author('TRUNG TÂM HỖ TRỢ'))
+        .setTitle('🎫 Cần một bàn tay hỗ trợ?')
         .setDescription(
-            `### __Tạo ticket khi thực sự cần thiết__\n\n` +
-            `🎁 Bạn muốn **tạo GiveAway** hay **Donate**\n\n` +
-            `📩 Bạn cần góp ý, khiếu nại các vấn đề trong server\n\n` +
-            `🤝 Bạn cần **giải quyết chuyện riêng** (Cần kéo thêm người liên quan)\n\n` +
-            `🧸 Bạn cần đánh giá tác phong làm việc của Lễ Tân\n\n` +
-            `➔ Hãy tạo ticket để hội đồng quản trị hỗ trợ và nói rõ nhu cầu, mong muốn của bạn 💮\n\n` +
-            `*chúng tôi rất mong những ý kiến và đóng góp của các bạn để phát triển một cộng đồng dễ thương, tích cực, lành mạnh*`
+            `Hãy chọn đúng nhóm vấn đề bên dưới để đội ngũ hỗ trợ tiếp nhận nhanh hơn.\n\n` +
+            `🎁 **Giveaway / Donate**  •  📩 **Góp ý / Khiếu nại**\n` +
+            `🤝 **Trao đổi riêng**  •  👥 **Vấn đề khác**\n\n` +
+            `> Vui lòng mô tả rõ nhu cầu sau khi ticket được tạo. Điều đó giúp BQT hỗ trợ bạn nhanh và chính xác hơn.`
         )
-        .setColor('#8CC0EB')
+        .setColor(COLORS.sky)
         .setThumbnail('https://media.discordapp.net/attachments/1508103127956455536/1508103322383552584/OIP.jfif?ex=6a5e262b&is=6a5cd4ab&hm=9bfa6bc905541831e4d2bd60986eaafd5f8e11e840bc45c2694d0053457f8616&=&format=webp')
-        .setFooter({ text: 'Cảm ơn vì đã là một phần của gia đình nhỏ này' });
+        .setFooter(footer('Mỗi góp ý đều giúp cộng đồng tốt hơn'))
+        .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('ticket_giveaway').setLabel('Tạo GiveAway/Donate').setEmoji('🎁').setStyle(ButtonStyle.Primary),
@@ -123,9 +123,16 @@ async function handleTicketInteraction(interaction) {
         if (!ticketChannel) return;
 
         const welcomeEmbed = new EmbedBuilder()
-            .setTitle('Chào đạo hữu!')
-            .setDescription(`Yêu cầu hỗ trợ của bạn tại kênh ${ticketChannel} đã được ghi nhận.\n\nVui lòng nêu rõ mong muốn để BQT hỗ trợ sớm nhất.`)
-            .setColor('#8CC0EB');
+            .setAuthor(author('SUPPORT DESK'))
+            .setTitle('✅ Ticket đã được mở')
+            .setDescription(`Xin chào ${interaction.user}! Yêu cầu của bạn tại ${ticketChannel} đã được ghi nhận.\n\nHãy gửi nội dung cần hỗ trợ, ảnh chụp hoặc thông tin liên quan tại đây. Đội ngũ phụ trách sẽ phản hồi sớm nhất có thể.`)
+            .addFields(
+                { name: '📌 Người yêu cầu', value: `${interaction.user}`, inline: true },
+                { name: '🛡️ Trạng thái', value: 'Đang chờ hỗ trợ', inline: true }
+            )
+            .setColor(COLORS.sky)
+            .setFooter(footer('Vui lòng không spam nhiều ticket cho cùng một vấn đề.'))
+            .setTimestamp();
 
         const actionRow = new ActionRowBuilder();
 

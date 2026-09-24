@@ -18,12 +18,15 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node --test tests/smoke.test.js",
+    "backup": "node -e \"console.log(require('./src/utils/backup').createDatabaseBackup())\""
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
     "@napi-rs/canvas": "^1.0.2",
     "axios": "^1.18.0",
+    "better-sqlite3": "^13.0.3",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

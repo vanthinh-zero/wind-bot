@@ -1,13 +1,17 @@
 const { EmbedBuilder } = require('discord.js');
+const { envOrSetting } = require('../utils/config');
+const { getGuildChannel } = require('../utils/db');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 async function handleWelcomeMember(member) {
     try {
         // =========================================================
         // 1. TỰ ĐỘNG CẤP ROLE TÂN THỦ / BÒ MỚI (NẾU CÓ CẤU HÌNH)
         // =========================================================
-        if (process.env.ROLE_TAN_THU) {
-            const role = member.guild.roles.cache.get(process.env.ROLE_TAN_THU) 
-                        || await member.guild.roles.fetch(process.env.ROLE_TAN_THU).catch(() => null);
+        const newMemberRoleId = envOrSetting('ROLE_TAN_THU', 'roles.newMember');
+        if (newMemberRoleId) {
+            const role = member.guild.roles.cache.get(newMemberRoleId)
+                        || await member.guild.roles.fetch(newMemberRoleId).catch(() => null);
             if (role) {
                 await member.roles.add(role).catch(err => {
                     console.error('❌ Lỗi tự động đeo thẻ tai cho Bò mới:', err.message);
@@ -21,38 +25,51 @@ async function handleWelcomeMember(member) {
         // =========================================================
         // 2. KÊNH 1: WELCOME_CHANNEL_ID (CỔNG NÔNG TRẠI / THÔNG TIN CHUNG)
         // =========================================================
-        if (process.env.WELCOME_CHANNEL_ID) {
-            const channel1 = member.guild.channels.cache.get(process.env.WELCOME_CHANNEL_ID)
-                             || await member.guild.channels.fetch(process.env.WELCOME_CHANNEL_ID).catch(() => null);
+        const welcomeChannelId = await getGuildChannel(member.guild.id, 'welcome')
+            || envOrSetting('WELCOME_CHANNEL_ID', 'channels.welcome');
+        if (welcomeChannelId) {
+            const channel1 = member.guild.channels.cache.get(welcomeChannelId)
+                             || await member.guild.channels.fetch(welcomeChannelId).catch(() => null);
 
             if (channel1 && channel1.isTextBased()) {
+                const accountCreatedAt = Math.floor(member.user.createdTimestamp / 1000);
+                const joinedAt = member.joinedTimestamp ? Math.floor(member.joinedTimestamp / 1000) : null;
                 const embed1 = new EmbedBuilder()
-                    .setColor('#8CC0EB')
+                    .setColor(COLORS.mint)
                     .setAuthor({ 
-                        name: `WELCOME TO ${member.guild.name.toUpperCase()} FARM! 🚜`, 
+                        name: `WIND COMMUNITY  •  ${member.guild.name.toUpperCase()} 🚜`, 
                         iconURL: guildIcon 
                     })
-                    // 📑 Đã xóa Title chào mừng cũ theo ý sếp
+                    .setTitle('🌱 Một thành viên mới vừa cập bến!')
                     .setDescription(
-                        `Chào mừng ${member} đã gia nhập trang trại **${member.guild.name}**!\n` +
-                        `Chúc bạn có những giờ phút chăn nuôi vui vẻ, gặt hái nhiều niềm vui!`
+                        `Chào mừng ${member} đã gia nhập **${member.guild.name}**!\n\n` +
+                        'Hãy dành cho bạn ấy một lời chào thật ấm áp và cùng nhau tạo thêm những kỷ niệm vui vẻ nhé. 🍀'
                     )
                     .setThumbnail(avatarURL)
                     .addFields(
-                        // 📑 Đã xóa mục Nội Quy Nông Trại ở đây
                         { 
-                            name: '🏷️ **Tên tài khoản**', 
+                            name: '🏷️ Tài khoản', 
                             value: `${member.user.tag}`, 
                             inline: true 
                         },
                         { 
-                            name: '🐮 **Thành viên chú Bò thứ**', 
+                            name: '🐮 Thành viên thứ', 
                             value: `**#${member.guild.memberCount}**`, 
                             inline: true 
+                        },
+                        {
+                            name: '📅 Tham gia Discord',
+                            value: `<t:${accountCreatedAt}:D>`,
+                            inline: true
+                        },
+                        {
+                            name: '🕰️ Vào server lúc',
+                            value: joinedAt ? `<t:${joinedAt}:R>` : 'Vừa tham gia',
+                            inline: true
                         }
                     )
                     .setImage('https://media.discordapp.net/attachments/1528282202222235718/1529055907504459926/MOO_MOO_11.gif?ex=6a628608&is=6a613488&hm=55b6fbae127f8fb63ffe6ed283a834816c4ad64478dc491e8f35afa626cbb61d&=')
-                    .setFooter({ text: 'Nhật kí trang trại', iconURL: guildIcon })
+                    .setFooter(footer('Nhật ký cộng đồng • Chúc bạn có một hành trình thật vui', guildIcon))
                     .setTimestamp();
 
                 // Kênh 1 bây giờ chỉ thông báo thường, không tag role thông báo nữa
@@ -68,17 +85,20 @@ async function handleWelcomeMember(member) {
         // =========================================================
         // 3. KÊNH 2: KENH_CHAO_MUNG (CHUỒNG TỔNG / SẢNH GIAO LƯU)
         // =========================================================
-        if (process.env.KENH_CHAO_MUNG) {
-            const channel2 = member.guild.channels.cache.get(process.env.KENH_CHAO_MUNG)
-                             || await member.guild.channels.fetch(process.env.KENH_CHAO_MUNG).catch(() => null);
+        const communityWelcomeChannelId = await getGuildChannel(member.guild.id, 'chat')
+            || envOrSetting('KENH_CHAO_MUNG', 'channels.welcome');
+        if (communityWelcomeChannelId) {
+            const channel2 = member.guild.channels.cache.get(communityWelcomeChannelId)
+                             || await member.guild.channels.fetch(communityWelcomeChannelId).catch(() => null);
 
             if (channel2 && channel2.isTextBased()) {
                 const embed2 = new EmbedBuilder()
-                    .setColor('#8CC0EB')
-                    .setTitle('🥛 THÀNH VIÊN MỚI GHÉ CHUỒNG TỔNG!')
-                    .setDescription(`Mọi người ơi, ${member} vừa mới chuyển tới chuồng trò chuyện nè!\nHãy gửi một lời chào ngọt ngào đến thành viên chú bò thứ **#${member.guild.memberCount}** nha! 🐄🌾`)
+                    .setColor(COLORS.sun)
+                    .setAuthor(author('SẢNH GIAO LƯU • THÔNG BÁO THÀNH VIÊN', guildIcon))
+                    .setTitle('🥛 Một lời chào cho thành viên mới nào!')
+                    .setDescription(`Mọi người ơi, ${member} vừa gia nhập cộng đồng!\n\nHãy gửi một lời chào đến thành viên thứ **#${member.guild.memberCount}** nha. 🐄🌾`)
                     .setThumbnail(avatarURL)
-                    .setFooter({ text: 'Chúc bạn có một ngày gặm cỏ vui vẻ!' })
+                    .setFooter(footer('Chúc bạn có một ngày thật vui trong cộng đồng!', guildIcon))
                     .setTimestamp();
 
                 // ⚡ Đã chuyển phần tag role thông báo sang nội dung chat chung ở đây

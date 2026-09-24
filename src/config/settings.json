@@ -1,0 +1,38 @@
+{
+    "vip": {
+        "bankAccount": "0866481829",
+        "bankName": "Ngân hàng",
+        "accountName": "Chưa cấu hình",
+        "categoryId": "",
+        "benefits": {
+            "aiModel": "gemini-3.1-pro-preview",
+            "petInventoryLimit": 12,
+            "petIncomeMultiplier": 2,
+            "petFoodBonus": 20,
+            "exclusivePetLevel": 5,
+            "serverMemberRole": false,
+            "tradeMaxLeverage": 125,
+            "tradeFee": 0,
+            "tradeLiquidationInsurance": 0.10,
+            "tradeProfitBonus": 0.05
+        },
+        "plans": {
+            "3": { "days": 3, "price": 20000, "label": "3 ngày" },
+            "7": { "days": 7, "price": 50000, "label": "7 ngày" },
+            "30": { "days": 30, "price": 200000, "label": "30 ngày" }
+        }
+    },
+    "channels": {
+        "welcome": "",
+        "goodbye": "",
+        "vocabulary": "",
+        "ticket": "",
+        "poem": "",
+        "marketing": ""
+    },
+    "roles": {
+        "newMember": "",
+        "staff": "",
+        "announcement": ""
+    }
+}

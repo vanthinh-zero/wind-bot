@@ -1,6 +1,7 @@
 const { EmbedBuilder, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 // Đường dẫn trỏ tới file JSON lưu trữ ở thư mục gốc
 const dataPath = path.join(__dirname, '../../autorole_data.json');
@@ -63,7 +64,7 @@ async function handleAutoRoleCommand(message) {
     );
 
     const promptMsg = await message.channel.send({
-        content: '🌟 Bấm vào nút dưới đây để bắt đầu cài đặt. Quá trình hỏi đáp sẽ diễn ra hoàn toàn riêng tư (chỉ bạn nhìn thấy).',
+        content: '✦ **WIND ROLE STUDIO**\nBấm nút bên dưới để bắt đầu thiết kế bảng role. Toàn bộ quá trình thiết lập sẽ được xử lý riêng tư.',
         components: [row]
     });
 
@@ -165,7 +166,9 @@ async function handleAutoRoleInteraction(interaction) {
             const embed = new EmbedBuilder()
                 .setDescription(description)
                 .addFields({ name: 'Danh sách Roles:', value: embedDescription })
-                .setColor(0x2ecc71); 
+                .setColor(COLORS.mint)
+                .setAuthor(author('ROLE STUDIO'))
+                .setFooter(footer('Chọn reaction để cá nhân hóa vai trò của bạn.'));
 
             const mainMessage = await channel.send({ embeds: [embed] });
 

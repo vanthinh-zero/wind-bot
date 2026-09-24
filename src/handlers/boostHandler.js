@@ -13,6 +13,7 @@ const {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder
 } = require('discord.js');
+const { COLORS, author, footer, luxuryTitle } = require('../utils/embedTheme');
 require('dotenv').config();
 
 // =========================================================================
@@ -24,12 +25,9 @@ async function handleSpawnVipCommand(message) {
     if (!isServerAdmin) return;
 
     const embed = new EmbedBuilder()
-        .setColor('#D4AF37')
-        .setAuthor({ 
-            name: 'P R E M I U M   N I T R O   B O O S T E R   H U B', 
-            iconURL: message.guild.iconURL({ dynamic: true }) 
-        })
-        .setTitle('🏛️ TRUNG TÂM KÍCH HOẠT ĐẶC QUYỀN THÀNH VIÊN TÀI TRỢ')
+        .setColor(COLORS.gold)
+        .setAuthor(author('BOOSTER PRIVILEGE HUB', message.guild.iconURL({ dynamic: true })))
+        .setTitle(luxuryTitle('🏛️', 'Không gian đặc quyền Booster'))
         .setDescription(
             `Chào mừng quý thành viên đã kích hoạt Nitro Boost cho Server!\n` +
             `Đây là hệ thống tự động hóa cấp phát đặc quyền cao cấp dành riêng cho sếp.\n\n` +
@@ -41,10 +39,7 @@ async function handleSpawnVipCommand(message) {
             `───────────────────────────\n` +
             `*Sếp hãy nhấn vào một trong hai nút bấm dưới đây để bắt đầu.*`
         )
-        .setFooter({ 
-            text: 'VIP Privilege Systems • Executive Hub Control', 
-            iconURL: 'https://i.imgur.com/vH308z1.gif' 
-        })
+        .setFooter(footer('VIP Privilege Systems • Executive Hub Control', message.guild.iconURL({ dynamic: true })))
         .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
@@ -71,9 +66,9 @@ async function handleServerBoost(oldMember, newMember) {
         if (!boostChannel) return;
 
         const thankYouEmbed = new EmbedBuilder()
-            .setColor('#8CC0EB')
-            .setAuthor({ name: 'N I T R O   B O O S T E R   H U B' })
-            .setTitle('🏛️ TRI ÂN THÀNH VIÊN TÀI TRỢ SERVER')
+            .setColor(COLORS.sapphire)
+            .setAuthor(author('BOOSTER PRIVILEGE HUB'))
+            .setTitle('🏛️ Cảm ơn vì đã nâng đỡ cộng đồng')
             .setDescription(
                 `Trân trọng cảm ơn **<@${newMember.user.id}>** đã kích hoạt Nitro Boost cho Server!\n\n` +
                 `Sự đóng góp của bạn là động lực to lớn giúp cộng đồng phát triển vững mạnh.`
@@ -89,7 +84,8 @@ async function handleServerBoost(oldMember, newMember) {
         );
 
         const inviteEmbed = new EmbedBuilder()
-            .setColor('#8CC0EB')
+            .setColor(COLORS.gold)
+            .setAuthor(author('YOUR PRIVILEGES'))
             .setDescription(`> 📢 **Đặc quyền dành riêng cho <@${newMember.user.id}>:** Bạn nhận được quyền sở hữu **01 Role màu sắc tự động** và **01 Phòng Voice VIP Vĩnh Viễn**.\n> Nhấn nút phía dưới để bắt đầu thiết lập.`);
 
         await boostChannel.send({ content: `📢 Thông báo đặc quyền: <@${newMember.user.id}>`, embeds: [inviteEmbed], components: [boosterActionRow] });
@@ -101,9 +97,9 @@ async function handleServerBoost(oldMember, newMember) {
 // =========================================================================
 function createVipControlPanel(channelId) {
     const embed = new EmbedBuilder()
-        .setColor('#D4AF37')
-        .setAuthor({ name: 'C O N T R O L   C E N T E R' })
-        .setTitle('👑 BẢNG ĐIỀU KHIỂN VOICE VIP EXECUTIVE')
+        .setColor(COLORS.gold)
+        .setAuthor(author('VOICE PRIVILEGE CONTROL'))
+        .setTitle(luxuryTitle('👑', 'Voice VIP Control Center'))
         .setDescription(
             `Trung tâm quản trị không gian riêng <#${channelId}>:\n\n` +
             `🔒 **Quyền vào:** Khóa/Mở kết nối chung cho người ngoài.\n` +

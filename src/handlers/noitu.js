@@ -23,10 +23,8 @@ async function handleNoiTuGame(message) {
         const isGameCommand = content === '!play' || content === '!stop-game' || content === '!noitu';
         const gameState = activeGames.get(message.channel.id);
 
-        // Nếu kênh chưa bật game VÀ tin nhắn không phải lệnh bật game -> Cho qua
         if (!gameState && !isGameCommand) return false;
 
-        // 1. LỆNH BẮT ĐẦU GAME (!play hoặc !noitu)
         if (content === '!play' || content === '!noitu') {
             if (gameState) {
                 await message.reply('🎮 Trận đấu nối từ đang diễn ra tại kênh này rồi!');
@@ -52,7 +50,6 @@ async function handleNoiTuGame(message) {
             return true;
         }
 
-        // 2. LỆNH DỪNG GAME (!stop-game)
         if (content === '!stop-game') {
             if (!gameState) return false;
             
@@ -61,28 +58,25 @@ async function handleNoiTuGame(message) {
             return true;
         }
 
-        // 3. LOGIC CHAT TỰ ĐỘNG (XỬ LÝ LƯỢT NỐI TỪ)
         if (gameState && !content.startsWith('!')) {
             const cleanContent = content;
 
-            // Chỉ nhận 1 từ tiếng Anh gồm các chữ cái a-z
             if (!/^[a-z]+$/.test(cleanContent)) return false; 
 
             let loseReason = '';
 
-            // Kiểm tra 1: Tự nối từ của chính mình
             if (message.author.id === gameState.lastPlayerId) {
                 loseReason = `Bạn không được tự nối từ của chính mình!`;
             }
-            // Kiểm tra 2: Từ đã từng được sử dụng
+
             else if (gameState.usedWords.has(cleanContent)) {
                 loseReason = `Từ **"${cleanContent.toUpperCase()}"** đã được sử dụng trước đó rồi!`;
             }
-            // Kiểm tra 3: Chữ cái đầu không khớp với chữ cái cuối của từ trước
+  
             else if (cleanContent.charAt(0) !== gameState.lastWord.slice(-1)) {
                 loseReason = `Từ **"${cleanContent.toUpperCase()}"** bắt đầu bằng chữ **"${cleanContent.charAt(0).toUpperCase()}"**, trong khi từ trước kết thúc bằng chữ **"${gameState.lastWord.slice(-1).toUpperCase()}"**!`;
             }
-            // Kiểm tra 4: Kiểm tra từ điển Anh - Anh chuẩn
+
             else {
                 const validWord = await isValidEnglishWord(cleanContent);
                 if (!validWord) {
@@ -90,7 +84,6 @@ async function handleNoiTuGame(message) {
                 }
             }
 
-            // XỬ LÝ KHI NGƯỜI CHƠI THUA
             if (loseReason) {
                 activeGames.delete(message.channel.id);
 
@@ -104,7 +97,6 @@ async function handleNoiTuGame(message) {
                 return true;
             }
 
-            // NỐI TỪ THÀNH CÔNG -> CẬP NHẬT TRẠNG THÁI
             gameState.lastWord = cleanContent;
             gameState.lastPlayerId = message.author.id;
             gameState.lastPlayerUsername = message.author.username; 

@@ -1,5 +1,6 @@
 // ./src/handlers/rule.js
 const { ChannelSelectMenuBuilder, ChannelType, ActionRowBuilder, EmbedBuilder } = require('discord.js');
+const { COLORS, author, footer } = require('../utils/embedTheme');
 
 // Bộ nhớ tạm lưu dữ liệu Embed đang xử lý của Admin
 const ruleStorage = new Map();
@@ -99,7 +100,10 @@ async function handleRuleCommand(message) {
             const embedOutput = new EmbedBuilder()
                 .setTitle(title)
                 .setDescription(content)
-                .setColor('#8CC0EB'); // Giữ nguyên màu xanh của sếp
+                .setColor(COLORS.sky)
+                .setAuthor(author('NỘI QUY CỘNG ĐỒNG'))
+                .setFooter(footer('Đọc kỹ nội quy để cùng giữ không gian này văn minh và dễ chịu.'))
+                .setTimestamp();
 
             // Nếu trong quá trình chat hệ thống nhặt được ảnh, gán vào Embed ngay
             if (imageUrl) {

@@ -1,5 +1,7 @@
 const { PermissionsBitField, AttachmentBuilder, ChannelType } = require('discord.js');
 const { GoogleGenAI } = require('@google/genai');
+const { hasActiveVip } = require('./premium.js');
+const { getSettings } = require('../utils/config');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -9,6 +11,7 @@ require('dotenv').config();
 // =========================================================================
 const apiKey = process.env.GEMINI_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey }) : null;
+const premiumModel = getSettings().vip?.benefits?.aiModel || 'gemini-3.1-pro-preview';
 
 const ADMIN_ROLE_IDS = process.env.ADMIN_ROLE_ID 
     ? process.env.ADMIN_ROLE_ID.split(',').map(id => id.trim()).filter(Boolean)
@@ -384,19 +387,109 @@ async function handleChatInteraction(message) {
         return true;
     }
 
-    // D. RA LỆNH VỚI AI GEMINI
+// =========================================================================
+// 5. TRÍ THỨC TRADING & TRỢ LÝ CỐ VẤN GIAO DỊCH KHI ĐƯỢC TAG
+// =========================================================================
+const TRADING_KEYWORDS = [
+    'trade', 'trading', 'long', 'short', 'rsi', 'smc', 'order block', 'fvg',
+    'nến', 'pinbar', 'hammer', 'doji', 'engulfing', 'đòn bẩy', 'leverage',
+    'cháy', 'thanh lý', 'liquidation', 'tp', 'sl', 'take profit', 'stop loss',
+    'ký quỹ', 'margin', 'r:r', 'risk:reward', 'quản lý vốn', 'golden cross',
+    'death cross', 'entry', 'pnl', 'roe', 'tài chính', 'chốt lời', 'cắt lỗ',
+    'phân tích kỹ thuật', 'soi kèo', 'crypto', 'bitcoin', 'cowcoin', 'kèo'
+];
+
+const TRADING_DISCLAIMER = "\n\n⚠️ **Lưu ý:** *Mọi quyết định giao dịch và rủi ro tài chính đều do bạn tự đưa ra và chịu trách nhiệm. Wind chỉ đóng vai trò trợ lý hỗ trợ phân tích và chia sẻ kiến thức tham khảo.*";
+
+function isTradingQuestion(text) {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    return TRADING_KEYWORDS.some(k => lower.includes(k));
+}
+
+function getOfflineTradingAnswer(prompt, username, isVip = false) {
+    const p = prompt.toLowerCase();
+
+    let answer = "";
+    if (p.includes('rsi')) {
+        answer = `📊 **Chỉ số RSI (Relative Strength Index) trong Trading là gì?**\n` +
+            `RSI đo lường tốc độ và sự biến động của giá trên thang điểm từ 0 đến 100:\n` +
+            `• **RSI > 70 (Quá mua - Overbought):** Phe mua đang quá đà, giá có nguy cơ đuối sức và quay đầu giảm (Ưu tiên canh Short).\n` +
+            `• **RSI < 30 (Quá bán - Oversold):** Phe bán xả hàng cạn kiệt, giá có xác suất bật hồi phục cao (Ưu tiên canh Long).\n` +
+            `• **Mẹo:** Kết hợp phân kỳ RSI (Divergence) với vùng hỗ trợ/kháng cự để bắt đỉnh đáy chuẩn xác nhất!`;
+    } else if (p.includes('order block') || p.includes('ob')) {
+        answer = `🛡️ **Order Block (OB) trong phương pháp Smart Money Concepts (SMC) là gì?**\n` +
+            `Order Block là vùng giá mà các "Cá mập" (Smart Money / Định chế tài chính) đã để lại khối lượng khớp lệnh khổng lồ:\n` +
+            `• **Bullish Order Block (Demand):** Cây nến giảm cuối cùng trước một nhịp tăng bứt phá mạnh $\\rightarrow$ Khi giá quay lại retest, đây là vùng hỗ trợ để vào lệnh Long.\n` +
+            `• **Bearish Order Block (Supply):** Cây nến tăng cuối cùng trước một nhịp lao dốc mạnh $\\rightarrow$ Vùng cản để canh Short.\n` +
+            `• **Quy tắc:** Chỉ trade ở những OB chưa bị chạm (Unmitigated) và có FVG đi kèm.`;
+    } else if (p.includes('fvg') || p.includes('fair value gap')) {
+        answer = `⚡ **Fair Value Gap (FVG - Khoảng trống giá) là gì?**\n` +
+            `FVG là khoảng trống mất cân bằng cung cầu xuất hiện giữa râu nến thứ 1 và râu nến thứ 3 trong cụm 3 cây nến liên tiếp:\n` +
+            `• Thị trường luôn có xu hướng "hút" giá quay về để lấp đầy (Fill) khoảng trống thanh khoản này.\n` +
+            `• Khi giá lấp đầy 50% hoặc 100% FVG tại một vùng Order Block, đó là điểm kích hoạt lệnh Entry cực đẹp!`;
+    } else if (p.includes('quản lý vốn') || p.includes('risk') || p.includes('r:r') || p.includes('vốn')) {
+        answer = `🎯 **Nguyên Tắc Quản Lý Vốn Sống Còn Của Một Trader Thành Công:**\n` +
+            `1. **Tỷ lệ Risk:Reward (R:R) $\\ge$ 1:2:** Chấp nhận rủi ro mất 1 đồng thì mục tiêu phải ăn ít nhất 2 đồng. Kể cả tỷ lệ thắng chỉ 40%, bạn vẫn có lợi nhuận dài hạn!\n` +
+            `2. **Nguyên tắc 2 - 5%:** Mỗi lệnh chỉ nên ký quỹ tối đa 5-10% tổng số Cowcoin trong ví. Tuyệt đối không tất tay (All-in).\n` +
+            `3. **Luôn cài Stop Loss (SL):** Không bao giờ gồng lỗ hy vọng giá hồi. Cắt lỗ là chi phí bảo vệ vốn kinh doanh!\n` +
+            `4. **Kiểm soát tâm lý:** Sau khi thua 2 lệnh liên tiếp, hãy dừng lại, không được cay cú gỡ lệnh (Revenge Trading).`;
+    } else if (p.includes('long') || p.includes('short')) {
+        answer = `📈 **Phân Biệt Lệnh LONG và SHORT trong Phái Sinh:**\n` +
+            `• 🟢 **LONG (Mua / Đánh lên):** Bạn kỳ vọng giá sẽ tăng. Nếu giá tăng cao hơn giá vào lệnh (Entry), bạn có lãi. Càng tăng càng lãi!\n` +
+            `• 🔴 **SHORT (Bán / Đánh xuống):** Bạn kỳ vọng giá sẽ giảm. Nếu giá rớt xuống thấp hơn giá vào lệnh (Entry), bạn có lãi. Thị trường giảm bạn vẫn kiếm được tiền!\n` +
+            `• Bạn có thể dùng lệnh \`!long <số_tiền>\` hoặc \`!short <số_tiền>\` trực tiếp trên sàn Wind.`;
+    } else if (p.includes('đòn bẩy') || p.includes('leverage') || p.includes('cháy')) {
+        answer = `⚡ **Đòn Bẩy (Leverage) & Cơ Chế Thanh Lý (Cháy Tài Khoản):**\n` +
+            `• Đòn bẩy giúp phóng đại sức mạnh vốn của bạn. Ví dụ: Ký quỹ 1,000 cowcoin với đòn bẩy x10 $\\rightarrow$ Quy mô vị thế là 10,000 cowcoin (Lãi gấp 10 lần, nhưng lỗ cũng nhanh gấp 10 lần!).\n` +
+            `• **Giá Thanh Lý (Liquidation Price):** Khi khoản lỗ vượt quá mức ký quỹ duy trì, vị thế sẽ bị sàn tự động đóng (Cháy lệnh).\n` +
+            `• **Khuyến nghị:** Người mới chỉ nên dùng đòn bẩy **x5 - x20**. Đặc quyền VIP được mở khóa tối đa lên đến **x125** kèm bảo hiểm hoàn lại 10% nếu rủi ro bị thanh lý.`;
+    } else if (p.includes('nến') || p.includes('pinbar') || p.includes('hammer') || p.includes('engulfing')) {
+        answer = `🕯️ **Các Mô Hình Nến Đảo Chiều Quan Trọng Nhất (Price Action):**\n` +
+            `• 🔨 **Hammer / Pinbar Bullish:** Râu dưới dài rút chân mạnh $\\rightarrow$ Báo hiệu phe mua đã đẩy giá ngược lên, tín hiệu đảo chiều tăng giá.\n` +
+            `• 🌠 **Shooting Star / Pinbar Bearish:** Râu trên dài ngoằng $\\rightarrow$ Phe bán từ chối giá cao, tín hiệu đảo chiều giảm giá.\n` +
+            `• 🟢🔥 **Bullish Engulfing (Nhấn chìm tăng):** Thân nến xanh to nuốt trọn nến đỏ trước $\\rightarrow$ Động lượng phe mua bùng nổ.\n` +
+            `• ⚖️ **Doji:** Thân nến siêu mỏng $\\rightarrow$ Thị trường đang cân bằng và chuẩn bị có sóng bứt phá.`;
+    } else {
+        answer = `💡 **Chào bạn! Mình là Trợ Lý Trading Wind.**\n` +
+            `Để tham gia thị trường phái sinh trên server, bạn có thể sử dụng các lệnh tiện ích sau:\n` +
+            `• \`!trade\` : Mở sàn giao dịch với biểu đồ nến thời gian thực và các nút bấm Mua/Bán.\n` +
+            `• \`!ptkt\` hoặc \`!signal\` : Nhận phân tích kỹ thuật và tín hiệu soi kèo từ A.I.\n` +
+            `• \`!helptrade\` : Mở cẩm nang hướng dẫn toàn tập từ cơ bản đến nâng cao.\n` +
+            `• \`!long <tiền>\` / \`!short <tiền>\` : Khớp lệnh nhanh.\n` +
+            `Bạn có thể hỏi mình bất kỳ câu hỏi nào về: RSI, SMC, Order Block, nến Pinbar, FVG, cách tính đòn bẩy hay quản lý vốn nhé!`;
+    }
+
+    return `${answer}${TRADING_DISCLAIMER}`;
+}
+
+    // D. RA LỆNH VỚI AI GEMINI & TRẢ LỜI CÂU HỎI TRADING KHI ĐƯỢC TAG
     if (!CO_AUTO_CHAT) return false;
 
     const isMentioned = message.mentions.has(clientUser) && !message.mentions.everyone;
     const isCalledName = contentLower.startsWith("wind ơi") || contentLower.startsWith("wind ");
 
     if ((isMentioned || isCalledName) && !content.startsWith("!")) {
-        if (!ai) return true;
+        const userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
+        const hasPremiumAccess = await hasActiveVip(message.author.id, message.guild?.id);
+        const askingTrade = isTradingQuestion(userPrompt);
+
+        // Nếu không có API Key AI nhưng người dùng hỏi về Trading -> Trả lời ngay bằng Bộ Tri Thức Trading
+        if (!ai) {
+            if (askingTrade) {
+                const tradeReply = getOfflineTradingAnswer(userPrompt, message.author.username, hasPremiumAccess);
+                await message.reply(tradeReply);
+                return true;
+            }
+            return true;
+        }
 
         try {
             await message.channel.sendTyping();
-            const userPrompt = content.replace(new RegExp(`<@!?${clientUser.id}>`, 'g'), '').trim();
             const targetUser = message.mentions.users.find(u => u.id !== clientUser.id);
+            const aiModel = hasPremiumAccess
+                ? (process.env.GEMINI_PREMIUM_MODEL || premiumModel)
+                : 'gemini-2.5-flash';
 
             let systemInstruction = "";
 
@@ -420,17 +513,52 @@ Hãy trò chuyện vui vẻ, thân thiện, xưng "Wind" - "bạn" hoặc "mình
 KHÔNG xưng "Chào Admin/Sếp", Tuyệt đối KHÔNG sử dụng các cú pháp lệnh quản trị server [CMD:...].`;
             }
 
+            if (hasPremiumAccess) {
+                systemInstruction += '\nNgười dùng đang có Wind VIP: cung cấp câu trả lời chuyên sâu, có cấu trúc và ưu tiên hỗ trợ nâng cao.';
+            }
+
+            // ĐẶC BIỆT: HƯỚNG DẪN AI KHI ĐƯỢC HỎI VỀ KIẾN THỨC TRADING
+            if (askingTrade) {
+                systemInstruction += `\n\n[HƯỚNG DẪN CỐ VẤN TRADING & TÀI CHÍNH]:
+Người dùng đang hỏi bạn về kiến thức trading, đầu tư tài chính, phân tích kỹ thuật (RSI, MA Cross, nến Hammer, Engulfing), Smart Money Concepts (Order Block, FVG, Liquidity Sweep), quản trị rủi ro (R:R, quy tắc 2%), hoặc cách chơi sàn phái sinh Wind Exchange (!trade, !long, !short, !pos, !tp, !sl, !helptrade).
+Bạn hãy:
+1. Đóng vai trò là một Cố Vấn Trading Thực Chiến tận tâm, giải thích sâu sắc, chuẩn xác, dễ hiểu, dùng ngôn từ chuyên nghiệp nhưng thân thiện.
+2. Đưa ra ví dụ thực tế hoặc hướng dẫn họ các lệnh tương ứng trên bot nếu phù hợp.
+3. BẮT BUỘC chèn dòng cảnh báo rủi ro sau vào CUỐI CÙNG của câu trả lời:
+"⚠️ Lưu ý: Mọi quyết định giao dịch và rủi ro tài chính đều do bạn tự đưa ra và chịu trách nhiệm. Wind chỉ đóng vai trò trợ lý hỗ trợ phân tích và chia sẻ kiến thức tham khảo."`;
+            }
+
             let promptText = `Người dùng (${message.author.username}): "${userPrompt}"`;
             if (targetUser && isAdmin) {
                 promptText += `\n(ID Người dùng được tag để thao tác: ${targetUser.id})`;
             }
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: `${systemInstruction}\n\n${promptText}`,
-            });
+            let response;
+            try {
+                response = await ai.models.generateContent({
+                    model: aiModel,
+                    contents: `${systemInstruction}\n\n${promptText}`,
+                });
+            } catch (modelError) {
+                if (askingTrade) {
+                    const fallbackReply = getOfflineTradingAnswer(userPrompt, message.author.username, hasPremiumAccess);
+                    await message.reply(fallbackReply);
+                    return true;
+                }
+                if (!hasPremiumAccess || aiModel === 'gemini-2.5-flash') throw modelError;
+                console.error('Model AI VIP không khả dụng, chuyển về model thường:', modelError.message);
+                response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: `${systemInstruction}\n\n${promptText}`,
+                });
+            }
 
             let botReply = response.text || "Chào bạn nha!";
+
+            // Đảm bảo dòng lưu ý luôn có mặt nếu câu hỏi về trade
+            if (askingTrade && !botReply.includes('Mọi quyết định giao dịch')) {
+                botReply += TRADING_DISCLAIMER;
+            }
 
             // Lớp bảo mật quan trọng: Chỉ thực thi lệnh quản trị khi là ADMIN
             if (isAdmin) {
@@ -442,6 +570,10 @@ KHÔNG xưng "Chào Admin/Sếp", Tuyệt đối KHÔNG sử dụng các cú ph�
             return true;
         } catch (error) {
             console.error("Lỗi AI Chat/Role Action:", error);
+            if (askingTrade) {
+                const fallbackReply = getOfflineTradingAnswer(userPrompt, message.author.username, hasPremiumAccess);
+                await message.reply(fallbackReply).catch(() => {});
+            }
             return true;
         }
     }

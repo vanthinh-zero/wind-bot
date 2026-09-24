@@ -1,4 +1,5 @@
 const { PermissionsBitField, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { COLORS, author, footer, serverBrand, statField } = require('../utils/embedTheme');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -66,77 +67,124 @@ function initAutoSpam(client) {
     }
 }
 
-// --- 📜 HÀM XỬ LÝ LỆNH EMBED (!wind) ---
+// --- 📜 HÀM XỬ LÝ LỆNH BẢNG ĐIỀU KHIỂN TRUNG TÂM (!wind) ---
 async function handleWindCommand(message) {
     const content = message.content.trim();
     const args = content.split(/\s+/);
     const command = args[0].toLowerCase();
 
     if (command === '!wind') {
+        const sub = args[1]?.toLowerCase();
+
+        // 1. Phân mục chuyên sâu: !wind trade
+        if (sub === 'trade' || sub === 'san') {
+            const tradeEmbed = new EmbedBuilder()
+                .setColor(COLORS.gold || '#f0b90b')
+                .setAuthor(author('WIND EXCHANGE • TRADING COMMANDS', serverBrand(message.guild)))
+                .setTitle('📈 SÀN GIAO DỊCH PHÁI SINH & TRỢ LÝ A.I')
+                .setDescription(
+                    'Sàn giao dịch phái sinh Futures chuẩn đời thực với nến Nhật, đòn bẩy x1 đến x125 và trợ lý A.I soi kèo.\n\n' +
+                    '💡 *Dùng tiền Cowcoin chung với Pet, Shop và Làm việc.*'
+                )
+                .addFields(
+                    {
+                        name: '⚡ Lệnh Đặt & Quản Lý Vị Thế',
+                        value: 
+                            '• `!trade [btc/eth/sol/bnb]` : Mở sàn giao dịch nến trực quan & nút bấm.\n' +
+                            '• `!long <tiền> [đòn_bẩy] [tp] [sl]` : Mở vị thế **LONG** (Mua / Đánh lên).\n' +
+                            '• `!short <tiền> [đòn_bẩy] [tp] [sl]` : Mở vị thế **SHORT** (Bán / Đánh xuống).\n' +
+                            '• `!close` : Đóng vị thế theo giá thị trường, nhận PnL về ví.\n' +
+                            '• `!pos` hoặc `!pnl` : Xem chi tiết thẻ vị thế đang mở và lãi/lỗ.\n' +
+                            '• `!tp <giá>` : Đặt / Cập nhật điểm Chốt Lời tự động.\n' +
+                            '• `!sl <giá>` : Đặt / Cập nhật điểm Cắt Lỗ tự động.\n' +
+                            '• `!lev <1-125>` : Cài đặt đòn bẩy mặc định.\n' +
+                            '• `!history` : Xem thống kê tổng lệnh, tỷ lệ thắng (Win Rate) và kỷ lục lãi.'
+                    },
+                    {
+                        name: '🤖 Trợ Lý A.I & Học Viện Trader',
+                        value:
+                            '• `!ptkt [coin]` / `!signal` : A.I soi kèo, quét RSI, sóng SMC và gợi ý Entry, TP, SL với tỷ lệ R:R tối ưu.\n' +
+                            '• `!helptrade` : Cẩm nang toàn tập cho trader từ cơ bản đến nâng cao.\n' +
+                            '• **Tag `@Wind`**: Đặt câu hỏi trực tiếp (RSI là gì, Order Block là gì, cách quản lý vốn...)'
+                    },
+                    {
+                        name: '💰 Quản Lý Dòng Tiền Cowcoin',
+                        value:
+                            '• `!vi` hoặc `!money` : Xem chi tiết Số dư khả dụng + Tiền ký quỹ + Tổng tài sản ròng.\n' +
+                            '• `!diemdanh` : Nhận vốn giao dịch miễn phí hàng ngày (+5,000, VIP nhận +10,000).\n' +
+                            '• `!trade vip` : Xem quyền lợi 0% phí sàn, đòn bẩy x125 và bảo hiểm cháy 10%.'
+                    }
+                )
+                .setFooter(footer('⚠️ Mọi quyết định giao dịch đều do bạn tự chịu trách nhiệm. A.I chỉ là trợ lý tham khảo.'))
+                .setTimestamp();
+
+            return await message.channel.send({ embeds: [tradeEmbed] });
+        }
+
+        // 2. Bảng điều khiển tổng quan đầy đủ nhất: !wind
         const windEmbed = new EmbedBuilder()
-            .setColor('#8CC0EB')
-            .setTitle('📋 BẢNG HƯỚNG DẪN MẬT LỆNH & PHÂN QUYỀN')
-            .setDescription('Danh mục lệnh hệ thống được phân cấp minh bạch theo từng thẩm quyền:\n\n───────────────')
+            .setColor(COLORS.sky || '#38bdf8')
+            .setAuthor(author('WIND COMMAND CENTER', serverBrand(message.guild)))
+            .setTitle('✦ WIND • BẢNG ĐIỀU KHIỂN TẤT CẢ CÁC LỆNH')
+            .setDescription(
+                'Trung tâm điều khiển và hướng dẫn toàn diện hệ sinh thái Wind Bot.\n\n' +
+                '🚀 **Bắt đầu nhanh:** `!trade` (Sàn phái sinh)  •  `!helptrade` (Cẩm nang)  •  `/setup-server` (Cài đặt Admin)'
+            )
             .addFields(
-                // --- NHÓM THÀNH VIÊN ---
-                { 
-                    name: '🟢 [1] DÀNH CHO TOÀN THỂ THÀNH VIÊN', 
-                    value: '• **Trang trí cá nhân:** `/profile`, `/bio`, `/status`, `/settitle`, `/setcolor`, `/setbadge`, `/setdivided`, `/setfooter`, `/setmedia`, `/setgif`, `/setbanner`, `/setavatar`\n' +
-                           '• **Tương tác xã hội:** `/totinh`, `/kethon`, `/banthan`, `/om`, `/hon`, `/xoadau`, `/veo`\n' +
-                           '• **Trò chơi & Giải trí:** `!noitu`, `!pet`, `!poem`, `!tarot`, `!chualanh`, `!rule`\n' +
-                           '• **Học tập & Ôn thi:** `!dethi <môn> <đề_số>` (Lấy đề thi), `!vocabulary` (Tự động gửi từ vựng)\n' +
-                           '• **Tài chính & Cá cược:** `!taixiu` (Đặt cược tài xỉu)\n' +
-                           '• **Hệ thống Tu Chân:** `!tutien` (Bảng điều khiển tu luyện & săn thú)\n' +
-                           '• **Trò chuyện AI:** Tag `@Wind` hoặc gõ `Wind ơi...`'
+                {
+                    name: '📈 Sàn Giao Dịch Phái Sinh & Ví Cowcoin',
+                    value: 
+                        '`!trade`  `!long`  `!short`  `!close`  `!pos`\n' +
+                        '`!tp`  `!sl`  `!lev`  `!vi`  `!diemdanh`  `!history`\n' +
+                        '*(Dùng `!wind trade` để xem chi tiết cách chơi sàn)*',
+                    inline: false
                 },
-                { 
-                    name: '⠀', 
-                    value: '───────────────' 
+                {
+                    name: '🤖 Trợ Lý A.I & Cố Vấn Trading',
+                    value: 
+                        '• `!helptrade` : Cẩm nang kiến thức trader toàn tập A - Z.\n' +
+                        '• `!ptkt [coin]` / `!signal` : A.I soi kèo, quét RSI và SMC.\n' +
+                        '• **Tag `@Wind`**: Đặt câu hỏi về trade hoặc trò chuyện cùng bot.',
+                    inline: false
                 },
-
-                // --- NHÓM VIP ---
-                { 
-                    name: '⭐ [2] QUYỀN HẠN VIP & NITRO BOOSTER', 
-                    value: '• **Đặc quyền VIP:** `!svip` (Khởi tạo khu vực VIP)\n' +
-                           '• **Quản lý Voice:** `!menuvip` (Bảng quản lý phòng Voice: Khóa/Mở, Đổi tên, Đặt slot, Kick thành viên)'
+                {
+                    name: '🐾 Thú Cưng & Nông Trại (Pets)',
+                    value: 
+                        '`!pet`  `!muapet`  `!choan`  `!nangcap`\n' +
+                        '`!khopet`  `!laypet`  `!lockpet`  `!tromcho`  `!banpet`',
+                    inline: true
                 },
-                { 
-                    name: '⠀', 
-                    value: '───────────────' 
+                {
+                    name: '🛍️ Shop & Hồ Sơ Thành Viên',
+                    value: 
+                        '`/shop`  `/inventory`  `/profile`\n' +
+                        '`/totinh`  `/kethon`  `/lyhon`  `!lamviec`',
+                    inline: true
                 },
-
-                // --- NHÓM STAFF & LỄ TÂN ---
-                { 
-                    name: '🛡️ [3] ĐẶC QUYỀN BỒ QUẢN TRỊ & LỄ TÂN (STAFF)', 
-                    value: '📌 **Thẩm quyền Vận hành & Giám sát Máy chủ:**\n\n' +
-                           '• `!tukhoa add <từ_khóa> <câu_trả_lời>` — Thêm phản hồi tự động\n' +
-                           '• `!tukhoa del <từ_khóa>` — Xóa từ khóa phản hồi tự động\n' +
-                           '• `!tukhoa list` — Tra cứu danh sách từ khóa hệ thống\n' +
-                           '• `!trathongtin @User` — Trích xuất hồ sơ cá nhân kín (Gửi trực tiếp vào DM)\n' +
-                           '• `!topchatimage` / `!thongketag` — Kiểm tra thống kê tương tác thành viên\n' +
-                           '• `!taocontent <chủ_đề>` — Yêu cầu AI sáng tạo kịch bản tại kênh Content'
+                {
+                    name: '👑 Gói Hội Viên Wind VIP',
+                    value: 
+                        '`/vip mua`  `/vip trangthai`  `/vip dacquyen`\n' +
+                        '`!trade vip` *(0% phí, x125, bảo hiểm 10%)*  `!petvip`',
+                    inline: false
                 },
-                { 
-                    name: '⠀', 
-                    value: '───────────────' 
+                {
+                    name: '🎮 Giải Trí & Khám Phá',
+                    value: 
+                        '`!tutien`  `!noitu`  `!tarot`  `!poem`\n' +
+                        '`!chualanh`  `!dethi`  `!vocabulary`  `!khihau`',
+                    inline: true
                 },
-
-                // --- NHÓM ADMIN ---
-                { 
-                    name: '👑 [4] QUYỀN HẠN TỐI CAO - ADMINISTRATOR', 
-                    value: '🔑 **Thẩm quyền Điều hành & Cấu hình Toàn Hệ Thống:**\n\n' +
-                           '• **Thao tác Server bằng AI:** Trực tiếp ra lệnh AI (`Tạo/Xóa kênh`, `Cấp/Xóa Role`, `Đổi biệt danh`...)\n' +
-                           '• `!autorole wind` — Bảng thiết lập & Spawn Auto Role tự động cho thành viên\n' +
-                           '• `!set ticket` — Khởi tạo / Spawn bảng tạo Ticket hỗ trợ\n' +
-                           '• `!setrule` — Khởi tạo / Cập nhật bảng Nội quy máy chủ\n' +
-                           '• `!autochat on/off` — Chủ động Bật/Tắt chế độ chat tự động của Bot\n' +
-                           '• `!mood cold/macdinh` — Tùy chỉnh phong cách phản hồi của AI\n' +
-                           '• `!clear [số_tin]` — Dọn dẹp tin nhắn hàng loạt\n' +
-                           '• `!thuhoi @User [số_tiền]` — Thao tác điều chỉnh số dư tài chính\n' +
-                           '• `!ping` — Kiểm tra độ trễ hệ thống'
+                {
+                    name: '🧭 Quản Trị Server (Admin / Staff)',
+                    value: 
+                        '`/setup-server`  `/setchannel`  `!ticket`\n' +
+                        '`!autorole wind`  `!setrule`  `!topchat`  `!nuke`',
+                    inline: true
                 }
             )
-            .setFooter({ text: '💡 Lưu ý: Cần có đủ Role tương ứng để kích hoạt được các lệnh phân quyền.' })
+            .setThumbnail(serverBrand(message.guild))
+            .setFooter(footer('Gõ !wind trade để xem chuyên sâu về sàn giao dịch • Dùng các lệnh / hoặc ! tương ứng.'))
             .setTimestamp();
 
         try {

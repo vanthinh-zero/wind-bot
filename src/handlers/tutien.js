@@ -2,6 +2,8 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { CANH_GIOI_LIST, LINH_CAN_TYPES, DAN_DUOC_SHOP } = require('../config/tutien_config');
 const { getTuSi, saveTuTienData, getLinhThach, addLinhThach, getAllTuSi } = require('../utils/database');
+const { getGuildChannel } = require('../utils/db');
+const { COLORS, author, luxuryTitle } = require('../utils/embedTheme');
 
 const TUTIEN_CHANNEL_ID = process.env.TUTIEN_CHANNEL_ID?.trim() || '';
 const processingUsers = new Set();
@@ -25,14 +27,19 @@ function getCanhGioiName(tuSi, hienTai) {
 
 // ─── GIAO DIỆN CHÍNH ĐẠI SẢNH ───
 async function sendTuTienMainMenu(message) {
-    if (message.channel.id !== TUTIEN_CHANNEL_ID) {
-        return message.reply(`❌ Hệ thống Tu Tiên chỉ mở tại kênh: <#${TUTIEN_CHANNEL_ID}>`);
+    const guildId = message.guild?.id;
+    const configuredChannelId = guildId ? await getGuildChannel(guildId, 'tutien') : null;
+    const targetChannelId = configuredChannelId || TUTIEN_CHANNEL_ID;
+
+    if (targetChannelId && message.channel.id !== targetChannelId) {
+        return message.reply(`❌ Hệ thống Tu Tiên của server chỉ mở tại kênh: <#${targetChannelId}>`);
     }
 
     const mainEmbed = new EmbedBuilder()
-        .setTitle('☯️ TIÊN PHỦ TU CHÂN ĐẠI SẢNH ☯️')
+        .setAuthor(author('IMMORTAL ARCHIVE'))
+        .setTitle(luxuryTitle('☯️', 'Thiên lộ tu chân'))
         .setDescription('**Nghịch thiên cải mệnh, vấn đỉnh trường sinh.**\n\n*“Chính đạo trường tồn, hay Ma đạo vô biên? Con đường là do đạo hữu tự chọn!”*')
-        .setColor('#2c3e50')
+        .setColor(COLORS.violet)
         .setImage('https://cdn.discordapp.com/attachments/1508103127956455536/1512524891574767796/72897756f8bb07b7f737f3695574b54b.png'); 
 
     const row1 = new ActionRowBuilder().addComponents(

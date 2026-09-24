@@ -7,11 +7,9 @@ const {
     ButtonStyle,
     StringSelectMenuBuilder
 } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const { ITEM_SHOP } = require('./shop'); // Import danh sách shop
-
-const dbPath = path.join(process.cwd(), 'profiles.json');
+const { db } = require('../utils/db');
+const { COLORS, author, footer, luxuryTitle } = require('../utils/embedTheme');
 
 const ACTION_DATA = {
     om: {
@@ -43,15 +41,18 @@ const ACTION_DATA = {
 
 const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-function readDatabase() {
+async function readDatabase() {
     try {
-        if (!fs.existsSync(dbPath)) return {};
-        return JSON.parse(fs.readFileSync(dbPath, 'utf8') || '{}');
+        return (await db.get('profiles')) || {};
     } catch { return {}; }
 }
 
-function writeDatabase(data) {
-    try { fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.error(e); }
+async function writeDatabase(data) {
+    try { 
+        await db.set('profiles', data); 
+    } catch (e) { 
+        console.error('Lỗi lưu profiles trong relationship.js:', e); 
+    }
 }
 
 function ensureUserExists(db, userId) {
@@ -68,13 +69,13 @@ function getMarriedDateFormatted(marriedAt) {
     return `${date.getDate()} tháng ${date.getMonth() + 1}, ${date.getFullYear()}`;
 }
 
-function setRelationship(user1Id, user2Id, type) {
-    const db = readDatabase();
-    ensureUserExists(db, user1Id);
-    ensureUserExists(db, user2Id);
+async function setRelationship(user1Id, user2Id, type) {
+    const dbData = await readDatabase();
+    ensureUserExists(dbData, user1Id);
+    ensureUserExists(dbData, user2Id);
 
-    db[user1Id].relationships[type] = user2Id;
-    db[user2Id].relationships[type] = user1Id;
+    dbData[user1Id].relationships[type] = user2Id;
+    dbData[user2Id].relationships[type] = user1Id;
 
     if (type === 'kethon') {
         const defaultMarriageData = {
@@ -83,26 +84,26 @@ function setRelationship(user1Id, user2Id, type) {
             lovePoints: 100, streakDays: 1, lastInteractedAt: new Date().toISOString(),
             quote: '𝒩𝑜𝓌 𝓀𝒾𝓈𝓈! (´・ω・`) ♡', wallpaper: null
         };
-        db[user1Id].marriageData = { ...defaultMarriageData };
-        db[user2Id].marriageData = { ...defaultMarriageData };
+        dbData[user1Id].marriageData = { ...defaultMarriageData };
+        dbData[user2Id].marriageData = { ...defaultMarriageData };
     }
-    writeDatabase(db);
+    await writeDatabase(dbData);
 }
 
-function removeRelationship(userId, type) {
-    const db = readDatabase();
-    if (!db[userId]?.relationships?.[type]) return null;
+async function removeRelationship(userId, type) {
+    const dbData = await readDatabase();
+    if (!dbData[userId]?.relationships?.[type]) return null;
 
-    const partnerId = db[userId].relationships[type];
-    db[userId].relationships[type] = null;
-    if (db[partnerId]?.relationships) db[partnerId].relationships[type] = null;
+    const partnerId = dbData[userId].relationships[type];
+    dbData[userId].relationships[type] = null;
+    if (dbData[partnerId]?.relationships) dbData[partnerId].relationships[type] = null;
 
     if (type === 'kethon') {
-        db[userId].marriageData = null;
-        if (db[partnerId]) db[partnerId].marriageData = null;
+        dbData[userId].marriageData = null;
+        if (dbData[partnerId]) dbData[partnerId].marriageData = null;
     }
 
-    writeDatabase(db);
+    await writeDatabase(dbData);
     return partnerId;
 }
 
@@ -112,8 +113,9 @@ async function createMarriageCardEmbed(client, user, partnerUser, marriageData) 
     const ringInfo = marriageData.ring || { name: 'Cỏ 4 Lá', emoji: '🍀' };
 
     const embed = new EmbedBuilder()
-        .setColor('#381b2a')
-        .setAuthor({ name: `💖 ${user.username} đang hạnh phúc với ${partnerUser ? partnerUser.username : 'Người ấy'}`, iconURL: user.displayAvatarURL({ dynamic: true }) })
+        .setColor(COLORS.plum)
+        .setAuthor(author(`MARRIAGE CARD • ${user.username} × ${partnerUser ? partnerUser.username : 'Người ấy'}`, user.displayAvatarURL({ dynamic: true })))
+        .setTitle(luxuryTitle('💖', 'Thẻ hạnh phúc'))
         .setDescription(
             `📅 **Ngày kết hôn :** ${marriedDateStr} (${marriedDays} ngày)\n` +
             `💒 **Nhẫn đính hôn :** ${ringInfo.emoji} **${ringInfo.name}**\n` +
@@ -157,7 +159,7 @@ const relationshipCommands = [
 async function handleRelationshipInteraction(interaction) {
     if (interaction.isChatInputCommand()) {
         const { commandName, user, options, client } = interaction;
-        const db = readDatabase();
+        const db = await readDatabase();
         ensureUserExists(db, user.id);
 
         if (commandName === 'totinh') {
@@ -165,7 +167,7 @@ async function handleRelationshipInteraction(interaction) {
             const loinhan = options.getString('loinhan') || 'Cậu có đồng ý trở thành một nửa ngọt ngào của tớ không? 🌸';
             if (targetUser.id === user.id || targetUser.bot) return interaction.reply({ content: '❌ Đối phương không hợp lệ!', flags: MessageFlags.Ephemeral });
 
-            const embed = new EmbedBuilder().setColor('#FF69B4').setTitle('💖 LỜI TỎ TÌNH 💖').setDescription(`${user} gửi lời tỏ tình đến ${targetUser}!\n> "${loinhan}"`);
+            const embed = new EmbedBuilder().setColor(COLORS.rose).setAuthor(author('HEART LETTER')).setTitle('💖 Một lời tỏ tình').setDescription(`${user} gửi lời tỏ tình đến ${targetUser}!\n> "${loinhan}"`).setFooter(footer('Một khoảnh khắc nhỏ, một câu trả lời lớn.'));
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId(`rel_accept_totinh_${user.id}_${targetUser.id}`).setLabel('Đồng Ý 💕').setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId(`rel_refuse_totinh_${user.id}_${targetUser.id}`).setLabel('Từ Chối 💔').setStyle(ButtonStyle.Danger)
@@ -178,7 +180,7 @@ async function handleRelationshipInteraction(interaction) {
             const loinhan = options.getString('loinhan') || 'Cùng nắm tay nhau đi hết quãng đường còn lại nhé! 💍';
             if (targetUser.id === user.id || targetUser.bot) return interaction.reply({ content: '❌ Đối phương không hợp lệ!', flags: MessageFlags.Ephemeral });
 
-            const embed = new EmbedBuilder().setColor('#FFD700').setTitle('💍 LỄ CẦU HÔN 💍').setDescription(`${user} ngỏ lời cầu hôn ${targetUser}!\n> "${loinhan}"`);
+            const embed = new EmbedBuilder().setColor(COLORS.gold).setAuthor(author('PROPOSAL ROOM')).setTitle('💍 Một lời cầu hôn').setDescription(`${user} ngỏ lời cầu hôn ${targetUser}!\n> "${loinhan}"`).setFooter(footer('Hãy để trái tim lên tiếng.'));
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId(`rel_accept_kethon_${user.id}_${targetUser.id}`).setLabel('Đồng Ý 💍').setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId(`rel_refuse_kethon_${user.id}_${targetUser.id}`).setLabel('Từ Chối 🥀').setStyle(ButtonStyle.Danger)
@@ -190,7 +192,7 @@ async function handleRelationshipInteraction(interaction) {
             const targetUser = options.getUser('user');
             if (targetUser.id === user.id || targetUser.bot) return interaction.reply({ content: '❌ Đối phương không hợp lệ!', flags: MessageFlags.Ephemeral });
 
-            const embed = new EmbedBuilder().setColor('#00FFFF').setTitle('🤝 LỜI MỜI KẾT BẠN THÂN 🤝').setDescription(`${user} muốn kết bạn thân với ${targetUser}!`);
+            const embed = new EmbedBuilder().setColor(COLORS.sapphire).setAuthor(author('SOCIAL CIRCLE')).setTitle('🤝 Một lời mời thân thiết').setDescription(`${user} muốn kết bạn thân với ${targetUser}!`).setFooter(footer('Những mối quan hệ đẹp bắt đầu từ một lời mời.'));
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId(`rel_accept_banthan_${user.id}_${targetUser.id}`).setLabel('Đồng Ý 🤝').setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId(`rel_refuse_banthan_${user.id}_${targetUser.id}`).setLabel('Từ Chối 💔').setStyle(ButtonStyle.Danger)
@@ -221,14 +223,14 @@ async function handleRelationshipInteraction(interaction) {
 
             db[user.id].marriageData.quote = text;
             if (db[partnerId]?.marriageData) db[partnerId].marriageData.quote = text;
-            writeDatabase(db);
+            await writeDatabase(db);
 
             return interaction.reply({ content: `✅ Đã cập nhật câu chúc thành công: "*${text}*"`, flags: MessageFlags.Ephemeral });
         }
 
         if (commandName === 'huymoquanhe') {
             const type = options.getString('loai');
-            const partnerId = removeRelationship(user.id, type);
+            const partnerId = await removeRelationship(user.id, type);
             if (!partnerId) return interaction.reply({ content: '❌ Bạn không có mối quan hệ này!', flags: MessageFlags.Ephemeral });
             return interaction.reply({ content: `💔 Đã hủy mối quan hệ với <@${partnerId}>.` });
         }
@@ -251,7 +253,7 @@ async function handleRelationshipInteraction(interaction) {
 
     if (interaction.isButton()) {
         const customId = interaction.customId;
-        const db = readDatabase();
+        const db = await readDatabase();
 
         if (customId.startsWith('rel_accept_') || customId.startsWith('rel_refuse_')) {
             const [, action, type, senderId, targetId] = customId.split('_');
@@ -259,7 +261,7 @@ async function handleRelationshipInteraction(interaction) {
 
             if (action === 'refuse') return interaction.update({ content: '💔 Lời mời đã bị từ chối.', embeds: [], components: [] });
 
-            setRelationship(senderId, targetId, type);
+            await setRelationship(senderId, targetId, type);
             return interaction.update({ content: `🎉 Chúc mừng hai bạn đã chính thức lập mối quan hệ!`, embeds: [], components: [] });
         }
 
@@ -275,7 +277,7 @@ async function handleRelationshipInteraction(interaction) {
 
             marriageData.lovePoints = (marriageData.lovePoints || 0) + addedPoints;
             if (db[user2Id]?.marriageData) db[user2Id].marriageData = { ...marriageData };
-            writeDatabase(db);
+            await writeDatabase(db);
 
             const partnerId = interaction.user.id === user1Id ? user2Id : user1Id;
             const partnerUser = await interaction.client.users.fetch(partnerId).catch(() => null);
@@ -300,14 +302,14 @@ async function handleRelationshipInteraction(interaction) {
     }
 
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('equip_ring_select_')) {
-        const db = readDatabase();
+        const db = await readDatabase();
         const [, , , user1Id, user2Id] = interaction.customId.split('_');
         const selectedValue = interaction.values[0].split('_')[0];
         const ringShopItem = ITEM_SHOP.find(r => r.id === selectedValue) || { name: 'Cỏ 4 Lá', emoji: '🍀', id: 'co_4_la' };
 
         if (db[user1Id]?.marriageData) db[user1Id].marriageData.ring = { ringId: ringShopItem.id, name: ringShopItem.name, emoji: ringShopItem.emoji };
         if (db[user2Id]?.marriageData) db[user2Id].marriageData.ring = { ringId: ringShopItem.id, name: ringShopItem.name, emoji: ringShopItem.emoji };
-        writeDatabase(db);
+        await writeDatabase(db);
 
         return interaction.update({ content: `✅ Đã đổi nhẫn sang **${ringShopItem.emoji} ${ringShopItem.name}** thành công!`, components: [] });
     }

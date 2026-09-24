@@ -1,5 +1,6 @@
 // src/handlers/poem.js
 const { EmbedBuilder } = require('discord.js');
+const { envOrSetting } = require('../utils/config');
 
 // =========================================================
 // KHO TÀNG TÁC PHẨM VĂN HỌC & THƠ CA KINH ĐIỂN
@@ -127,9 +128,10 @@ function getRandomColor(type) {
 // =========================================================
 let poemIntervalId = null;
 let isLoopActive = true; // Mặc định bật ngay khi chạy bot!
+let poemChannelUnavailable = false;
 
 function startAutoPoem(client) {
-    const channelId = process.env.KENH_NGAM_THO;
+    const channelId = envOrSetting('KENH_NGAM_THO', 'channels.poem');
     if (!channelId) return;
 
     if (poemIntervalId) clearInterval(poemIntervalId);
@@ -137,6 +139,7 @@ function startAutoPoem(client) {
     // Kích hoạt chạy ngầm định kỳ
     poemIntervalId = setInterval(async () => {
         if (!isLoopActive) return; // Nếu bị tạm dừng bằng lệnh !loop thì không gửi
+        if (poemChannelUnavailable) return;
 
         try {
             const channel = await client.channels.fetch(channelId);
@@ -150,7 +153,14 @@ function startAutoPoem(client) {
                     .setTimestamp();
                 await channel.send({ embeds: [embed] });
             }
-        } catch (e) { console.error("Lỗi gửi thơ tự động:", e); }
+        } catch (e) {
+            if (e.code === 10003 || e.code === 10004) {
+                poemChannelUnavailable = true;
+                console.warn('⚠️ Kênh ngâm thơ không tồn tại hoặc bot không truy cập được; tạm dừng job tới lần khởi động tiếp theo.');
+                return;
+            }
+            console.error("Lỗi gửi thơ tự động:", e);
+        }
     }, 60 * 60 * 1000); 
 }
 
@@ -174,11 +184,8 @@ async function handlePoemCommand(message) {
     const randomIntro = INTROS[Math.floor(Math.random() * INTROS.length)];
     const randomOutro = COMFORT_OUTROS[Math.floor(Math.random() * COMFORT_OUTROS.length)];
 
-    // =========================================================
-    // XỬ LÝ LỆNH CONTROL LOOP (!LOOP) -> ĐIỀU KHIỂN BẬT/TẮT CHẠY TỰ ĐỘNG
-    // =========================================================
     if (content === '!loop') {
-        isLoopActive = !isLoopActive; // Đảo trạng thái Bật <-> Tắt
+        isLoopActive = !isLoopActive; 
 
         const statusEmbed = new EmbedBuilder()
             .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
@@ -198,9 +205,7 @@ async function handlePoemCommand(message) {
         return true;
     }
 
-    // =========================================================
-    // XỬ LÝ LỆNH LỐP DỰ PHÒNG (!LỐP / !LOP) -> GỌI THƠ DỰ PHÒNG CỨU NGUY
-    // =========================================================
+
     if (content === '!lốp' || content === '!lop') {
         const p = SPARE_TIRE_POEMS[Math.floor(Math.random() * SPARE_TIRE_POEMS.length)];
         const embed = new EmbedBuilder()

@@ -1,15 +1,23 @@
 const cron = require('node-cron');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, MessageFlags } = require('discord.js');
+const { envOrSetting } = require('../utils/config');
 
 function start25hReminder(client) {
+    let channelUnavailable = false;
     cron.schedule('0 0 */2 * * *', async () => {
         try {
-            const channelId = process.env.K_QUANGCAO_ID; 
+            if (channelUnavailable) return;
+            const channelId = envOrSetting('K_QUANGCAO_ID', 'channels.marketing');
             if (!channelId) return console.error('⚠️ Thiếu cấu hình K_QUANGCAO_ID trong .env!');
             const channel = await client.channels.fetch(channelId);
             if (!channel) return;
             await sendBumpReminder(channel);
         } catch (error) {
+            if (error.code === 10003 || error.code === 10004) {
+                channelUnavailable = true;
+                console.warn('⚠️ Kênh marketing không tồn tại hoặc bot không truy cập được; tạm dừng job tới lần khởi động tiếp theo.');
+                return;
+            }
             console.error('❌ Lỗi hệ thống hẹn giờ Marketing:', error);
         }
     });
