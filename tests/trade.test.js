@@ -6,6 +6,7 @@ const {
     calculateLiquidationPrice, 
     calculateRSI, 
     detectCandlePattern, 
+    detectMarketStructure, 
     analyzeMarketTechnical, 
     calculateRiskReward, 
     getTradeHelpEmbed, 
@@ -95,6 +96,43 @@ test('Candle pattern detection identifies pinbars and engulfing', () => {
     const currentGreen = { open: 94, close: 105, high: 106, low: 93 };
     const engulfing = detectCandlePattern(currentGreen, prevRed);
     assert.ok(engulfing.includes('Bullish Engulfing'));
+});
+
+test('Market Structure confirms swings without using the newest candle as a pivot', () => {
+    const candles = [
+        { high: 10, low: 8, close: 9 },
+        { high: 12, low: 9, close: 11 },
+        { high: 15, low: 10, close: 14 },
+        { high: 13, low: 9, close: 10 },
+        { high: 14, low: 10, close: 13 },
+        { high: 16, low: 11, close: 15 },
+        { high: 15, low: 10, close: 14 },
+        { high: 17, low: 12, close: 16 },
+        { high: 18, low: 13, close: 17 }
+    ];
+
+    const ms = detectMarketStructure(candles, { swingLength: 1 });
+
+    assert.ok(['BULLISH', 'RANGING', 'NEUTRAL'].includes(ms.trend));
+    assert.ok(ms.points.every(point => point.index < candles.length - 1));
+    assert.ok(['NONE', 'BOS_BULLISH', 'BOS_BEARISH', 'CHOCH_BULLISH', 'CHOCH_BEARISH'].includes(ms.event));
+    assert.equal(typeof ms.explanation, 'string');
+});
+
+test('Market Structure detects bullish BOS only after a confirmed close above a swing high', () => {
+    const candles = [
+        { high: 10, low: 8, close: 9 },
+        { high: 12, low: 9, close: 11 },
+        { high: 11, low: 9, close: 10 },
+        { high: 13, low: 10, close: 12 },
+        { high: 12, low: 9, close: 10 },
+        { high: 14, low: 10, close: 13 },
+        { high: 16, low: 12, close: 15 }
+    ];
+
+    const ms = detectMarketStructure(candles, { swingLength: 1 });
+    assert.equal(ms.event, 'BOS_BULLISH');
+    assert.equal(ms.lastBreakPrice, 14);
 });
 
 test('Technical Analysis Engine outputs full trading plan', () => {
