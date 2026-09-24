@@ -7,7 +7,8 @@ const {
     ModalBuilder, 
     TextInputBuilder, 
     TextInputStyle,
-    StringSelectMenuBuilder
+    StringSelectMenuBuilder,
+    SlashCommandBuilder
 } = require('discord.js');
 const db = require('../utils/db');
 const { hasActiveVip, getPremiumStatus } = require('./premium');
@@ -829,10 +830,11 @@ const tradeInterval = setInterval(async () => {
         m.currentCandle.volume += Math.floor(Math.random() * 250);
         m.currentCandle.ticks++;
 
-        // Đổi cấu trúc SMC ngẫu nhiên theo sóng
-        if (Math.random() < 0.05) {
-            m.structure = SMC_STRUCTURES[Math.floor(Math.random() * SMC_STRUCTURES.length)];
-        }
+        // Market Structure phải được suy ra từ dữ liệu nến, không random.
+        const ms = getMarketStructure(key);
+        m.structure = ms.event !== 'NONE'
+            ? ms.eventLabel
+            : ms.trendLabel;
 
         if (m.currentCandle.ticks >= 3) {
             m.candleHistory.push({ ...m.currentCandle });
