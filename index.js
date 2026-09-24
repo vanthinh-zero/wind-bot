@@ -14,7 +14,8 @@ const { handleVoiceMenuInteraction, handleVoiceModalSubmit } = require('./src/ha
 const { handleWelcomeMember } = require('./src/handlers/welcome.js');
 const { handleGoodbyeMember } = require('./src/handlers/goodbye.js');
 // 👈 Bổ sung handleTradeButtons từ taixiu.js
-const { handleTaiXiuGame, handleTradeButtons } = require('./src/handlers/taixiu.js');
+const { handleTaiXiuGame, handleTradeButtons, marketStructureCommandData, handleMarketStructureSlash } = require('./src/handlers/taixiu.js');
+const { commandsData: detectiveCommandsData, handleDetectiveInteraction } = require('./src/handlers/detective.js');
 const { handlePetSystem } = require('./src/handlers/pet.js'); 
 const { startAutoPoem, handlePoemCommand } = require('./src/handlers/poem.js'); 
 const { handleAvatarCheck } = require('./src/handlers/avatar.js'); 
@@ -137,7 +138,9 @@ client.once(Events.ClientReady, async (readyClient) => {
             ...(shopHandler?.shopCommands || shopHandler?.commandsData || []),
             ...(premiumHandler?.commandData ? [premiumHandler.commandData] : []),
             ...(climateCommandData ? [climateCommandData] : []),
-            ...(serverSetupHandler?.commandData ? [serverSetupHandler.commandData] : [])
+            ...(serverSetupHandler?.commandData ? [serverSetupHandler.commandData] : []),
+            ...(marketStructureCommandData ? [marketStructureCommandData.toJSON ? marketStructureCommandData.toJSON() : marketStructureCommandData] : []),
+            ...(detectiveCommandsData || [])
         ];
 
         if (allSlashCommands.length > 0) {
@@ -350,6 +353,15 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
+        if (typeof handleDetectiveInteraction === 'function') {
+            const handled = await handleDetectiveInteraction(interaction);
+            if (handled) return;
+        }
+
+        if (interaction.isChatInputCommand() && interaction.commandName === 'ms') {
+            return await handleMarketStructureSlash(interaction);
+        }
+
         // 🚨 Xử lý Nút Bấm, Modal & Menu Lệnh Trade (!trade)
         if (
             (interaction.isButton() && (interaction.customId.startsWith('trade_') || interaction.customId.startsWith('btn_trade_'))) ||
