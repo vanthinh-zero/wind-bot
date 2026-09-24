@@ -189,19 +189,134 @@ function getAskPrice(symbol = 'BTC/cowcoin') {
 // 2. THUẬT TOÁN PHÂN TÍCH KỸ THUẬT THỰC CHIẾN (TA & SMC ENGINE)
 // ==========================================
 function detectMarketStructure(candles, options = {}) {
-    const source = Array.isArray(candles) ? candles.filter(Boolean) : [];
-    const n = Math.max(1, Number(options.swingLength) || 2);
-    if (source.length < n * 2 + 3) return { trend:'NEUTRAL', trendLabel:'Trung tính ⚖️', event:'NONE', eventLabel:'Chưa đủ dữ liệu', points:[], highs:[], lows:[], support:null, resistance:null, lastBreakPrice:null };
-    const highs=[], lows=[];
-    for(let i=n;i<source.length-n;i++){ let hi=true,lo=true; for(let j=1;j<=n;j++){ if(source[i].high<source[i-j].high||source[i].high<source[i+j].high)hi=false; if(source[i].low>source[i-j].low||source[i].low>source[i+j].low)lo=false; } if(hi)highs.push({index:i,price:source[i].high}); if(lo)lows.push({index:i,price:source[i].low}); }
-    const rh=highs.slice(-4),rl=lows.slice(-4),h2=rh.slice(-2),l2=rl.slice(-2);
-    let trend='NEUTRAL'; if(h2.length===2&&l2.length===2){ if(h2[1].price>h2[0].price&&l2[1].price>l2[0].price)trend='BULLISH'; else if(h2[1].price<h2[0].price&&l2[1].price<l2[0].price)trend='BEARISH'; else trend='RANGING'; }
-    const close=source.at(-1).close,lastHigh=rh.at(-1),lastLow=rl.at(-1); let event='NONE',breakPrice=null;
-    if(lastHigh&&close>lastHigh.price){event=trend==='BEARISH'?'CHOCH_BULLISH':'BOS_BULLISH';breakPrice=lastHigh.price;} else if(lastLow&&close<lastLow.price){event=trend==='BULLISH'?'CHOCH_BEARISH':'BOS_BEARISH';breakPrice=lastLow.price;}
-    const points=[]; if(h2.length===2)points.push({type:h2[1].price>h2[0].price?'HH':'LH',...h2[1]}); if(l2.length===2)points.push({type:l2[1].price>l2[0].price?'HL':'LL',...l2[1]});
-    const trendLabel={BULLISH:'Tăng 🟢',BEARISH:'Giảm 🔴',RANGING:'Đi ngang 🟡',NEUTRAL:'Trung tính ⚖️'}[trend];
-    const eventLabel={BOS_BULLISH:'BOS Bullish 🟢',BOS_BEARISH:'BOS Bearish 🔴',CHOCH_BULLISH:'CHoCH Bullish ⚡',CHOCH_BEARISH:'CHoCH Bearish ⚡',NONE:'Chưa có break cấu trúc'}[event];
-    return {trend,trendLabel,event,eventLabel,points:points.sort((a,b)=>a.index-b.index),highs:rh,lows:rl,support:lastLow?.price??null,resistance:lastHigh?.price??null,lastBreakPrice:breakPrice};
+    const source = Array.isArray(candles)
+        ? candles.filter(c => c && Number.isFinite(Number(c.high)) && Number.isFinite(Number(c.low)) && Number.isFinite(Number(c.close)))
+        : [];
+
+    const swingLength = Math.max(1, Math.min(10, Number(options.swingLength) || 2));
+    const minBreakDistance = Math.max(0, Number(options.minBreakDistance) || 0);
+
+    if (source.length < swingLength * 2 + 5) {
+        return {
+            trend: 'NEUTRAL',
+            trendLabel: 'Trung tính ⚖️',
+            event: 'NONE',
+            eventLabel: 'Chưa đủ dữ liệu',
+            points: [],
+            highs: [],
+            lows: [],
+            support: null,
+            resistance: null,
+            lastBreakPrice: null,
+            structure: 'NEUTRAL',
+            explanation: 'Cần thêm nến để xác nhận các swing high/swing low.'
+        };
+    }
+
+    // A swing is confirmed only after swingLength candles have formed on both sides.
+    // This prevents the live chart from treating the newest candle as a confirmed pivot.
+    const highs = [];
+    const lows = [];
+
+    for (let i = swingLength; i < source.length - swingLength; i++) {
+        const pivot = source[i];
+        let isHigh = true;
+        let isLow = true;
+
+        for (let j = 1; j <= swingLength; j++) {
+            if (pivot.high <= source[i - j].high || pivot.high < source[i + j].high) isHigh = false;
+            if (pivot.low >= source[i - j].low || pivot.low > source[i + j].low) isLow = false;
+            if (!isHigh && !isLow) break;
+        }
+
+        if (isHigh) highs.push({ index: i, price: pivot.high });
+        if (isLow) lows.push({ index: i, price: pivot.low });
+    }
+
+    const recentHighs = highs.slice(-6);
+    const recentLows = lows.slice(-6);
+    const lastTwoHighs = recentHighs.slice(-2);
+    const lastTwoLows = recentLows.slice(-2);
+
+    let trend = 'NEUTRAL';
+    if (lastTwoHighs.length === 2 && lastTwoLows.length === 2) {
+        const hh = lastTwoHighs[1].price > lastTwoHighs[0].price;
+        const hl = lastTwoLows[1].price > lastTwoLows[0].price;
+        const lh = lastTwoHighs[1].price < lastTwoHighs[0].price;
+        const ll = lastTwoLows[1].price < lastTwoLows[0].price;
+
+        if (hh && hl) trend = 'BULLISH';
+        else if (lh && ll) trend = 'BEARISH';
+        else trend = 'RANGING';
+    }
+
+    const close = Number(source[source.length - 1].close);
+    const lastHigh = recentHighs.at(-1) || null;
+    const lastLow = recentLows.at(-1) || null;
+
+    let event = 'NONE';
+    let breakPrice = null;
+
+    // Only classify a break when price has actually closed beyond the confirmed pivot.
+    if (lastHigh && close > lastHigh.price + minBreakDistance) {
+        event = trend === 'BEARISH' ? 'CHOCH_BULLISH' : 'BOS_BULLISH';
+        breakPrice = lastHigh.price;
+    } else if (lastLow && close < lastLow.price - minBreakDistance) {
+        event = trend === 'BULLISH' ? 'CHOCH_BEARISH' : 'BOS_BEARISH';
+        breakPrice = lastLow.price;
+    }
+
+    const points = [];
+    if (lastTwoHighs.length === 2) {
+        points.push({
+            type: lastTwoHighs[1].price > lastTwoHighs[0].price ? 'HH' : 'LH',
+            ...lastTwoHighs[1]
+        });
+    }
+    if (lastTwoLows.length === 2) {
+        points.push({
+            type: lastTwoLows[1].price > lastTwoLows[0].price ? 'HL' : 'LL',
+            ...lastTwoLows[1]
+        });
+    }
+
+    points.sort((a, b) => a.index - b.index);
+
+    const trendLabel = {
+        BULLISH: 'Tăng 🟢',
+        BEARISH: 'Giảm 🔴',
+        RANGING: 'Đi ngang 🟡',
+        NEUTRAL: 'Trung tính ⚖️'
+    }[trend];
+
+    const eventLabel = {
+        BOS_BULLISH: 'BOS Bullish 🟢',
+        BOS_BEARISH: 'BOS Bearish 🔴',
+        CHOCH_BULLISH: 'CHoCH Bullish ⚡',
+        CHOCH_BEARISH: 'CHoCH Bearish ⚡',
+        NONE: 'Chưa có break cấu trúc'
+    }[event];
+
+    let explanation = 'Chưa có thay đổi cấu trúc được xác nhận.';
+    if (event === 'BOS_BULLISH') explanation = 'Giá đóng cửa vượt swing high gần nhất theo xu hướng tăng: cấu trúc tiếp diễn.';
+    if (event === 'BOS_BEARISH') explanation = 'Giá đóng cửa phá swing low gần nhất theo xu hướng giảm: cấu trúc tiếp diễn.';
+    if (event === 'CHOCH_BULLISH') explanation = 'Giá phá swing high trong bối cảnh giảm: dấu hiệu thay đổi cấu trúc sang tăng.';
+    if (event === 'CHOCH_BEARISH') explanation = 'Giá phá swing low trong bối cảnh tăng: dấu hiệu thay đổi cấu trúc sang giảm.';
+
+    return {
+        trend,
+        trendLabel,
+        event,
+        eventLabel,
+        points,
+        highs: recentHighs,
+        lows: recentLows,
+        support: lastLow?.price ?? null,
+        resistance: lastHigh?.price ?? null,
+        lastBreakPrice: breakPrice,
+        structure: trend,
+        explanation
+    };
 }
 
 function getMarketStructure(symbol='BTC/cowcoin'){ const m=getMarket(symbol); return detectMarketStructure([...m.candleHistory,m.currentCandle],{swingLength:2}); }
