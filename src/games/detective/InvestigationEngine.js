@@ -7,6 +7,101 @@ class InvestigationEngine {
     return userId + ':' + caseId;
   }
 
+  sessionKey(guildId, caseId) {
+    return guildId + ':' + caseId;
+  }
+
+  joinSession(guildId, caseData, userId) {
+    const key = this.sessionKey(guildId, caseData.id);
+    let session = this.store.get('sessions', key);
+    if (!session) {
+      session = {
+        sessionId:key,
+        guildId,
+        caseId:caseData.id,
+        players:[],
+        inspectedTargets:[],
+        discoveredEvidence:[],
+        interrogatedSuspects:[],
+        interrogationLog:[],
+        discoveredContradictions:[],
+        timelineNotes:[],
+        hypotheses:[],
+        status:'active',
+        startedAt:Date.now()
+      };
+    }
+    if (!session.players.some(player => player.userId === userId)) {
+      session.players.push({userId,role:'investigator',joinedAt:Date.now()});
+    }
+    this.saveSession(session);
+    return session;
+  }
+
+  getSession(guildId, caseId) {
+    return this.store.get('sessions', this.sessionKey(guildId, caseId));
+  }
+
+  investigateSession(guildId, userId, caseData, targetId) {
+    const session = this.joinSession(guildId, caseData, userId);
+    if (session.status !== 'active') return {completed:true,session};
+    const target = caseData.investigationTargets.find(item => item.id === targetId);
+    if (!target) throw new Error('Investigation target not found.');
+    const evidence = caseData.evidence.find(item => item.id === target.evidenceId);
+    if (!evidence) throw new Error('Evidence linked to target was not found.');
+    const found = !session.inspectedTargets.includes(target.id);
+    if (found) {
+      session.inspectedTargets.push(target.id);
+      if (!session.discoveredEvidence.includes(evidence.id)) session.discoveredEvidence.push(evidence.id);
+      this.refreshContradictions(session, caseData);
+      this.saveSession(session);
+    }
+    return {found,target,evidence,session};
+  }
+
+  interrogateSession(guildId, userId, caseData, suspectId, action) {
+    const session = this.joinSession(guildId, caseData, userId);
+    if (session.status !== 'active') return {completed:true,session};
+    const suspect = caseData.suspects.find(item => item.id === suspectId);
+    if (!suspect) throw new Error('Suspect not found.');
+    const statementSet = caseData.statements[suspectId] || {};
+    const response = statementSet[action] || statementSet.base || (suspect.name + ': “Tôi không có gì để nói.”');
+    const record = {suspectId,action,response,playerId:userId,at:Date.now()};
+    session.interrogationLog.push(record);
+    if (!session.interrogatedSuspects.includes(suspectId)) session.interrogatedSuspects.push(suspectId);
+    this.refreshContradictions(session, caseData);
+    this.saveSession(session);
+    return {...record,session};
+  }
+
+  addSessionTimeline(guildId, userId, caseData, eventId) {
+    const session = this.joinSession(guildId, caseData, userId);
+    if (!caseData.timeline.some(item => item.id === eventId)) throw new Error('Timeline event not found.');
+    if (!session.timelineNotes.includes(eventId)) session.timelineNotes.push(eventId);
+    this.saveSession(session);
+    return session;
+  }
+
+  addHypothesis(guildId, userId, caseData, text) {
+    const session = this.joinSession(guildId, caseData, userId);
+    const cleanText = String(text || '').trim();
+    if (!cleanText || cleanText.length > 1000) throw new Error('Hypothesis must be between 1 and 1000 characters.');
+    const hypothesis = {id:'H'+(session.hypotheses.length+1),playerId:userId,text:cleanText,createdAt:Date.now()};
+    session.hypotheses.push(hypothesis);
+    this.saveSession(session);
+    return {hypothesis,session};
+  }
+
+  completeSession(guildId, caseId, result) {
+    const session = this.getSession(guildId, caseId);
+    if (!session || session.status === 'completed') return session;
+    session.status = 'completed';
+    session.result = result;
+    session.completedAt = Date.now();
+    this.saveSession(session);
+    return session;
+  }
+
   start(userId, caseData) {
     const key = this.key(userId, caseData.id);
     let inv = this.store.get('investigations', key);
@@ -88,6 +183,23 @@ class InvestigationEngine {
 
   save(inv) {
     this.store.set('investigations', this.key(inv.userId, inv.caseId), inv);
+  }
+
+  refreshContradictions(session, caseData) {
+    for (const contradiction of caseData.caseModel?.contradictions || []) {
+      const statement = caseData.caseModel.statementDetails.find(item => item.suspectId === contradiction.suspectId && item.question === contradiction.statementQuestion);
+      const evidence = caseData.evidence.find(item => item.id === contradiction.evidenceId);
+      const asked = session.interrogationLog.some(record => record.suspectId === contradiction.suspectId && record.action === contradiction.statementQuestion);
+      const claim = statement?.claimFact, fact = evidence?.fact;
+      const supported = statement?.relatedEvents?.includes(contradiction.eventId) && statement?.relatedEvidence?.includes(contradiction.evidenceId) && evidence?.eventId === contradiction.eventId && claim?.suspectId === contradiction.suspectId && (!fact?.suspectId || fact.suspectId === contradiction.suspectId) && claim?.eventId === contradiction.eventId && fact?.eventId === contradiction.eventId && fact?.source && claim?.predicate === fact?.predicate && claim?.value !== fact?.value;
+      if (asked && supported && session.discoveredEvidence.includes(contradiction.evidenceId) && !session.discoveredContradictions.includes(contradiction.id)) {
+        session.discoveredContradictions.push(contradiction.id);
+      }
+    }
+  }
+
+  saveSession(session) {
+    this.store.set('sessions', this.sessionKey(session.guildId, session.caseId), session);
   }
 }
 

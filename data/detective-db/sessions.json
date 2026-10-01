@@ -1,0 +1,23 @@
+{
+  "1507777855671500852:CASE_1C0846DB": {
+    "sessionId": "1507777855671500852:CASE_1C0846DB",
+    "guildId": "1507777855671500852",
+    "caseId": "CASE_1C0846DB",
+    "players": [
+      {
+        "userId": "910001518328033301",
+        "role": "investigator",
+        "joinedAt": 1790858246904
+      }
+    ],
+    "inspectedTargets": [],
+    "discoveredEvidence": [],
+    "interrogatedSuspects": [],
+    "interrogationLog": [],
+    "discoveredContradictions": [],
+    "timelineNotes": [],
+    "hypotheses": [],
+    "status": "active",
+    "startedAt": 1790858246904
+  }
+}

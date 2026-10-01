@@ -1,0 +1,982 @@
+{
+  "daily:1507777855671500852:2026-10-01": {
+    "id": "CASE_1C0846DB",
+    "dateKey": "2026-10-01",
+    "title": "Three Versions",
+    "difficulty": 3,
+    "summary": "22:40 — chủ tòa nhà bà Mai được phát hiện tại hành lang phía đông. Hai nhân chứng chỉ quan sát được các đoạn khác nhau của cùng một lần ra vào. Các mốc và lời khai không tự giải thích được nhau; hãy dựng lại quan hệ giữa hành động, người quan sát và dấu vết.",
+    "intro": "22:40 — chủ tòa nhà bà Mai được phát hiện tại hành lang phía đông. Hai nhân chứng chỉ quan sát được các đoạn khác nhau của cùng một lần ra vào. Các mốc và lời khai không tự giải thích được nhau; hãy dựng lại quan hệ giữa hành động, người quan sát và dấu vết.",
+    "suspects": [
+      {
+        "id": "S1",
+        "name": "An",
+        "role": "suspect",
+        "personality": "xã giao, tránh xung đột",
+        "relationshipToVictim": "đồng nghiệp lâu năm",
+        "motive": null,
+        "secrets": [],
+        "knowledge": [
+          {
+            "eventId": "T1",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T4",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T5",
+            "kind": "direct",
+            "confidence": 0.9
+          }
+        ],
+        "actualActions": [
+          "T1",
+          "T4",
+          "T5"
+        ],
+        "alibi": {
+          "claim": "không chắc địa điểm chính xác",
+          "window": "21:04–21:08",
+          "verified": false
+        }
+      },
+      {
+        "id": "S2",
+        "name": "Khoa",
+        "role": "culprit",
+        "personality": "nguyên tắc và chú ý giờ giấc",
+        "relationshipToVictim": "đối tác làm ăn",
+        "motive": "bảo vệ một người bạn",
+        "secrets": [],
+        "knowledge": [
+          {
+            "eventId": "T1",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T2",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T3",
+            "kind": "direct",
+            "confidence": 0.9
+          }
+        ],
+        "actualActions": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "alibi": {
+          "claim": "ở một nơi khác",
+          "window": "21:04–21:08",
+          "verified": false
+        }
+      },
+      {
+        "id": "S3",
+        "name": "Minh",
+        "role": "suspect",
+        "personality": "xã giao, tránh xung đột",
+        "relationshipToVictim": "đồng nghiệp lâu năm",
+        "motive": null,
+        "secrets": [],
+        "knowledge": [
+          {
+            "eventId": "T2",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T3",
+            "kind": "direct",
+            "confidence": 0.9
+          },
+          {
+            "eventId": "T4",
+            "kind": "direct",
+            "confidence": 0.9
+          }
+        ],
+        "actualActions": [
+          "T2",
+          "T3",
+          "T4"
+        ],
+        "alibi": {
+          "claim": "không chắc địa điểm chính xác",
+          "window": "21:08–21:12",
+          "verified": false
+        }
+      },
+      {
+        "id": "S4",
+        "name": "Nam",
+        "role": "suspect",
+        "personality": "xã giao, tránh xung đột",
+        "relationshipToVictim": "nhân viên mới",
+        "motive": "che giấu một khoản nợ",
+        "secrets": [
+          "đang che giấu một việc riêng không liên quan đến vụ án"
+        ],
+        "knowledge": [
+          {
+            "factId": "private-secret",
+            "kind": "personal",
+            "confidence": 1
+          }
+        ],
+        "actualActions": [],
+        "alibi": {
+          "claim": "không chắc địa điểm chính xác",
+          "window": "21:08–21:29",
+          "verified": false
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "id": "E1",
+        "name": "Camera Buffer",
+        "description": "Bộ đệm máy ghi xác nhận camera tắt giữa hai lần nhân chứng quan sát hành lang.",
+        "tags": [
+          "time",
+          "technical"
+        ],
+        "sourceReliability": "high",
+        "eventId": "T2",
+        "links": [
+          {
+            "evidenceId": "E2",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": {
+          "predicate": "camera_status",
+          "value": "down",
+          "suspectId": null,
+          "eventId": "T2",
+          "source": "camera_buffer"
+        }
+      },
+      {
+        "id": "E2",
+        "name": "Stopped Watch",
+        "description": "Đồng hồ dừng trong một khoảng thời gian chưa xác định; va đập có thể xảy ra trước khi kim ngừng.",
+        "tags": [
+          "physical",
+          "time"
+        ],
+        "sourceReliability": "medium",
+        "eventId": "T3",
+        "links": [
+          {
+            "evidenceId": "E1",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": null
+      },
+      {
+        "id": "E3",
+        "name": "Wet Footprints",
+        "description": "Dấu giày ướt đi qua hành lang phụ. Kích cỡ không đủ để nhận dạng người mang.",
+        "tags": [
+          "red_herring",
+          "physical"
+        ],
+        "sourceReliability": "medium",
+        "eventId": "T1",
+        "links": [
+          {
+            "evidenceId": "E5",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": null
+      },
+      {
+        "id": "E4",
+        "name": "Service Key Record",
+        "description": "Sổ bàn giao ghi Khoa ký nhận chìa khóa khu hành lang trước khoảng camera gián đoạn.",
+        "tags": [
+          "access",
+          "critical"
+        ],
+        "sourceReliability": "high",
+        "eventId": "T2",
+        "links": [
+          {
+            "evidenceId": "E2",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": {
+          "predicate": "key_received",
+          "value": "yes",
+          "suspectId": "S2",
+          "eventId": "T2",
+          "source": "signed_key_log"
+        }
+      },
+      {
+        "id": "E5",
+        "name": "Call Metadata",
+        "description": "Nhật ký nhà mạng xác nhận một cuộc gọi; nội dung không được lưu.",
+        "tags": [
+          "time",
+          "critical"
+        ],
+        "sourceReliability": "medium",
+        "eventId": "T4",
+        "links": [
+          {
+            "evidenceId": "E2",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": null,
+        "fact": null
+      },
+      {
+        "id": "E6",
+        "name": "Discarded Glove",
+        "description": "Chiếc găng tay có bụi từ kho đạo cụ, nhưng không có dấu vết đủ tin cậy để xác định người dùng.",
+        "tags": [
+          "red_herring",
+          "physical"
+        ],
+        "sourceReliability": "medium",
+        "eventId": "T3",
+        "links": [
+          {
+            "evidenceId": "E1",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": null
+      },
+      {
+        "id": "E7",
+        "name": "Private Note",
+        "description": "Ghi chú của nạn nhân về một vấn đề chưa giải quyết; ghi chú không tự xác định ai đã hành động.",
+        "tags": [
+          "motive",
+          "critical"
+        ],
+        "sourceReliability": "medium",
+        "eventId": "T1",
+        "links": [
+          {
+            "evidenceId": "E5",
+            "relation": "supports_causal_sequence"
+          }
+        ],
+        "suspectId": "S2",
+        "fact": null
+      }
+    ],
+    "investigationTargets": [
+      {
+        "id": "L4",
+        "label": "Hành lang",
+        "evidenceId": "E4"
+      },
+      {
+        "id": "L7",
+        "label": "Quầy tiếp tân",
+        "evidenceId": "E7"
+      },
+      {
+        "id": "L6",
+        "label": "Tủ đồ",
+        "evidenceId": "E6"
+      },
+      {
+        "id": "L3",
+        "label": "Phòng camera",
+        "evidenceId": "E3"
+      },
+      {
+        "id": "L1",
+        "label": "Bàn làm việc",
+        "evidenceId": "E1"
+      },
+      {
+        "id": "L2",
+        "label": "Cửa phụ",
+        "evidenceId": "E2"
+      },
+      {
+        "id": "L5",
+        "label": "Lịch sử điện thoại",
+        "evidenceId": "E5"
+      }
+    ],
+    "statements": {
+      "S1": {
+        "base": "An: “Tôi chỉ có thể xác nhận điều mình trực tiếp biết.”",
+        "time": "An thấy người đó tới sảnh trước khi camera tắt; sau đó không còn quan sát cửa phụ.",
+        "object": "Tôi chỉ có thể nói về những vật dụng mình trực tiếp bàn giao.",
+        "person": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân."
+      },
+      "S2": {
+        "base": "Khoa: “Tôi chỉ có thể xác nhận điều mình trực tiếp biết.”",
+        "time": "Tôi đã ở một khu vực khác trong khoảng thời gian quan trọng.",
+        "object": "Khoa phủ nhận đã nhận chìa khóa khu hành lang.",
+        "person": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân."
+      },
+      "S3": {
+        "base": "Minh: “Tôi chỉ có thể xác nhận điều mình trực tiếp biết.”",
+        "time": "Minh chỉ thấy người đó rời cửa phụ sau khi camera bật lại; họ nhớ camera vẫn sáng trong khoảng gián đoạn.",
+        "object": "Tôi chỉ có thể nói về những vật dụng mình trực tiếp bàn giao.",
+        "person": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân."
+      },
+      "S4": {
+        "base": "Nam: “Tôi chỉ có thể xác nhận điều mình trực tiếp biết.”",
+        "time": "Tôi không theo dõi thời gian đủ sát để xác nhận mốc đó.",
+        "object": "Tôi chưa từng cầm chìa khóa dự phòng; có chuyện riêng tôi không muốn kể.",
+        "person": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân."
+      }
+    },
+    "timeline": [
+      {
+        "id": "T1",
+        "time": "21:04–21:08",
+        "text": "Nhân chứng A thấy một người đến trước khi hành lang khuất tầm nhìn.",
+        "location": "sảnh đông"
+      },
+      {
+        "id": "T2",
+        "time": "21:08–21:12",
+        "text": "Camera mất tín hiệu trong một khoảng ngắn.",
+        "location": "phòng camera"
+      },
+      {
+        "id": "T3",
+        "time": "21:12–21:16",
+        "text": "Nhân chứng B chỉ thấy người đó rời đi sau khi camera hoạt động lại.",
+        "location": "cửa phụ"
+      },
+      {
+        "id": "T4",
+        "time": "21:16–21:20",
+        "text": "Hai nhân chứng so sánh phần thời gian mỗi người quan sát được.",
+        "location": "bàn trực"
+      },
+      {
+        "id": "T5",
+        "time": "21:20–21:24",
+        "text": "Bản đệm xác nhận chính xác khoảng camera mất tín hiệu.",
+        "location": "phòng camera"
+      }
+    ],
+    "caseModel": {
+      "version": 4,
+      "seed": "1507777855671500852:2026-10-01",
+      "archetype": {
+        "id": "conflicting_witnesses",
+        "variantId": "base",
+        "locationType": "hành lang phía đông",
+        "motiveType": "protect_someone",
+        "culpritRole": "observer"
+      },
+      "actorRoles": {
+        "culprit": "S2",
+        "witness_a": "S1",
+        "witness_b": "S3",
+        "innocent": "S4",
+        "partner": "S1"
+      },
+      "initialState": "Hai nhân chứng chỉ quan sát được các đoạn khác nhau của cùng một lần ra vào.",
+      "outcome": "Các lời khai tương thích khi ghép đúng khoảng nhìn thấy; camera giải quyết mốc camera tắt.",
+      "truth": {
+        "victim": {
+          "id": "V1",
+          "name": "bà Mai",
+          "profile": "chủ tòa nhà"
+        },
+        "motive": "bảo vệ một người bạn",
+        "culpritId": "S2",
+        "mechanism": "Hung thủ lợi dụng vùng quan sát rời rạc; hai lời khai tưởng như loại trừ nhau nhưng bộ đệm camera xác định thứ tự.",
+        "mechanismId": "conflicting_witnesses:base",
+        "falseLeadId": "E6",
+        "falseLeadType": "incorrect_witness_assumption",
+        "falseLeadExplanation": "Nhân chứng đoán chiếc găng tay thuộc người rời cửa phụ; hồ sơ kho đạo cụ không xác nhận người sử dụng.",
+        "falseLeadResolution": [
+          "E1",
+          "E5"
+        ],
+        "falseLeadPattern": {
+          "type": "incorrect_witness_assumption",
+          "evidenceTags": [
+            "physical",
+            "red_herring"
+          ],
+          "eventIndex": 2,
+          "subjectRole": null,
+          "fact": null,
+          "resolution": [
+            [
+              [
+                "critical",
+                "time"
+              ],
+              3
+            ],
+            [
+              [
+                "technical",
+                "time"
+              ],
+              1
+            ]
+          ]
+        },
+        "relationships": []
+      },
+      "events": [
+        {
+          "id": "T1",
+          "key": "arrival_sighted",
+          "type": "arrival_partially_observed",
+          "approximateTime": "21:04–21:08",
+          "location": "sảnh đông",
+          "text": "Nhân chứng A thấy một người đến trước khi hành lang khuất tầm nhìn.",
+          "actorRoles": [
+            "culprit",
+            "witness_a"
+          ],
+          "actors": [
+            "S2",
+            "S1"
+          ],
+          "prerequisites": [],
+          "consequences": [
+            "T4"
+          ],
+          "evidence": [
+            "E3",
+            "E7"
+          ],
+          "informationFlow": {
+            "directWitnessRoles": [
+              "culprit",
+              "witness_a"
+            ]
+          }
+        },
+        {
+          "id": "T2",
+          "key": "camera_gap",
+          "type": "camera_state_changed",
+          "approximateTime": "21:08–21:12",
+          "location": "phòng camera",
+          "text": "Camera mất tín hiệu trong một khoảng ngắn.",
+          "actorRoles": [
+            "culprit",
+            "witness_b"
+          ],
+          "actors": [
+            "S2",
+            "S3"
+          ],
+          "prerequisites": [],
+          "consequences": [
+            "T3",
+            "T5"
+          ],
+          "evidence": [
+            "E1",
+            "E4"
+          ],
+          "informationFlow": {
+            "directWitnessRoles": [
+              "culprit",
+              "witness_b"
+            ]
+          }
+        },
+        {
+          "id": "T3",
+          "key": "departure_sighted",
+          "type": "departure_partially_observed",
+          "approximateTime": "21:12–21:16",
+          "location": "cửa phụ",
+          "text": "Nhân chứng B chỉ thấy người đó rời đi sau khi camera hoạt động lại.",
+          "actorRoles": [
+            "culprit",
+            "witness_b"
+          ],
+          "actors": [
+            "S2",
+            "S3"
+          ],
+          "prerequisites": [
+            "T2"
+          ],
+          "consequences": [
+            "T4"
+          ],
+          "evidence": [
+            "E2",
+            "E6"
+          ],
+          "informationFlow": {
+            "directWitnessRoles": [
+              "culprit",
+              "witness_b"
+            ]
+          }
+        },
+        {
+          "id": "T4",
+          "key": "accounts_compared",
+          "type": "partial_accounts_compared",
+          "approximateTime": "21:16–21:20",
+          "location": "bàn trực",
+          "text": "Hai nhân chứng so sánh phần thời gian mỗi người quan sát được.",
+          "actorRoles": [
+            "witness_a",
+            "witness_b"
+          ],
+          "actors": [
+            "S1",
+            "S3"
+          ],
+          "prerequisites": [
+            "T1",
+            "T3"
+          ],
+          "consequences": [
+            "T5"
+          ],
+          "evidence": [
+            "E5"
+          ],
+          "informationFlow": {
+            "directWitnessRoles": [
+              "witness_a",
+              "witness_b"
+            ]
+          }
+        },
+        {
+          "id": "T5",
+          "key": "buffer_checked",
+          "type": "camera_buffer_checked",
+          "approximateTime": "21:20–21:24",
+          "location": "phòng camera",
+          "text": "Bản đệm xác nhận chính xác khoảng camera mất tín hiệu.",
+          "actorRoles": [
+            "witness_a"
+          ],
+          "actors": [
+            "S1"
+          ],
+          "prerequisites": [
+            "T2",
+            "T4"
+          ],
+          "consequences": [],
+          "evidence": [],
+          "informationFlow": {
+            "directWitnessRoles": [
+              "witness_a"
+            ]
+          }
+        }
+      ],
+      "relationships": [],
+      "reconstructionPath": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5"
+      ],
+      "evidenceGraph": [
+        {
+          "id": "E1",
+          "links": [
+            {
+              "evidenceId": "E2",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E2",
+          "links": [
+            {
+              "evidenceId": "E1",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E3",
+          "links": [
+            {
+              "evidenceId": "E5",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E4",
+          "links": [
+            {
+              "evidenceId": "E2",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E5",
+          "links": [
+            {
+              "evidenceId": "E2",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E6",
+          "links": [
+            {
+              "evidenceId": "E1",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        },
+        {
+          "id": "E7",
+          "links": [
+            {
+              "evidenceId": "E5",
+              "relation": "supports_causal_sequence"
+            }
+          ]
+        }
+      ],
+      "statementDetails": [
+        {
+          "question": "time",
+          "text": "An thấy người đó tới sảnh trước khi camera tắt; sau đó không còn quan sát cửa phụ.",
+          "truthType": "truth",
+          "confidence": 0.6,
+          "suspectId": "S1",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T4",
+            "T5"
+          ],
+          "relatedEvidence": [
+            "E3",
+            "E5",
+            "E7"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "object",
+          "text": "Tôi chỉ có thể nói về những vật dụng mình trực tiếp bàn giao.",
+          "truthType": "partial_truth",
+          "confidence": 0.65,
+          "suspectId": "S1",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T4",
+            "T5"
+          ],
+          "relatedEvidence": [
+            "E3",
+            "E5",
+            "E7"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "person",
+          "text": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân.",
+          "truthType": "partial_truth",
+          "confidence": 0.55,
+          "suspectId": "S1",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T4",
+            "T5"
+          ],
+          "relatedEvidence": [
+            "E3",
+            "E5",
+            "E7"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "time",
+          "text": "Tôi đã ở một khu vực khác trong khoảng thời gian quan trọng.",
+          "truthType": "lie",
+          "confidence": 0.6,
+          "suspectId": "S2",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E6",
+            "E7"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "object",
+          "text": "Khoa phủ nhận đã nhận chìa khóa khu hành lang.",
+          "truthType": "lie",
+          "confidence": 0.65,
+          "suspectId": "S2",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E6",
+            "E7"
+          ],
+          "claimFact": {
+            "predicate": "key_received",
+            "value": "no",
+            "suspectId": "S2",
+            "eventId": "T2"
+          },
+          "hiddenReason": null
+        },
+        {
+          "question": "person",
+          "text": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân.",
+          "truthType": "partial_truth",
+          "confidence": 0.55,
+          "suspectId": "S2",
+          "source": "interview",
+          "relatedEvents": [
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E6",
+            "E7"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "time",
+          "text": "Minh chỉ thấy người đó rời cửa phụ sau khi camera bật lại; họ nhớ camera vẫn sáng trong khoảng gián đoạn.",
+          "truthType": "mistaken",
+          "confidence": 0.6,
+          "suspectId": "S3",
+          "source": "interview",
+          "relatedEvents": [
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "claimFact": {
+            "predicate": "camera_status",
+            "value": "up",
+            "suspectId": "S3",
+            "eventId": "T2"
+          },
+          "hiddenReason": null
+        },
+        {
+          "question": "object",
+          "text": "Tôi chỉ có thể nói về những vật dụng mình trực tiếp bàn giao.",
+          "truthType": "partial_truth",
+          "confidence": 0.65,
+          "suspectId": "S3",
+          "source": "interview",
+          "relatedEvents": [
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "person",
+          "text": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân.",
+          "truthType": "partial_truth",
+          "confidence": 0.55,
+          "suspectId": "S3",
+          "source": "interview",
+          "relatedEvents": [
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "relatedEvidence": [
+            "E1",
+            "E2",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "claimFact": null,
+          "hiddenReason": null
+        },
+        {
+          "question": "time",
+          "text": "Tôi không theo dõi thời gian đủ sát để xác nhận mốc đó.",
+          "truthType": "lie",
+          "confidence": 0.6,
+          "suspectId": "S4",
+          "source": "interview",
+          "relatedEvents": [],
+          "relatedEvidence": [],
+          "claimFact": null,
+          "hiddenReason": "che giấu chuyện riêng không liên quan"
+        },
+        {
+          "question": "object",
+          "text": "Tôi chưa từng cầm chìa khóa dự phòng; có chuyện riêng tôi không muốn kể.",
+          "truthType": "lie",
+          "confidence": 0.65,
+          "suspectId": "S4",
+          "source": "interview",
+          "relatedEvents": [],
+          "relatedEvidence": [],
+          "claimFact": null,
+          "hiddenReason": "che giấu chuyện riêng không liên quan"
+        },
+        {
+          "question": "person",
+          "text": "Tôi không biết nội dung các cuộc trao đổi riêng của nạn nhân.",
+          "truthType": "partial_truth",
+          "confidence": 0.55,
+          "suspectId": "S4",
+          "source": "interview",
+          "relatedEvents": [],
+          "relatedEvidence": [],
+          "claimFact": null,
+          "hiddenReason": "che giấu chuyện riêng không liên quan"
+        }
+      ],
+      "contradictions": [
+        {
+          "id": "C1",
+          "suspectId": "S2",
+          "statementQuestion": "object",
+          "evidenceId": "E4",
+          "eventId": "T2",
+          "type": "C1"
+        },
+        {
+          "id": "C2",
+          "suspectId": "S3",
+          "statementQuestion": "time",
+          "evidenceId": "E1",
+          "eventId": "T2",
+          "type": "C2"
+        }
+      ],
+      "fingerprint": {
+        "causalStructure": "{\"mechanism\":\"Hung thủ lợi dụng vùng quan sát rời rạc; hai lời khai tưởng như loại trừ nhau nhưng bộ đệm camera xác định thứ tự.\",\"events\":[{\"type\":\"arrival_partially_observed\",\"requires\":[],\"actors\":[\"culprit\",\"witness_a\"],\"evidence\":[[\"critical\",\"motive\"],[\"physical\",\"red_herring\"]]},{\"type\":\"camera_state_changed\",\"requires\":[],\"actors\":[\"culprit\",\"witness_b\"],\"evidence\":[[\"access\",\"critical\"],[\"technical\",\"time\"]]},{\"type\":\"departure_partially_observed\",\"requires\":[1],\"actors\":[\"culprit\",\"witness_b\"],\"evidence\":[[\"physical\",\"red_herring\"],[\"physical\",\"time\"]]},{\"type\":\"partial_accounts_compared\",\"requires\":[0,2],\"actors\":[\"witness_a\",\"witness_b\"],\"evidence\":[[\"critical\",\"time\"]]},{\"type\":\"camera_buffer_checked\",\"requires\":[1,3],\"actors\":[\"witness_a\"],\"evidence\":[]}],\"edges\":[[0,3],[1,2],[1,4],[2,3],[3,4]],\"evidence\":[{\"tags\":[\"access\",\"critical\"],\"event\":1,\"subject\":\"culprit\",\"fact\":[\"key_received\",\"yes\",\"culprit\",1],\"links\":[[\"supports_causal_sequence\",[\"physical\",\"time\"],2]]},{\"tags\":[\"critical\",\"motive\"],\"event\":0,\"subject\":\"culprit\",\"fact\":null,\"links\":[[\"supports_causal_sequence\",[\"critical\",\"time\"],3]]},{\"tags\":[\"critical\",\"time\"],\"event\":3,\"subject\":null,\"fact\":null,\"links\":[[\"supports_causal_sequence\",[\"physical\",\"time\"],2]]},{\"tags\":[\"physical\",\"red_herring\"],\"event\":0,\"subject\":\"culprit\",\"fact\":null,\"links\":[[\"supports_causal_sequence\",[\"critical\",\"time\"],3]]},{\"tags\":[\"physical\",\"red_herring\"],\"event\":2,\"subject\":\"culprit\",\"fact\":null,\"links\":[[\"supports_causal_sequence\",[\"technical\",\"time\"],1]]},{\"tags\":[\"physical\",\"time\"],\"event\":2,\"subject\":\"culprit\",\"fact\":null,\"links\":[[\"supports_causal_sequence\",[\"technical\",\"time\"],1]]},{\"tags\":[\"technical\",\"time\"],\"event\":1,\"subject\":\"culprit\",\"fact\":[\"camera_status\",\"down\",null,1],\"links\":[[\"supports_causal_sequence\",[\"physical\",\"time\"],2]]}],\"facts\":[[\"culprit\",\"object\",1,\"key_received\",\"no\",\"yes\",[\"access\",\"critical\"]],[\"witness_b\",\"time\",1,\"camera_status\",\"up\",\"down\",[\"technical\",\"time\"]]],\"witnessKnowledge\":[[\"culprit\",\"witness_a\"],[\"culprit\",\"witness_b\"],[\"culprit\",\"witness_b\"],[\"witness_a\",\"witness_b\"],[\"witness_a\"]],\"relationships\":[],\"falseLead\":[\"incorrect_witness_assumption\",[\"physical\",\"red_herring\"],2,[[[\"critical\",\"time\"],3],[[\"technical\",\"time\"],1]]],\"reconstruction\":[0,1,2,3,4]}",
+        "archetype": "conflicting_witnesses",
+        "variant": "base",
+        "motiveType": "protect_someone",
+        "culpritRole": "observer",
+        "locationType": "hành lang phía đông",
+        "evidencePattern": "[[[\"physical\",\"red_herring\"],[\"critical\",\"motive\"]],[[\"technical\",\"time\"],[\"access\",\"critical\"]],[[\"physical\",\"time\"],[\"physical\",\"red_herring\"]],[[\"critical\",\"time\"]],[]]",
+        "timelinePattern": "arrival_partially_observed>camera_state_changed>departure_partially_observed>partial_accounts_compared>camera_buffer_checked",
+        "contradictionPattern": "object:T2|time:T2",
+        "relationshipPattern": "none"
+      }
+    },
+    "solution": {
+      "culpritId": "S2",
+      "culpritName": "Khoa",
+      "motive": "bảo vệ một người bạn",
+      "requiredEvidence": [
+        "E1",
+        "E4",
+        "E5",
+        "E7"
+      ],
+      "validTimeline": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "keywords": [
+        "camera",
+        "thời gian",
+        "chìa khóa"
+      ],
+      "reconstruction": {
+        "sequence": [
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "mechanism": "Hung thủ lợi dụng vùng quan sát rời rạc; hai lời khai tưởng như loại trừ nhau nhưng bộ đệm camera xác định thứ tự."
+      },
+      "falseLeadId": "E6",
+      "falseLeadExplanation": "Nhân chứng đoán chiếc găng tay thuộc người rời cửa phụ; hồ sơ kho đạo cụ không xác nhận người sử dụng."
+    }
+  }
+}
